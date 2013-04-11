@@ -1,12 +1,11 @@
 JSMiniGame
 ==========
 
-Thinked, designed and developed by Hermine
+Un super jeux en JS !
+=====================
 
-Co-Thinked and Co-developed by Jibux
-
-
-Un super jeux en JS.
+*Thinked, designed and developed by Hermine
+*Co-Thinked and Co-developed by Jibux
 
 - Il est pas beau mon readme ?
 - Il sert à rien ton readme !
