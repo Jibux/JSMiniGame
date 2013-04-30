@@ -71,22 +71,19 @@ function init(){
 	var top=map.size.height;
 	var left=map.size.height;
 
-	for(var i=-1;i<=1;i++){
-		for(var j=-1;j<=1;j++){
-			var id="map_"+map.position.z+"_"+(map.position.x+i)+"_"+(map.position.y+j);
+	for(var y=-1;y<=1;y++){
+		for(var x=-1;x<=1;x++){
+			var id="map_"+(map.position.x+x)+"_"+(map.position.y+y)+"_"+map.position.z;
 			if(mapContent[id]!=undefined){
 				
-				var repere = changeRepere({
-					x:left*j*unit,
-					y:top*i*unit
-				},true);
+				var repere = changeRepere({x:left*x*unit,y:top*y*unit},true);
 				drawMap(id,repere.y+offset.y,repere.x+offset.x);
 				
-				if(mapContent["map_"+map.position.z+"_"+(map.position.x+i+1)+"_"+(map.position.y+j)]==undefined){
-					$("#"+id).addClass("border_bottom");
-				}
-				if(mapContent["map_"+map.position.z+"_"+(map.position.x+i)+"_"+(map.position.y+j+1)]==undefined){
+				if(mapContent["map_"+(map.position.x+x+1)+"_"+(map.position.y+y)+"_"+map.position.z]==undefined){
 					$("#"+id).addClass("border_right");
+				}
+				if(mapContent["map_"+(map.position.x+x)+"_"+(map.position.y+y+1)+"_"+map.position.z]==undefined){
+					$("#"+id).addClass("border_bottom");
 				}
 			}
 		}
@@ -189,7 +186,7 @@ function move(mapID,persoID,x,y){
 	
 	var positionPerso= changeRepere({"x":left/unit,"y":top/unit},false);
 	var positionDestination= changeRepere({"x":x/unit,"y":y/unit},false);
-	console.log(positionPerso.x+" "+positionDestination.x);
+	
 	
 	//direction x
 	if(positionPerso.x<positionDestination.x){
@@ -203,7 +200,6 @@ function move(mapID,persoID,x,y){
 	}else if(positionPerso.y>positionDestination.y){
 		direction(persoID,DIRECTIONS.DOWN);
 	}
-	
 	//move X
 	if(left<x){
 		$("#"+persoID).css("left",(left*1 +unitMove)+"px");

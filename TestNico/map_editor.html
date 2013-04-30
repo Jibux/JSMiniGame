@@ -11,7 +11,8 @@
 			#mapContainer{float:left;margin:20px;display:block;width:600px;height:600px;margin-left:100px;padding:10px;background:#000;position:relative;overflow:hidden;}
 				#mapContainer .message{position:absolute;display:block;top:280px;width:100%;text-align:center;color:#FFF;font-family:Emporium;font-size:40px;opacity:0.9;background: #ffb76b;background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmYjc2YiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjUwJSIgc3RvcC1jb2xvcj0iI2ZmYTczZCIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjUxJSIgc3RvcC1jb2xvcj0iI2ZmN2MwMCIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmZjdmMDQiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);background: -moz-linear-gradient(top,  #ffb76b 0%, #ffa73d 50%, #ff7c00 51%, #ff7f04 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffb76b), color-stop(50%,#ffa73d), color-stop(51%,#ff7c00), color-stop(100%,#ff7f04));background: -webkit-linear-gradient(top,  #ffb76b 0%,#ffa73d 50%,#ff7c00 51%,#ff7f04 100%);background: -o-linear-gradient(top,  #ffb76b 0%,#ffa73d 50%,#ff7c00 51%,#ff7f04 100%);background: -ms-linear-gradient(top,  #ffb76b 0%,#ffa73d 50%,#ff7c00 51%,#ff7f04 100%);background: linear-gradient(to bottom,  #ffb76b 0%,#ffa73d 50%,#ff7c00 51%,#ff7f04 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffb76b', endColorstr='#ff7f04',GradientType=0 );-webkit-background-clip: text;-webkit-text-fill-color: transparent;-webkit-animation:  LOADING 5s infinite;-webkit-animation-direction:alternate;}
 				#mapContainer .message:before{content:"";display:block;background:#fff;width:0px;height:1px;border-radius:100%;left:200px;position:absolute;top:25px;-webkit-animation:  LOADING_1 10s infinite;-webkit-animation-delay:5s;}
-			#scriptMap{display:inline-block;width:65%;height:10%;padding:10px;}
+			#scriptMaps{display:inline-block;width:65%;height:10%;padding:10px;}
+			#scriptMap{visibility:hidden;}
 			
 			.editableMap{cursor:pointer;}
 			.map{background:#999;display:block;position:absolute;}
@@ -38,11 +39,14 @@
 			#mapContainer .goUp:after{content:"";display:block;left:43%;top:0;position:absolute;width: 0px;height: 0px;border-style: solid;border-width: 0 25px 15px 25px;border-color: transparent transparent #a3a3a3 transparent;}
 			#mapContainer .goDown{bottom:0px;left:0;}
 			#mapContainer .goDown:after{content:"";display:block;left:43%;bottom:0;position:absolute;width: 0px;height: 0px;border-style: solid;border-width: 15px 25px 0 25px;border-color: #a3a3a3 transparent transparent transparent;}
+			
+			/*.coordinates{color:#fff;text-shadow:0 0 0 5px #000;font-size:20px;width:100%;height:100%;text-align:center;}*/
+			
 		</style>
 	</head>
 	<body>
 		<div id="tileset">
-			<div class="tile grass_water_1_1 selected"></div>
+			<div class="tile grass_water_1_1"></div>
 			<div class="tile grass_water_2_1"></div>
 			<div class="tile grass_water_3_1"></div>
 			<div class="tile grass_water_4_1"></div>
@@ -118,7 +122,10 @@
 			<button id="positionButton">Set position and reload</button>
 		</div>
 		<div id="mapContainer"><span class="message">Waiting for position...</span></div>
+		<textarea id="scriptMaps"></textarea>
 		<textarea id="scriptMap"></textarea>
+		
+		
 		<script src="jquery-1.9.1.min.js"   type="text/javascript"></script>
 		<script src="maps.js"   type="text/javascript"></script>
 		<script>
@@ -139,6 +146,13 @@
 		var mouseDown=false;
 		
 		$("document").ready(function(){
+			//temp
+			$("input[name='X']").val(0);
+			$("input[name='Y']").val(0);
+			$("input[name='Z']").val(0);
+			init();
+			//temp end
+		
 			$("#positionButton").click(function(){
 				init();
 			});
@@ -147,24 +161,26 @@
 		function init(){
 			if($("#scriptMap").val()!=""){
 				previousJson+=$("#scriptMap").val()+"\n";
-				console.log(previousJson);
 			}
+			
 			position={x:$("input[name='X']").val(),y:$("input[name='Y']").val(),z:$("input[name='Z']").val()};
 			$("#mapContainer").html('');
 			$("#mapContainer").append("<div class='goDown'></div>").append("<div class='goUp'></div>").append("<div class='goLeft'></div>").append("<div class='goRight'></div>");
 			
-			mapID='map_'+position.z+'_'+position.x+'_'+position.y;
+			mapID='map_'+position.x+'_'+position.y+'_'+position.z;
 
 			map=mapContent[mapID];
 			//INITIALISATION
-	
-			var offsetY=100;
-			var offsetX=100;
-			for(var j=-1;j<=1;j++){
-				for(var i=-1;i<=1;i++){
-					var id="map_"+position.z+"_"+(position.x*1+i)+"_"+(position.y*1+j);
+			var offset={x:100,y:100};
+
+			for(var y=-1;y<=1;y++){
+				for(var x=-1;x<=1;x++){
+					var id="map_"+(position.x*1+x)+"_"+(position.y*1+y)+"_"+position.z;
 					if(mapContent[id]!=undefined || id==mapID){
-						drawMap(id,offsetY+((mapConfiguration.height)*i*mapConfiguration.unit),offsetX+((mapConfiguration.width)*j*mapConfiguration.unit));
+						var top=offset.y+((mapConfiguration.height)*y*mapConfiguration.unit);
+						var left=offset.x+((mapConfiguration.width)*x*mapConfiguration.unit);
+						drawMap(id,top,left);
+						$("#"+id).append('<div class="coordinates">X : '+(position.x*1+x)+'; Y : '+(position.y*1+y)+' Z : '+position.z+'</div');
 					}
 					if(id==mapID){
 						$("#"+id).removeClass("notEditable").addClass("editableMap");
@@ -199,10 +215,11 @@
 					changeTile(this);
 				}
 			});
+			$(".tile").css("height",mapConfiguration.unit);
+			$(".tile").css("width",mapConfiguration.unit);
 		}
 		
 		function drawMap(mapID,top,left){
-			var unit = mapConfiguration.unit;
 			$("#mapContainer").append('<div id="'+mapID+'" class="map notEditable" style="left:'+left+'px;top:'+top+'px;"></div');
 			$("#"+mapID).css("width",(mapConfiguration.width*mapConfiguration.unit)+"px");
 			$("#"+mapID).css("height",(mapConfiguration.height*mapConfiguration.unit)+"px");
@@ -215,7 +232,7 @@
 							type+=" noPass";
 						}
 					}
-					$("#"+mapID).prepend("<div class='tile "+type+"' id='tile_"+x+"_"+y+"' style='left:"+x*unit+"px;top:"+y*unit+"px;"+"'></div>");
+					$("#"+mapID).prepend("<div class='tile "+type+"' id='tile_"+x+"_"+y+"' style='left:"+x*mapConfiguration.unit+"px;top:"+y*mapConfiguration.unit+"px;"+"'></div>");
 				}
 			}
 		}
@@ -226,40 +243,32 @@
 		}
 		
 		function getJson(){
-			var mapJsonScript =previousJson;
+			var mapJsonScript ="";
 			var  occupation=new Array();
 			
-			var name='map_'+position.z+'_'+position.x+'_'+position.y;
+			var name='map_'+position.x+'_'+position.y+'_'+position.z;
 			mapContent[name]=new Object();
 		
 
-			mapJsonScript+='mapContent["map_'+position.z+'_'+position.x+'_'+position.y+'"]={';
+			mapJsonScript+='mapContent["'+name+'"]={';
 			
-			mapContent[name].position={z:position.z,x:position.x,y:position.y};
-			mapJsonScript+="position:{z:"+position.z+",x:"+position.x+",y:"+position.y+"},";
+			mapContent[name].position={x:position.x,y:position.y,z:position.z};
+			mapJsonScript+="position:{x:"+position.x+",y:"+position.y+",z:"+position.z+"},";
 			
 			mapContent[name].size={width:mapConfiguration.width,height:mapConfiguration.height};
 			mapJsonScript+="size:{width:"+mapConfiguration.width+",height:"+mapConfiguration.height+"},";
-
-			var y=mapConfiguration.height-1;
-			var x=mapConfiguration.width-1;
-			
+		
 			mapContent[name].tile=new Object();
 			mapJsonScript+="tile:{";
 			$(".editableMap .tile").each(function(){
+				var tilePosition={x:Math.floor($(this).position().left/mapConfiguration.unit),y:Math.floor($(this).position().top/mapConfiguration.unit)};
 				var tileClass = $(this).attr("class").replace('tile','').replace(' ','');
 				if(tileClass!=""){
-					mapContent[name].tile[x+"_"+y]=tileClass;
-					mapJsonScript+='"'+x+"_"+y+'"'+":"+'"'+tileClass+'"'+",";
+					mapContent[name].tile[tilePosition.x+"_"+tilePosition.y]=tileClass;
+					mapJsonScript+='"'+tilePosition.x+"_"+tilePosition.y+'"'+":"+'"'+tileClass+'"'+",";
 				}
 				if($.inArray(tileClass, obstructiveTiles)>0){
-					occupation.push('"'+x+"_"+y+'"');
-				}
-				
-				x--;
-				if(x<0){
-					y--;
-					x=mapConfiguration.width-1;
+					occupation.push('"'+tilePosition.x+"_"+tilePosition.y+'"');
 				}
 			});
 			
@@ -274,6 +283,8 @@
 			}
 			mapJsonScript+="}}";
 			$("#scriptMap").val(mapJsonScript);
+			$("#scriptMaps").val(previousJson+""+mapJsonScript);
+			
 		}
 		</script>
 	</body>
