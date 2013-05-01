@@ -4,6 +4,8 @@ var DIRECTIONS={"UP":"UP","DOWN":"DOWN","RIGHT":"RIGHT","LEFT":"LEFT"};
 
 var moves=new Object();
 
+var isMoving = false;
+
 var speaking =false;
 
 var mapOrig=[
@@ -198,8 +200,8 @@ function moveTo(mapID,persoID,x,y){
 	$("#"+persoID).find(".perso").removeClass("stand");
 	$("#"+persoID).find(".perso").addClass("walk");
 	
-	var left =$("#"+persoID).css("left").substring(0,$("#"+persoID).css("left").length -2);
-	var top =$("#"+persoID).css("top").substring(0, $("#"+persoID).css("top").length - 2);
+	var left = $("#"+persoID).css("left").substring(0,$("#"+persoID).css("left").length - 2);
+	var top = $("#"+persoID).css("top").substring(0, $("#"+persoID).css("top").length - 2);
 	
 	var map1 = copyMap(mapOrig);
 	var graph = new Graph(map1);
@@ -243,7 +245,9 @@ function move(mapID,persoID,mapArray,nodes){
 			console.log("Pos ("+nodes[i].x+", "+nodes[i].y+")");
 			var posX=nodes[i].x*unit;
 			var posY=(map.size.height-nodes[i].y)*unit;
-			moveOld(mapID,persoID,posX,posY);
+			isMoving = true;
+			moveCss(mapID,persoID,posX,posY);
+			//while(isMoving) {console.log("TTEST");}
 		} else {
 			// Ennemi en vue
 			console.log("Ennemi at ("+nodes[i].x+", "+nodes[i].y+")");
@@ -262,15 +266,14 @@ function move(mapID,persoID,mapArray,nodes){
 	}
 }
 
-function moveOld(mapID,persoID,x,y){
-	var unitMove=Math.round(unit/4);
+function moveCss(mapID,persoID,x,y){
+	var unitMove=Math.round(unit/10);
 	
-	var left =$("#"+persoID).css("left").substring(0,$("#"+persoID).css("left").length -2);
-	var top =$("#"+persoID).css("top").substring(0, $("#"+persoID).css("top").length - 2);
+	var left = $("#"+persoID).css("left").substring(0,$("#"+persoID).css("left").length - 2);
+	var top = $("#"+persoID).css("top").substring(0, $("#"+persoID).css("top").length - 2);
 	
 	var positionPerso= changeRepere({"x":left/unit,"y":top/unit},false);
 	var positionDestination= changeRepere({"x":x/unit,"y":y/unit},false);
-	
 	
 	//direction x
 	if(positionPerso.x<positionDestination.x){
@@ -300,9 +303,10 @@ function moveOld(mapID,persoID,x,y){
 	//continue moving
 	if(left!=x || top!=y){
 		setTimeout(function() {
-		    moveOld(mapID,persoID,x,y);
+		    moveCss(mapID,persoID,x,y);
 		}, 150);
 	}else{
+		isMoving = false;
 		$("#"+persoID).find(".perso").addClass("stand");
 		$("#"+persoID).find(".perso").removeClass("walk");
 	}
