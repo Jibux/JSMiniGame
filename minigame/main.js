@@ -6,7 +6,42 @@ var moves=new Object();
 
 var speaking =false;
 
+var mapOrig=[
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1],
+[1,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,1,0,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+];
 
+function copyMap(map) {
+	var map2=[];
+	
+	for (var i=0; i < map.length; i++) {
+		map2[i]=[];
+		for (var j=0; j < map[i].length; j++) {
+			map2[i][j] = map[i][j];
+		}
+		//map2[i] = map[i].slice(0);
+	}
+	
+	return map2;
+}
 
 $("document").ready(function(){
 	window.onkeypress=function(e){
@@ -30,6 +65,7 @@ $("document").ready(function(){
 		var position=getMouseMapPosition(ID,e);
 		var x = position.x;
 		var y = position.y;
+		console.log("x:"+x+" y:"+y);
 		moveTo(ID,"user",x,y);
 	});
 	clock();
@@ -157,12 +193,25 @@ function getNextPosition(persoID){
 /////////////////////////////////////////////////////////////////////////////////////////////////
 		
 function moveTo(mapID,persoID,x,y){
-	var posX=x*unit;
-	var posY=(map.size.height-y)*unit;
+	//var posX=x*unit;
+	//var posY=(map.size.height-y)*unit;
 	$("#"+persoID).find(".perso").removeClass("stand");
 	$("#"+persoID).find(".perso").addClass("walk");
 	
-	move(mapID,persoID,posX,posY);
+	var left =$("#"+persoID).css("left").substring(0,$("#"+persoID).css("left").length -2);
+	var top =$("#"+persoID).css("top").substring(0, $("#"+persoID).css("top").length - 2);
+	
+	var map1 = copyMap(mapOrig);
+	var graph = new Graph(map1);
+	
+	var start = graph.nodes[left/unit][top/unit];
+    var end = graph.nodes[x][y];
+	var map2 = graph.input;
+	
+	var result = astar.search(graph.nodes, start, end, true);
+	
+	//moveOld(mapID,persoID,posX,posY);
+	move(mapID,persoID,map1,result);
 }
 
 function direction(persoID,dir){
@@ -184,8 +233,36 @@ function direction(persoID,dir){
 		perso.addClass("up");
 	}
 }
-		
-function move(mapID,persoID,x,y){
+
+function move(mapID,persoID,mapArray,nodes){
+	
+	for(var i=0;i<nodes.length;i++) {
+		if(mapArray[nodes[i].x][nodes[i].y]!=2) {
+			// Pas d'ennemi
+			//mapArray[nodes[i].x][nodes[i].y]=4;
+			console.log("Pos ("+nodes[i].x+", "+nodes[i].y+")");
+			var posX=nodes[i].x*unit;
+			var posY=(map.size.height-nodes[i].y)*unit;
+			moveOld(mapID,persoID,posX,posY);
+		} else {
+			// Ennemi en vue
+			console.log("Ennemi at ("+nodes[i].x+", "+nodes[i].y+")");
+			
+			mapArray=copyMap(mapOrig);
+			mapArray[nodes[i].x][nodes[i].y]=0;
+			var graph = new Graph(mapArray);
+			
+			var start = graph.nodes[nodes[i-1].x][nodes[i-1].y];
+			var end = graph.nodes[nodes[nodes.length-1].x][nodes[nodes.length-1].y];
+			var result = astar.search(graph.nodes, start, end, true);
+			//console.log("RESULT");
+			//console.log(result);
+			move(mapID,persoID,mapArray,result);
+		}
+	}
+}
+
+function moveOld(mapID,persoID,x,y){
 	var unitMove=Math.round(unit/4);
 	
 	var left =$("#"+persoID).css("left").substring(0,$("#"+persoID).css("left").length -2);
@@ -223,7 +300,7 @@ function move(mapID,persoID,x,y){
 	//continue moving
 	if(left!=x || top!=y){
 		setTimeout(function() {
-		    move(mapID,persoID,x,y);
+		    moveOld(mapID,persoID,x,y);
 		}, 150);
 	}else{
 		$("#"+persoID).find(".perso").addClass("stand");
