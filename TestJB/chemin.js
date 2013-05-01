@@ -1,5 +1,5 @@
 var mapOrig=[
-[1,1,1,1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,1,0],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
 [1,1,0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0],
 [1,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
 [1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
@@ -107,7 +107,7 @@ function copyMap(map) {
 $("document").ready(function(){	
 	console.log("BEGIN");
 	
-	var map1=copyMap(mapOrig);
+	var map1 = copyMap(mapOrig);
 	var graph = new Graph(map1);
 	
 	var start = graph.nodes[0][0];
