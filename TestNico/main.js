@@ -19,11 +19,18 @@ $("document").ready(function(){
 	init();
 	$(".tile").click(function(e){
 		var ID=$(this).parent().attr('id');
-		moveTo(ID,"user",getMouseMapPosition(ID,e).x,getMouseMapPosition(ID,e).y);
+		var position=getMouseMapPosition(ID,e);
+		var x = position.x;
+		var y = position.y;
+		console.log("x:"+x+" y:"+y);
+		moveTo(ID,"user",x,y);
 	});
 	$(".perso").click(function(e){
 		var ID=$(this).parent().parent().attr('id');
-		moveTo(ID,"user",getMouseMapPosition(ID,e).x,getMouseMapPosition(ID,e).y);
+		var position=getMouseMapPosition(ID,e);
+		var x = position.x;
+		var y = position.y;
+		moveTo(ID,"user",x,y);
 	});
 	clock();
 	setInterval(function(){
@@ -154,7 +161,7 @@ function moveTo(mapID,persoID,x,y){
 	var posY=(map.size.height-y)*unit;
 	$("#"+persoID).find(".perso").removeClass("stand");
 	$("#"+persoID).find(".perso").addClass("walk");
-				
+	
 	move(mapID,persoID,posX,posY);
 }
 
@@ -283,7 +290,7 @@ function changeRepere(position,toISO){
 	
 	if(!toISO){
 		var posX2 = Math.floor(((Math.sqrt(2)/2)*(posX+posY*2)/unit))-10;
-		var posY2 = map.size.height-Math.floor((Math.sqrt(2)/2)*(posY*2-posX)/unit)-10;		
+		var posY2 = map.size.height-1-Math.floor((Math.sqrt(2)/2)*(posY*2-posX)/unit)-10;
 		
 		return {"x":posX2,"y":posY2};
 	}else{
