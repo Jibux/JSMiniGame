@@ -237,7 +237,7 @@ function direction(persoID,dir){
 }
 
 function move(mapID,persoID,mapArray,nodes){
-	
+	var timeout = 0;
 	for(var i=0;i<nodes.length;i++) {
 		if(mapArray[nodes[i].x][nodes[i].y]!=2) {
 			// Pas d'ennemi
@@ -246,7 +246,11 @@ function move(mapID,persoID,mapArray,nodes){
 			var posX=nodes[i].x*unit;
 			var posY=(map.size.height-nodes[i].y)*unit;
 			isMoving = true;
-			moveCss(mapID,persoID,posX,posY);
+			setTimeout(function() {
+				moveCss(mapID,persoID,posX,posY);
+			}, timeout);
+			timeout=7500;
+			
 			//while(isMoving) {console.log("TTEST");}
 		} else {
 			// Ennemi en vue
@@ -267,7 +271,7 @@ function move(mapID,persoID,mapArray,nodes){
 }
 
 function moveCss(mapID,persoID,x,y){
-	var unitMove=Math.round(unit/10);
+	var unitMove=Math.round(unit/5);
 	
 	var left = $("#"+persoID).css("left").substring(0,$("#"+persoID).css("left").length - 2);
 	var top = $("#"+persoID).css("top").substring(0, $("#"+persoID).css("top").length - 2);
