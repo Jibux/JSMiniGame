@@ -4,9 +4,46 @@ var DIRECTIONS={"UP":"UP","DOWN":"DOWN","RIGHT":"RIGHT","LEFT":"LEFT"};
 
 var moves=new Object();
 
+var isMoving = false;
+
 var speaking =false;
 
+var mapOrig=[
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1],
+[1,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,1,0,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+];
 
+function copyMap(map) {
+	var map2=[];
+	
+	for (var i=0; i < map.length; i++) {
+		map2[i]=[];
+		for (var j=0; j < map[i].length; j++) {
+			map2[i][j] = map[i][j];
+		}
+		//map2[i] = map[i].slice(0);
+	}
+	
+	return map2;
+}
 
 $("document").ready(function(){
 	window.onkeypress=function(e){
@@ -19,11 +56,19 @@ $("document").ready(function(){
 	init();
 	$(".tile").click(function(e){
 		var ID=$(this).parent().attr('id');
-		moveTo(ID,"user",getMouseMapPosition(ID,e).x,getMouseMapPosition(ID,e).y);
+		var position=getMouseMapPosition(ID,e);
+		var x = position.x;
+		var y = position.y;
+		console.log("x:"+x+" y:"+y);
+		moveTo(ID,"user",x,y);
 	});
 	$(".perso").click(function(e){
 		var ID=$(this).parent().parent().attr('id');
-		moveTo(ID,"user",getMouseMapPosition(ID,e).x,getMouseMapPosition(ID,e).y);
+		var position=getMouseMapPosition(ID,e);
+		var x = position.x;
+		var y = position.y;
+		console.log("x:"+x+" y:"+y);
+		moveTo(ID,"user",x,y);
 	});
 	clock();
 	setInterval(function(){
@@ -33,15 +78,13 @@ $("document").ready(function(){
 
 function clock(){
 	var date = new Date();
-	var backgroundPos=Math.round((date.getHours()*60+date.getMinutes())/(1440)*9999);
-	//var backgroundPos=Math.round((date.getSeconds()*1000+date.getMilliseconds())/(60000)*9999);
-	console.log(backgroundPos);
-	$("#screen").css("background-position-y",backgroundPos+"px");
+	var backgroundPos=Math.round((date.getHours()*date.getMinutes())/(1440)*10000+5000);
+	$("#screen").css("background-position",backgroundPos+"px 1px");
 }
 
 function userSpeak(){
 	if(!speaking){
-		$("#user .perso").append("<div class='buble thinck'><div class='queue'></div><input type='text' id='userSpeak'/></div>");
+		$("#user .perso").append("<div class='buble'><input type='text' id='userSpeak'/></div>");
 		$("#userSpeak").focus();
 		speaking=true;
 	}else{
@@ -152,12 +195,25 @@ function getNextPosition(persoID){
 /////////////////////////////////////////////////////////////////////////////////////////////////
 		
 function moveTo(mapID,persoID,x,y){
-	var posX=x*unit;
-	var posY=(map.size.height-y)*unit;
+	//var posX=x*unit;
+	//var posY=(map.size.height-y)*unit;
 	$("#"+persoID).find(".perso").removeClass("stand");
 	$("#"+persoID).find(".perso").addClass("walk");
-				
-	move(mapID,persoID,posX,posY);
+	
+	var left = $("#"+persoID).css("left").substring(0,$("#"+persoID).css("left").length - 2);
+	var top = $("#"+persoID).css("top").substring(0, $("#"+persoID).css("top").length - 2);
+	
+	var map1 = copyMap(mapOrig);
+	var graph = new Graph(map1);
+	
+	var start = graph.nodes[left/unit][top/unit];
+    var end = graph.nodes[x][y];
+	var map2 = graph.input;
+	
+	var result = astar.search(graph.nodes, start, end, true);
+	
+	//moveOld(mapID,persoID,posX,posY);
+	move(mapID,persoID,map1,result);
 }
 
 function direction(persoID,dir){
@@ -179,16 +235,49 @@ function direction(persoID,dir){
 		perso.addClass("up");
 	}
 }
-		
-function move(mapID,persoID,x,y){
-	var unitMove=Math.round(unit/4);
+
+function move(mapID,persoID,mapArray,nodes){
+	var timeout = 0;
+	for(var i=0;i<nodes.length;i++) {
+		if(mapArray[nodes[i].x][nodes[i].y]!=2) {
+			// Pas d'ennemi
+			//mapArray[nodes[i].x][nodes[i].y]=4;
+			console.log("Pos ("+nodes[i].x+", "+nodes[i].y+")");
+			var posX=nodes[i].x*unit;
+			var posY=(map.size.height-nodes[i].y)*unit;
+			isMoving = true;
+			setTimeout(function() {
+				moveCss(mapID,persoID,posX,posY);
+			}, timeout);
+			timeout=7500;
+			
+			//while(isMoving) {console.log("TTEST");}
+		} else {
+			// Ennemi en vue
+			console.log("Ennemi at ("+nodes[i].x+", "+nodes[i].y+")");
+			
+			mapArray=copyMap(mapOrig);
+			mapArray[nodes[i].x][nodes[i].y]=0;
+			var graph = new Graph(mapArray);
+			
+			var start = graph.nodes[nodes[i-1].x][nodes[i-1].y];
+			var end = graph.nodes[nodes[nodes.length-1].x][nodes[nodes.length-1].y];
+			var result = astar.search(graph.nodes, start, end, true);
+			//console.log("RESULT");
+			//console.log(result);
+			move(mapID,persoID,mapArray,result);
+		}
+	}
+}
+
+function moveCss(mapID,persoID,x,y){
+	var unitMove=Math.round(unit/5);
 	
-	var left =$("#"+persoID).css("left").substring(0,$("#"+persoID).css("left").length -2);
-	var top =$("#"+persoID).css("top").substring(0, $("#"+persoID).css("top").length - 2);
+	var left = $("#"+persoID).css("left").substring(0,$("#"+persoID).css("left").length - 2);
+	var top = $("#"+persoID).css("top").substring(0, $("#"+persoID).css("top").length - 2);
 	
 	var positionPerso= changeRepere({"x":left/unit,"y":top/unit},false);
 	var positionDestination= changeRepere({"x":x/unit,"y":y/unit},false);
-	
 	
 	//direction x
 	if(positionPerso.x<positionDestination.x){
@@ -218,9 +307,10 @@ function move(mapID,persoID,x,y){
 	//continue moving
 	if(left!=x || top!=y){
 		setTimeout(function() {
-		    move(mapID,persoID,x,y);
+		    moveCss(mapID,persoID,x,y);
 		}, 150);
 	}else{
+		isMoving = false;
 		$("#"+persoID).find(".perso").addClass("stand");
 		$("#"+persoID).find(".perso").removeClass("walk");
 	}
@@ -285,7 +375,7 @@ function changeRepere(position,toISO){
 	
 	if(!toISO){
 		var posX2 = Math.floor(((Math.sqrt(2)/2)*(posX+posY*2)/unit))-10;
-		var posY2 = map.size.height-Math.floor((Math.sqrt(2)/2)*(posY*2-posX)/unit)-10;		
+		var posY2 = map.size.height-1-Math.floor((Math.sqrt(2)/2)*(posY*2-posX)/unit)-10;
 		
 		return {"x":posX2,"y":posY2};
 	}else{
