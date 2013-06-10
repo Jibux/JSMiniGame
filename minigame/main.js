@@ -4,6 +4,8 @@ var DIRECTIONS={"UP":"UP","DOWN":"DOWN","RIGHT":"RIGHT","LEFT":"LEFT"};
 
 var MOVE_FINISHED = -1;
 var MOVE_ON = 0;
+var STEP_DURATION = 770;
+var FOOT_STEP_DURATION = 150;
 
 var moves=new Object();
 
@@ -62,7 +64,7 @@ $("document").ready(function() {
 		var position = getMouseMapPosition(ID,e);
 		var x = position.x;
 		var y = position.y;
-		console.log("x:"+x+" y:"+y+" ID "+ID);
+		console.log("x:"+x+" y:"+y);
 		moveTo(ID,"user",x,y);
 	});
 	$(".perso").click(function(e) {
@@ -70,7 +72,7 @@ $("document").ready(function() {
 		var position = getMouseMapPosition(ID,e);
 		var x = position.x;
 		var y = position.y;
-		console.log("x:"+x+" y:"+y+" ID "+ID);
+		console.log("x:"+x+" y:"+y);
 		moveTo(ID,"user",x,y);
 	});
 	clock();
@@ -146,9 +148,7 @@ function drawPerso(mapID) {
 }
 		
 function moveTo(mapID,persoID,x,y) {
-	
 	var position = getPersoPosition2D(persoID);
-	console.log("position.x:"+position.x +" position.y:"+position.y);
 	
 	if(position.x == x && position.y == y) {
 		return MOVE_FINISHED;
@@ -194,22 +194,32 @@ function direction(persoID,dir) {
 function move(mapID, persoID, mapArray, nodes) {
 	var timeout = 0;
 	var i = 1;
+	var moveResult = MOVE_ON;
 	moveByStep(mapID, persoID, mapArray, nodes, 0);
 	var intId = setInterval(function() {
-		var moveResult = moveByStep(mapID, persoID, mapArray, nodes, i);
-		i++;
-		if(i + 1 == nodes.length || moveResult == MOVE_FINISHED) {
+		if(i == nodes.length || moveResult == MOVE_FINISHED) {
+			if(i == nodes.length) {
+				i--;
+			}
 			clearInterval(intId);
-			$("#"+persoID).find(".perso").addClass("stand");
-			$("#"+persoID).find(".perso").removeClass("walk");
-			console.log("FINISHED");
+			setTimeout(function() {
+				$("#"+persoID).find(".perso").addClass("stand");
+				$("#"+persoID).find(".perso").removeClass("walk");
+				isMoving = false;
+				var position = getPersoPosition2D(persoID);
+				console.log("position.x:"+position.x +" position.y:"+position.y);
+				console.log("Target pos ("+nodes[i].x+", "+nodes[i].y+")");
+				console.log("FINISHED");
+			}, FOOT_STEP_DURATION);
 			return 0;
 		}
-	}, 770);
+		moveResult = moveByStep(mapID, persoID, mapArray, nodes, i);
+		i++;
+	}, STEP_DURATION);
 }
 
 function moveByStep(mapID, persoID, mapArray, nodes, i) {
-	console.log("i = " + i);
+	//console.log("i = " + i);
 	
 	if(nodes[i] == undefined) {
 		console.log("nodes["+i+"] undefined");
@@ -218,16 +228,11 @@ function moveByStep(mapID, persoID, mapArray, nodes, i) {
 	if(mapArray[nodes[i].x][nodes[i].y] != 2) {
 		// Pas d'ennemi
 		//mapArray[nodes[i].x][nodes[i].y]=4;
-		console.log("Pos ("+nodes[i].x+", "+nodes[i].y+")");
 		var posX=nodes[i].x*unit;
-		var posY=(map.size.height-nodes[i].y-1)*unit;
+		var posY=(map.size.height-nodes[i].y - 1)*unit;
 		isMoving = true;
-		//setTimeout(function() {
 		moveCss(mapID,persoID,posX,posY);
-		//}, timeout);
-		//timeout=17500;
 		
-		//while(isMoving) {console.log("TTEST");}
 		return MOVE_ON;
 	} else {
 		// Ennemi en vue
@@ -235,13 +240,12 @@ function moveByStep(mapID, persoID, mapArray, nodes, i) {
 		
 		mapArray=copyMap(mapOrig);
 		mapArray[nodes[i].x][nodes[i].y]=0;
-		var graph = new Graph(mapArray);
 		
+		var graph = new Graph(mapArray);		
 		var start = graph.nodes[nodes[i-1].x][nodes[i-1].y];
 		var end = graph.nodes[nodes[nodes.length-1].x][nodes[nodes.length-1].y];
 		var result = astar.search(graph.nodes, start, end, true);
-		//console.log("RESULT");
-		//console.log(result);
+		
 		move(mapID, persoID, mapArray, nodes);
 		return MOVE_FINISHED;
 	}
@@ -250,22 +254,19 @@ function moveByStep(mapID, persoID, mapArray, nodes, i) {
 function moveCss(mapID,persoID,x,y) {
 	var unitMove=Math.round(unit/5);
 	
-	console.log("MOVE CSS");
+	//console.log("MOVE CSS");
 	
 	var position = getPersoPosition2D(persoID);
 	var persoX = position.x;
 	var persoY = position.y;
 	
-	var position = getPersoPosition(persoID);
-	var left = position.x;
-	var top = position.y;
-	
-	//console.log("x" + left/unit + " y" + top/unit);
-	//console.log("dest x" + x/unit + " y" + y/unit);
+	var position2 = getPersoPosition(persoID);
+	var left = position2.x;
+	var top = position2.y;
 	
 	var positionPerso = changeRepere({"x":persoX,"y":persoY},false);
 	var positionDestination = changeRepere({"x":x/unit,"y":y/unit},false);
-	
+		
 	//direction x
 	if(positionPerso.x<positionDestination.x) {
 		direction(persoID,DIRECTIONS.RIGHT);
@@ -295,9 +296,7 @@ function moveCss(mapID,persoID,x,y) {
 	if(left!=x || top!=y) {
 		setTimeout(function() {
 		    moveCss(mapID,persoID,x,y);
-		}, 150);
-	}else {
-		isMoving = false;
+		}, FOOT_STEP_DURATION);
 	}
 }
 		

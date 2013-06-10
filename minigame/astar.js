@@ -25,10 +25,10 @@ var astar = {
     },
     search: function(grid, start, end, diagonal, heuristic) {
         astar.init(grid);
-		console.log("after init");
+		/*console.log("after init");
 		console.log(start);
 		console.log(end);
-		console.log(grid);
+		console.log(grid);*/
 		
         heuristic = heuristic || astar.manhattan;
         diagonal = !!diagonal;
