@@ -1,0 +1,129 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="../css/tile.css" />
+		<script src="../libraries/jquery-1.9.1.min.js"   type="text/javascript"></script>
+		<script src="../js/classes/TemplateOccupation.js"   type="text/javascript"></script>
+		<style>
+			textarea{width:90%;height:10em;}
+			.tile{margin:30px;cursor:pointer;padding:0px;opacity:0.8;position:relative;-webkit-transform: scale(2);}
+
+				.occupation{position:absolute;width:5px;height:5px;background:#0F0;}
+					.occupation.selected{background:#00F;}
+
+				.tile.selected .occupation{background:#050;}
+				.tile.selected .occupation.selected{background:#005;}
+
+				.cornerTTL{top:-5px;left:0px;}
+				.topL{top:-5px;left:5px;}
+				.topR{top:-5px;left:10px;}
+				.cornerTTR{top:-5px;left:15px;}
+				.cornerTRR{top:0px;left:20px;}
+				.rightT{top:5px;left:20px;}
+				.rightB{top:10px;left:20px;}
+				.cornerBRR{top:15px;left:20px;}
+				.cornerBBR{top:20px;left:15px;}
+				.bottomR{top:20px;left:10px;}
+				.bottomL{top:20px;left:5px;}
+				.cornerBBL{top:20px;left:0px;}
+				.cornerBLL{top:15px;left:-5px;}
+				.leftB{top:10px;left:-5px;}
+				.leftT{top:5px;left:-5px;}
+				.cornerTLL{top:0px;left:-5px;}
+
+				.isObstable{background:transparent !important;height:20px;width:20px;}
+					.isObstable.selected:before{content:"";display:inline-block;position:absolute;top:3px;left:3px;width:8px;height:8px;border:3px solid #F00;border-radius:100%;background:transparent !important;box-shadow:0px 0px 1px 0px #000;}
+					.isObstable.selected:after{content:"";display:inline-block;width:2px;height:8px;background:#F00;top:6px;left:9px;position:absolute;-webkit-transform: rotate(-45deg);}
+		</style>
+	</head>
+	<body>
+		<div id="tileset"></div>
+		<textarea>
+		</textarea>	
+	</body>
+	<script>
+			/*	isObstable donne la possibilité pour le perso d'aller sur ce tile ou non	*/
+		var arrayTypes=new Array("cornerTTL","cornerTLL","topL","topR","cornerTTR","cornerTRR","rightT","rightB","cornerBBR","cornerBRR","bottomR","bottomL","cornerBBL","cornerBLL","leftB","leftT","isObstable");
+		
+		var tiles={
+			//même chose que map editor mais allégé pour ne gérer qu'un seul template
+			template:{width:19,height:4},
+			types:["grass","water"],
+			grass:{grass:"grass",water:"grass_water"},
+			water:{grass:"grass_water",water:"water"},
+		};
+
+	$("document").ready(function(){
+		jQuery.fn.exists = function(){return this===undefined || ( this!==undefined && this.length>0);}
+	
+		populateTileSet();
+		getJson();
+		
+		$(".occupation").click(function(){
+			if($(this).hasClass("selected")){
+				$(this).removeClass("selected");
+				//on retire le selected sur le tile si c'est le dernier
+				if( ! $(this).parent().find(".occupation.selected").exists()){
+					$(this).parent().removeClass("selected");
+				}
+			}else{
+				$(this).addClass("selected");
+				//on met le tile à selected pour identifier ceux déjà fait facilement
+				$(this).parent().addClass("selected");
+			}
+			getJson();
+		});
+		
+	});
+	
+	function populateTileSet(){
+		var alreadySet=new Array();
+		for(var type1 in tiles.types){
+			for(var type2 in tiles.types){
+				var tileType1=tiles.types[type1];
+				var tileType2=tiles.types[type2];
+				if(type1!=type2 && $.inArray(tiles[tileType1][tileType2],alreadySet)<0){
+					for(var y=1;y<=tiles.template.height;y++){
+						for(var x=1;x<=tiles.template.width+1;x++){
+							$("#tileset").append('<div class="tile '+tiles[ tileType1][tileType2]+'_'+x+'_'+y+'"></div>');
+							alreadySet.push(tiles[tileType1][tileType2]);
+						}
+						$("#tileset").append('<br/>');
+					}
+				}
+			}
+		}
+		$(".tile").each(function(){
+			for(var i in arrayTypes){
+				var position=$(this).attr('class').replace("tile grass_water_","").replace(" selected","");
+				var selected= TemplateOccupation[position]!=undefined  && TemplateOccupation[position][arrayTypes[i]]!=undefined  && TemplateOccupation[position][arrayTypes[i]]===1;
+				if(selected){
+					$(this).append("<div class='occupation "+arrayTypes[i]+" selected'></div>");
+					$(this).addClass("selected");
+				}else{
+					$(this).append("<div class='occupation "+arrayTypes[i]+"'></div>");
+				}
+			}
+		});
+	}
+	
+	function getJson(){
+		var result="";
+		$(".tile").each(function(){
+			var types =new Object();
+			var name = $(this).attr('class').replace("tile grass_water_","").replace(" selected","");
+			result+="TemplateOccupation['"+name+"']=";
+			for(var i in arrayTypes){
+				if($(this).find(".selected."+arrayTypes[i]).exists()){
+					types[arrayTypes[i]]=1;
+				}else{
+					types[arrayTypes[i]]=0;
+				}
+			}
+			types.UID=name;
+			result += JSON.stringify(types, null)+";\n";
+			
+		});
+		$("textarea").val(result);
+	}
+	</script>
+</html>
