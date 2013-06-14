@@ -34,7 +34,7 @@ position:relative;}
 /*.occupation:after,.noPass:after{content:"";display:block;width:100%;height:100%;background:rgba(0,0,255,0.2);}*/
 .occupation{position:absolute;display:block;width:20px;height:20px;}
 
-.perso{display:inline-block;width:100px;height:100px;background:url("perso_base.png") no-repeat;position:absolute;bottom:-15px;left:-70px;}
+.perso{display:inline-block;width:100px;height:100px;background:url("../resources/images/perso_base.png") no-repeat;position:absolute;bottom:-15px;left:-70px;}
 	.name{color:#0FF;text-shadow:0 1px 1px #005;visibility:hidden;text-align:center;position:absolute;top:-20px;width:100px;}
 	.perso .lifebar{display:inline-block;width:50px;border-radius:10px;background:#000;margin:5px 25px;padding:0;box-shadow:0 2px 2px #000;visibility:hidden;}
 		.perso:hover .lifebar,.perso:hover .name{visibility:visible;}
