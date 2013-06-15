@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Map Editor Test</title>
+		<link rel="stylesheet" type="text/css" href="../libraries/qunit/qunit.css" />
+		<link rel="stylesheet" type="text/css" href="../css/tile.css" />
+		<link rel="stylesheet" type="text/css" href="../libraries/jquery-ui/jquery-ui-1.10.3.min.css" />
+		<link rel="stylesheet" type="text/css" href="./map_editor.css" />
+	</head>
+<body>
+		<div id="qunit"></div>
+		<div id="qunit-fixture"></div>
+		<script src="../libraries/jquery-1.9.1.min.js"   type="text/javascript"></script>
+		<script src="../libraries/jquery-ui/jquery-ui-1.10.3.min.js"   type="text/javascript"></script>
+		<script src="../js/classes/staticOccupationTypes.js"   type="text/javascript"></script>
+		<script src="../js/classes/TemplateOccupation.js"   type="text/javascript"></script>
+		<script src="../js/data/maps.js"   type="text/javascript"></script>
+		<script src="./map_editor.js"   type="text/javascript"></script>
+		<script src="../libraries/qunit/qunit.js"   type="text/javascript"></script>
+		<script>
+		
+			//module("Group 1");
+			
+			test( "Is Available Test", function() {
+				var type = "0";
+				TemplateOccupation[type]={"cornerTTL":1,"cornerTLL":1,"topL":0,"topR":0,"cornerTRR":0,"cornerTTR":0,"rightT":0,"rightB":0,"cornerBBR":1,"cornerBRR":1,"bottomR":0,"bottomL":0,"cornerBBL":0,"cornerBLL":0,"leftB":0,"leftT":0,"isObstable":0};
+				//All corners
+				borders=new Object();
+				borders.top=TemplateOccupationHelper.getTop(type);
+				borders.left=TemplateOccupationHelper.getLeft(type);
+				borders.right=TemplateOccupationHelper.getRight(type);
+				borders.bottom=TemplateOccupationHelper.getBottom(type);
+				ok( isTypeAvailable(borders,type)  == true , "All corners" );
+				
+				//Top + Left
+				borders=new Object();
+				borders.top=TemplateOccupationHelper.getTop(type);
+				borders.left=TemplateOccupationHelper.getLeft(type);
+				ok( isTypeAvailable(borders,type)  == true , "Top + Left" );
+				
+				//Right
+				borders=new Object();
+				borders.right=TemplateOccupationHelper.getRight(type);
+				ok( isTypeAvailable(borders,type)  == true , "Right" );
+				
+				//Right ok ; Left false
+				borders.left=TemplateOccupationHelper.getRight(type);
+				ok( isTypeAvailable(borders,type)  == false , "Right ok ; Left false" );
+				
+				//Top + Left redefined
+				TemplateOccupation[type]={"cornerTTL":1,"cornerTLL":0,"topL":0,"topR":0,"cornerTRR":0,"cornerTTR":0,"rightT":0,"rightB":0,"cornerBBR":0,"cornerBRR":0,"bottomR":0,"bottomL":0,"cornerBBL":0,"cornerBLL":0,"leftB":0,"leftT":1,"isObstable":0};
+				borders=new Object();
+				borders.top=1000;
+				borders.Left=1000;
+				ok( isTypeAvailable(borders,type)  == true , "Top + Left redefined" );
+				
+				//Top + Right 
+				TemplateOccupation[type]={"cornerTTL":1,"cornerTLL":1,"topL":1,"topR":1,"cornerTRR":0,"cornerTTR":1,"rightT":0,"rightB":0,"cornerBBR":0,"cornerBRR":0,"bottomR":0,"bottomL":0,"cornerBBL":0,"cornerBLL":1,"leftB":1,"leftT":1,"isObstable":0};
+				borders=new Object();
+				borders.top=0000;
+				borders.left=0000;
+				ok( isTypeAvailable(borders,type)  == false , "Corner" );
+				
+				//Top + Left orders inverted
+				borders=new Object();
+				borders.top=0000;
+				borders.right=0000;
+				TemplateOccupation[type]={"cornerTTL":0,"cornerTLL":0,"topL":0,"topR":0,"cornerTRR":1,"cornerTTR":0,"rightT":1,"rightB":1,"cornerBBR":1,"cornerBRR":1,"bottomR":1,"bottomL":1,"cornerBBL":1,"cornerBLL":0,"leftB":0,"leftT":1,"isObstable":0};
+				ok( isTypeAvailable(borders,type)  == false , "Top + Right angle tile");
+			});
+			
+			test("Orders Test",function(){
+				var selectedClass;
+				var top,left,right,bottom;
+				
+				//Borders Undefined
+				selectedClass="water";
+				ok(getOrder(selectedClass,top,left,right,bottom).primary==selectedClass,"Borders undefined : primary");
+				ok(getOrder(selectedClass,top,left,right,bottom).secondary==selectedClass,"Borders undefined : secondary");
+				ok(getOrder(selectedClass,top,left,right,bottom).type==selectedClass,"Borders undefined : type");
+				ok(getOrder(selectedClass,top,left,right,bottom).selectedClass=="primary","Borders undefined : selectedClass");
+				
+				//defining top border
+				top="grass_water_20_4";
+				selectedClass="water";
+				ok(getOrder(selectedClass,top,left,right,bottom).primary=="grass","Border top : primary");
+				ok(getOrder(selectedClass,top,left,right,bottom).secondary=="water","Border top : secondary");
+				ok(getOrder(selectedClass,top,left,right,bottom).type=="grass_water","Border top : type");
+				ok(getOrder(selectedClass,top,left,right,bottom).selectedClass=="secondary","Border top : selectedClass");	
+				
+				//defining top+left borders
+				left="grass_water_20_4";
+				selectedClass="water";
+				ok(getOrder(selectedClass,top,left,right,bottom).primary=="grass","Borders top + left: primary");
+				ok(getOrder(selectedClass,top,left,right,bottom).secondary=="water","Borders top + left : secondary");
+				ok(getOrder(selectedClass,top,left,right,bottom).type=="grass_water","Borders top  + left: type");
+				ok(getOrder(selectedClass,top,left,right,bottom).selectedClass=="secondary","Borders top + left : selectedClass");
+				
+				//defining top+left different types borders
+				left="grass_road_20_4";
+				selectedClass="water";
+				ok(getOrder(selectedClass,top,left,right,bottom).primary=="grass","Borders top + left: primary");
+				ok(getOrder(selectedClass,top,left,right,bottom).secondary=="water","Borders top + left : secondary");
+				ok(getOrder(selectedClass,top,left,right,bottom).type=="grass_water","Borders top  + left: type");
+				ok(getOrder(selectedClass,top,left,right,bottom).selectedClass=="secondary","Borders top + left : selectedClass");
+				
+				//defining water borders
+				top="water",left="water",right="water",bottom="water";
+				selectedClass="water";
+				
+				ok(getOrder(selectedClass,top,left,right,bottom).primary=="water","Borders top + left: primary ");
+				ok(getOrder(selectedClass,top,left,right,bottom).secondary=="water","Borders top + left : secondary");
+				ok(getOrder(selectedClass,top,left,right,bottom).type=="water","Borders top  + left: type");
+				ok(getOrder(selectedClass,top,left,right,bottom).selectedClass=="primary","Borders top + left : selectedClass");
+				
+				//defining water borders
+				top="grass_water_20_4",left="grass_water_20_4",right="grass_water_20_4",bottom="grass_water_20_4";
+				selectedClass="water";
+				ok(getOrder(selectedClass,top,left,right,bottom).primary=="grass","Borders top + left: primary ");
+				ok(getOrder(selectedClass,top,left,right,bottom).secondary=="water","Borders top + left : secondary");
+				ok(getOrder(selectedClass,top,left,right,bottom).type=="grass_water","Borders top  + left: type");
+				ok(getOrder(selectedClass,top,left,right,bottom).selectedClass=="secondary","Borders top + left : selectedClass");
+
+			});
+			
+			test("Invert Type",function(){
+				var borders=new Object();
+				borders.top="0000";
+				invertTypesOrder(borders);
+				ok(borders.top ==="1111","0000");
+			
+				borders.top="0101";
+				invertTypesOrder(borders);
+				ok(borders.top==="1010","0101");
+			
+				borders.top="1010";
+				borders.left="1010";
+				 invertTypesOrder(borders);
+				ok(borders.top==="0101","1010");
+				ok(borders.left==="0101","1010");
+				
+				invertTypesOrder(borders);
+				ok(borders.left==="1010","0101");
+				
+				invertTypesOrder(borders);
+				ok(borders.left==="0101","1010");
+			});
+		</script>
+</body>
+</html>
