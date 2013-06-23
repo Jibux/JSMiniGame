@@ -56,7 +56,6 @@ $("document").ready(function() {
 		var position = getMouseMapPosition(ID,e);
 		var x = position.x;
 		var y = position.y;
-		console.log("x:"+x+" y:"+y);
 		moveTo(ID,"user",x,y);
 	});
 	$(".perso").click(function(e) {
@@ -64,7 +63,6 @@ $("document").ready(function() {
 		var position = getMouseMapPosition(ID,e);
 		var x = position.x;
 		var y = position.y;
-		console.log("x:"+x+" y:"+y);
 		moveTo(ID,"user",x,y);
 	});
 	clock();
@@ -119,9 +117,11 @@ function init() {
 	for(var y=-1;y<=1;y++) {
 		for(var x=-1;x<=1;x++) {
 			var id="map_"+(map.position.x+x)+"_"+(map.position.y+y)+"_"+map.position.z;
+			
 			if(mapContent[id]!=undefined) {
-				
 				var repere = changeRepere({x:left*x,y:top*y},true);
+				console.log("mapx:"+x+" mapy:"+y);
+				console.log("mapxc:"+repere.x+" mapyc:"+repere.y);
 				drawMap(id,repere.y+offset.y,repere.x+offset.x);
 				
 				if(mapContent["map_"+(map.position.x+x+1)+"_"+(map.position.y+y)+"_"+map.position.z]==undefined) {
@@ -144,16 +144,8 @@ function drawPerso(mapID) {
 		
 function moveTo(mapID,persoID,x,y) {
 	var position = getPersoPosition2D(persoID);
-	//console.log(mapOrig);
-	console.log(mapOrig[x][y]);
+
 	if(position.x == x && position.y == y || mapOrig[x][y] != 1) {
-		/*direction(persoID,DIRECTIONS.UP);
-		alert();
-		direction(persoID,DIRECTIONS.DOWN);
-		alert();
-		direction(persoID,DIRECTIONS.RIGHT);
-		alert();
-		direction(persoID,DIRECTIONS.LEFT);*/
 		return MOVE_FINISHED;
 	}
 	
@@ -168,8 +160,6 @@ function moveTo(mapID,persoID,x,y) {
 	var map2 = graph.input;
 	
 	var result = astar.search(graph.nodes, start, end, true);
-	
-	//moveOld(mapID,persoID,posX,posY);
 	
 	move(mapID,persoID,map1,result);
 }
@@ -233,9 +223,7 @@ function move(mapID, persoID, mapArray, nodes) {
 	}, STEP_DURATION);
 }
 
-function moveByStep(mapID, persoID, mapArray, nodes, i) {
-	//console.log("i = " + i);
-	
+function moveByStep(mapID, persoID, mapArray, nodes, i) {	
 	if(nodes[i] == undefined) {
 		console.log("nodes["+i+"] undefined");
 		return MOVE_FINISHED;
@@ -269,8 +257,6 @@ function moveByStep(mapID, persoID, mapArray, nodes, i) {
 function moveCss(mapID,persoID,x,y) {
 	var unitMove=Math.round(unit/5);
 	
-	//console.log("MOVE CSS");
-	
 	var position = getPersoPosition2D(persoID);
 	var persoX = position.x;
 	var persoY = position.y;
@@ -294,6 +280,7 @@ function moveCss(mapID,persoID,x,y) {
 	}else if(positionPerso.y>positionDestination.y) {
 		direction(persoID,DIRECTIONS.DOWN);
 	}*/
+	
 	//move X
 	if(left<x) {
 		direction(persoID,DIRECTIONS.DOWN);
@@ -304,11 +291,9 @@ function moveCss(mapID,persoID,x,y) {
 	}
 	//move Y
 	if(top>y) {
-		
 		direction(persoID,DIRECTIONS.RIGHT);
 		$("#"+persoID).css("top",(top*1 - unitMove) + "px");
 	}else if(top<y) {
-		
 		direction(persoID,DIRECTIONS.LEFT);
 		$("#"+persoID).css("top",(top*1 + unitMove) + "px");
 	}
@@ -322,7 +307,7 @@ function moveCss(mapID,persoID,x,y) {
 }
 		
 function drawMap(mapID,top,left) {
-	$("#screen").append('<div id="'+mapID+'" class="map" style="left:'+left+'px;top:'+top+'px;"></div');
+	$("#screen").append('<div id="'+mapID+'" class="map" style="left:'+left+'px;top:'+top+'px;"></div>');
 
 	for(var x=0;x<mapContent[mapID].size.width;x++) {
 		for(var y=0;y<mapContent[mapID].size.height;y++) {
@@ -372,9 +357,6 @@ function getMouseMapPosition(mapID,event) {
 	var x = event.pageX;
 	var y = event.pageY;
 	
-	console.log("xm:"+x+" ym:"+y);
-	//console.log("offsetLeft:"+offsetLeft+" offsetTop:"+offsetTop);
-	
 	//position de la souris par rapport à la carte 2D
 	var position = {"x":(x - offsetLeft),"y":(y - offsetTop)};
 	return changeRepere(position,false);
@@ -390,17 +372,14 @@ function changeRepere(position,toISO) {
 	var posX = position.x;
 	var posY = position.y;
 	
-	console.log("pos x:"+posX+" pos y:"+posY);
-	
 	if(!toISO) {
 		var posX2 = Math.floor((Math.sqrt(2)/2)*(posX + posY*2)/unit) - 10;
 		var posY2 = Math.floor((Math.sqrt(2)/2)*(posY*2 - posX)/unit) + 10;
 		
 		return {"x":posX2,"y":posY2};
 	} else {
-		var posX2 = Math.floor((unit/Math.sqrt(2)) * (posX+10 - (posY+10))) ;
-		var posY2 = Math.floor((unit/(2*Math.sqrt(2))) * (posX+10 +posY+10));
-		
+		var posX2 = Math.floor((unit/Math.sqrt(2)) * (posX - posY)) ;
+		var posY2 = Math.floor((unit/(2*Math.sqrt(2))) * (posX + posY + 20 ));
 		
 		//var posX2 = Math.floor(unit*(posX - posY + 20) / Math.sqrt(2));
 		//var posY2 = Math.floor(unit*(posX + posY) / (2*Math.sqrt(2)));
