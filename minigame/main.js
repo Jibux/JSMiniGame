@@ -110,7 +110,7 @@ function init() {
 	
 	var diagonale=Math.sqrt(map.size.height*map.size.height+map.size.width*map.size.width);
 	
-	var offset = {x:25,y:50};
+	var offset = {x:-250,y:50};
 	var top = map.size.height;
 	var left = map.size.width;
 
@@ -119,9 +119,8 @@ function init() {
 			var id="map_"+(map.position.x+x)+"_"+(map.position.y+y)+"_"+map.position.z;
 			
 			if(mapContent[id]!=undefined) {
-				var repere = changeRepere({x:left*x,y:top*y},true);
-				console.log("mapx:"+x+" mapy:"+y);
-				console.log("mapxc:"+repere.x+" mapyc:"+repere.y);
+				var rep = changeFrame({x:left*x,y:top*y},true);
+				var repere = {x:rep.x*unit,y:rep.y*unit};
 				drawMap(id,repere.y+offset.y,repere.x+offset.x);
 				
 				if(mapContent["map_"+(map.position.x+x+1)+"_"+(map.position.y+y)+"_"+map.position.z]==undefined) {
@@ -167,32 +166,32 @@ function moveTo(mapID,persoID,x,y) {
 function direction(persoID,dir) {
 	var perso =$("#"+persoID).find(".perso");
 	if(dir==DIRECTIONS.LEFT) {
-		perso.removeClass("left");
-		perso.removeClass("up");
-		
-		perso.addClass("right");
-		perso.addClass("down");
-	}
-	if(dir==DIRECTIONS.RIGHT) {
 		perso.removeClass("right");
 		perso.removeClass("down");
-		
 		perso.addClass("left");
 		perso.addClass("up");
+		console.log("LEFT")
+	}
+	if(dir==DIRECTIONS.RIGHT) {
+		perso.removeClass("left");
+		perso.removeClass("up");
+		perso.addClass("right");
+		perso.addClass("down");
+		console.log("RIGHT")
 	}
 	if(dir==DIRECTIONS.DOWN) {
 		perso.removeClass("up");
 		perso.removeClass("right");
-		
 		perso.addClass("down");
 		perso.addClass("left");
+		console.log("DOWN")
 	}
 	if(dir==DIRECTIONS.UP) {
 		perso.removeClass("down");
 		perso.removeClass("left");
-		
 		perso.addClass("up");
 		perso.addClass("right");
+		console.log("UP")
 	}
 }
 
@@ -212,8 +211,8 @@ function move(mapID, persoID, mapArray, nodes) {
 				$("#"+persoID).find(".perso").removeClass("walk");
 				isMoving = false;
 				var position = getPersoPosition2D(persoID);
-				console.log("position.x:"+position.x +" position.y:"+position.y);
-				console.log("Target pos ("+nodes[i].x+", "+nodes[i].y+")");
+				console.log("Actual ("+position.x +", "+position.y+")");
+				console.log("Target ("+nodes[i].x+", "+nodes[i].y+")");
 				console.log("FINISHED");
 			}, FOOT_STEP_DURATION);
 			return 0;
@@ -265,36 +264,20 @@ function moveCss(mapID,persoID,x,y) {
 	var left = position2.x;
 	var top = position2.y;
 	
-	/*var positionPerso = changeRepere({"x":persoX,"y":persoY},false);
-	var positionDestination = changeRepere({"x":x/unit,"y":y/unit},false);*/
-		
-	//direction x
-	/*if(positionPerso.x<positionDestination.x) {
-		direction(persoID,DIRECTIONS.RIGHT);
-	}else if(positionPerso.x>positionDestination.x) {
-		direction(persoID,DIRECTIONS.LEFT);
-	}
-	//direction y
-	if(positionPerso.y<positionDestination.y) {
-		direction(persoID,DIRECTIONS.UP);
-	}else if(positionPerso.y>positionDestination.y) {
-		direction(persoID,DIRECTIONS.DOWN);
-	}*/
-	
 	//move X
 	if(left<x) {
-		direction(persoID,DIRECTIONS.DOWN);
+		direction(persoID,DIRECTIONS.RIGHT);
 		$("#"+persoID).css("left",(left*1 + unitMove) + "px");
 	}else if(left>x) {
-		direction(persoID,DIRECTIONS.UP);
+		direction(persoID,DIRECTIONS.LEFT);
 		$("#"+persoID).css("left",(left*1 - unitMove) + "px");
 	}
 	//move Y
 	if(top>y) {
-		direction(persoID,DIRECTIONS.RIGHT);
+		direction(persoID,DIRECTIONS.UP);
 		$("#"+persoID).css("top",(top*1 - unitMove) + "px");
 	}else if(top<y) {
-		direction(persoID,DIRECTIONS.LEFT);
+		direction(persoID,DIRECTIONS.DOWN);
 		$("#"+persoID).css("top",(top*1 + unitMove) + "px");
 	}
 	
@@ -357,34 +340,34 @@ function getMouseMapPosition(mapID,event) {
 	var x = event.pageX;
 	var y = event.pageY;
 	
+	var posX = x - offsetLeft;
+	var posY = y - offsetTop;
+	
 	//position de la souris par rapport à la carte 2D
-	var position = {"x":(x - offsetLeft),"y":(y - offsetTop)};
-	return changeRepere(position,false);
+	var position = {"x":posX/unit,"y":posY/unit};
+	return changeFrame(position,false);
 }	
 
 /**
-* change les coordonées passées en paramétre dans le repère ISOmétrique ou 2D
+* Change les coordonées passées en paramétre dans le repère ISOmétrique ou 2D
 *
 * position : position={x:"coordonnée en x", y:"coordonnée en y"};
 * toISO : boolean {0=>ISO to 2D, 1=>2D to ISO}
+* TODO Laisser le choix d'utiliser floor, round ou ceil
 **/
-function changeRepere(position,toISO) {
+function changeFrame(position,toISO) {
 	var posX = position.x;
 	var posY = position.y;
 	
 	if(!toISO) {
-		var posX2 = Math.floor((Math.sqrt(2)/2)*(posX + posY*2)/unit) - 10;
-		var posY2 = Math.floor((Math.sqrt(2)/2)*(posY*2 - posX)/unit) + 10;
+		var posX2 = Math.floor((Math.sqrt(2)/2)*(posX + posY*2)) - 10;
+		var posY2 = Math.floor((Math.sqrt(2)/2)*(posY*2 - posX)) + 10;
 		
 		return {"x":posX2,"y":posY2};
 	} else {
-		var posX2 = Math.floor((unit/Math.sqrt(2)) * (posX - posY)) ;
-		var posY2 = Math.floor((unit/(2*Math.sqrt(2))) * (posX + posY + 20 ));
+		var posX2 = Math.round((posX - posY + 20) / Math.sqrt(2));
+		var posY2 = Math.round((posX + posY) / (2*Math.sqrt(2)));
 		
-		//var posX2 = Math.floor(unit*(posX - posY + 20) / Math.sqrt(2));
-		//var posY2 = Math.floor(unit*(posX + posY) / (2*Math.sqrt(2)));
-		
-
 		return {"x":posX2,"y":posY2};
 	}
 }
