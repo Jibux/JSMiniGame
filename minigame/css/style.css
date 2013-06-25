@@ -61,8 +61,8 @@ position:relative;}
 
 
 /* Directions */
-	.left{-webkit-transform:  rotate(-45deg) scaleY(2) scaleX(1) ;}
-	.right{-webkit-transform: rotate(-45deg) scaleY(2) scaleX(-1);}
+	.right{-webkit-transform:  rotate(-45deg) scaleY(2) scaleX(1) ;}
+	.left{-webkit-transform: rotate(-45deg) scaleY(2) scaleX(-1);}
 	.up{background-position:   0px 0px;}
 	.down{background-position:   0px -100px;}				
 	
