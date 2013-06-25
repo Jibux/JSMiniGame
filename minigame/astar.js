@@ -25,10 +25,10 @@ var astar = {
     },
     search: function(grid, start, end, diagonal, heuristic) {
         astar.init(grid);
-		console.log("after init");
+		/*console.log("after init");
 		console.log(start);
 		console.log(end);
-		console.log(grid);
+		console.log(grid);*/
 		
         heuristic = heuristic || astar.manhattan;
         diagonal = !!diagonal;
@@ -149,22 +149,22 @@ var astar = {
         if (diagonals) {
 
             // Southwest
-            if(grid[x-1] && grid[x-1][y-1] && (!south || !west)) {
+            if(grid[x-1] && grid[x-1][y-1] && (!south && !west)) {
                 ret.push(grid[x-1][y-1]);
             }
 
             // Southeast
-            if(grid[x+1] && grid[x+1][y-1] && (!south || !east)) {
+            if(grid[x+1] && grid[x+1][y-1] && (!south && !east)) {
                 ret.push(grid[x+1][y-1]);
             }
 
             // Northwest
-            if(grid[x-1] && grid[x-1][y+1] && (!north || !west)) {
+            if(grid[x-1] && grid[x-1][y+1] && (!north && !west)) {
                 ret.push(grid[x-1][y+1]);
             }
 
             // Northeast
-            if(grid[x+1] && grid[x+1][y+1] && (!north || !east)) {
+            if(grid[x+1] && grid[x+1][y+1] && (!north && !east)) {
                 ret.push(grid[x+1][y+1]);
             }
 
