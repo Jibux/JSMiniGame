@@ -170,28 +170,28 @@ function direction(persoID,dir) {
 		perso.removeClass("down");
 		perso.addClass("left");
 		perso.addClass("up");
-		console.log("LEFT")
+	//	console.log("LEFT")
 	}
 	if(dir==DIRECTIONS.RIGHT) {
 		perso.removeClass("left");
 		perso.removeClass("up");
 		perso.addClass("right");
 		perso.addClass("down");
-		console.log("RIGHT")
+	//	console.log("RIGHT")
 	}
 	if(dir==DIRECTIONS.DOWN) {
 		perso.removeClass("up");
 		perso.removeClass("right");
 		perso.addClass("down");
 		perso.addClass("left");
-		console.log("DOWN")
+	//	console.log("DOWN")
 	}
 	if(dir==DIRECTIONS.UP) {
 		perso.removeClass("down");
 		perso.removeClass("left");
 		perso.addClass("up");
 		perso.addClass("right");
-		console.log("UP")
+	//	console.log("UP")
 	}
 }
 
@@ -201,6 +201,7 @@ function move(mapID, persoID, mapArray, nodes) {
 	var moveResult = MOVE_ON;
 	moveByStep(mapID, persoID, mapArray, nodes, 0);
 	var intId = setInterval(function() {
+		var position = getPersoPosition2D(persoID);
 		if(i == nodes.length || moveResult == MOVE_FINISHED) {
 			if(i == nodes.length) {
 				i--;
@@ -217,8 +218,13 @@ function move(mapID, persoID, mapArray, nodes) {
 			}, FOOT_STEP_DURATION);
 			return 0;
 		}
-		moveResult = moveByStep(mapID, persoID, mapArray, nodes, i);
-		i++;
+		if(nodes[i-1].x == position.x && nodes[i-1].y == position.y) {
+			console.log("ARRIVED ("+position.x +", "+position.y+") => ("+nodes[i-1].x+", "+nodes[i-1].y+")");
+			moveResult = moveByStep(mapID, persoID, mapArray, nodes, i);
+			i++;
+		} else {
+			console.log("NOT YET ARRIVED ("+position.x +", "+position.y+") => ("+nodes[i-1].x+", "+nodes[i-1].y+")");
+		}
 	}, STEP_DURATION);
 }
 
