@@ -6,7 +6,9 @@
 		.grass:nth-child(7n){background-position:0px -20px;}
 		.grass:nth-child(11n){background-position:-20px -20px;}
 		
-	.water{background-image:url(../resources/images/water.gif);background-position:0px 0px;}
+	#screen.low_quality .water{background-color:#50A2FA;background-position:0px 0px;}
+	#screen.medium_quality .water{background-image:url(../resources/images/water.png);background-position:0px 0px;}
+	#screen.high_quality .water{background-image:url(../resources/images/water.gif);background-position:0px 0px;}
 		/*Pseudo randomness*/
 		.water:nth-child(3n){background-position:-20px 0px;}
 		.water:nth-child(7n){background-position:0px -20px;}
