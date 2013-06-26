@@ -1,12 +1,14 @@
 .tile{display:inline-block;width:20px;height:20px;margin:0;padding:0;border:none;}
 	.test{background:#F00;}
+	
 	.grass{background-image:url(../resources/images/grass.png);background-position:0px 0px;}
+	#screen.low_quality .grass{background-color:#407A1F;background-image:none;background-position:0px 0px;}
 		/*Pseudo randomness*/
 		.grass:nth-child(3n){background-position:-20px 0px;}
 		.grass:nth-child(7n){background-position:0px -20px;}
 		.grass:nth-child(11n){background-position:-20px -20px;}
 		
-	#screen.low_quality .water{background-color:#50A2FA;background-position:0px 0px;}
+	#screen.low_quality .water{background-color:#007CF9;background-image:none;background-position:0px 0px;}
 	#screen.medium_quality .water{background-image:url(../resources/images/water.png);background-position:0px 0px;}
 	#screen.high_quality .water{background-image:url(../resources/images/water.gif);background-position:0px 0px;}
 		/*Pseudo randomness*/
@@ -15,6 +17,7 @@
 		.water:nth-child(11n){background-position:-20px -20px;}
 
 	.road{background-image:url(../resources/images/road.png);background-position:0px 0px;}
+	#screen.low_quality .road{background-color:#D0C2B7;background-image:none;background-position:0px 0px;}
 		/*Pseudo randomness*/
 		.road:nth-child(3n){background-position:-20px 0px;}
 		.road:nth-child(7n){background-position:0px -20px;}
