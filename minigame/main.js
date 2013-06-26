@@ -43,6 +43,7 @@ function invertMap(map) {
 }
 
 $("document").ready(function() {
+	$("#screen").addClass(configuration.mode).addClass(configuration.quality);
 	window.onkeypress=function(e) {
 		var e=window.event || e;
 		if(e.charCode==13) {
