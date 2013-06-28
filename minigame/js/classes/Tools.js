@@ -11,7 +11,7 @@
 *	Create an Object from a JSON
 		ex:	var character = createObject(Character);
 */
-createObject=function(json) {return JSON.parse(JSON.stringify(json));}
+newObject=function(json) {return JSON.parse(JSON.stringify(json));}
 
 /**  Math.uid
 *	crée un identifiant unique
