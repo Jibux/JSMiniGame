@@ -19,5 +19,4 @@ test("Point test", function() {
 	equal(2, point.x, "setPoint good x");
 	equal(12, point.y, "setPoint good y");
 	equal(9, point.z, "setPoint good z");
-	
 });

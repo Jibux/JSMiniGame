@@ -1,17 +1,9 @@
-var unit=20;
+include('js/classes/Point.js');
+include('js/classes/Character.js');
+include('js/classes/ActionManager.js');
+
 var map;
-var DIRECTIONS={"UP":"UP","DOWN":"DOWN","RIGHT":"RIGHT","LEFT":"LEFT"};
-
-var MOVE_FINISHED = -1;
-var MOVE_ON = 0;
-var STEP_DURATION = 800;
-var FOOT_STEP_DURATION = 150;
-
 var moves=new Object();
-
-var isMoving = false;
-
-var speaking =false;
 
 var mapOrig = [];
 
@@ -44,27 +36,33 @@ function invertMap(map) {
 
 $("document").ready(function() {
 	$("#screen").addClass(configuration.mode).addClass(configuration.quality+"_quality");
+	
+	var character = CharacterHelper.newCharacter();
+	
 	window.onkeypress=function(e) {
 		var e=window.event || e;
 		if(e.charCode==13) {
-			userSpeak();
+			CharacterHelper.userSpeak(character);
 		}
 	}
 
 	init();
+	
+	CharacterHelper.drawPerso(character, mapID);
+	
 	$(".tile").click(function(e) {
 		var ID=$(this).parent().attr('id');
-		var position = getMouseMapPosition(ID,e);
+		var position = getMouseMapPosition(ID, e);
 		var x = position.x;
 		var y = position.y;
-		moveTo(ID,"user",x,y);
+		ActionManager.moveTo(ID, character, x, y);
 	});
 	$(".perso").click(function(e) {
 		var ID=$(this).parent().parent().attr('id');
-		var position = getMouseMapPosition(ID,e);
+		var position = getMouseMapPosition(ID, e);
 		var x = position.x;
 		var y = position.y;
-		moveTo(ID,"user",x,y);
+		ActionManager.moveTo(ID, character, x, y);
 	});
 	clock();
 	setInterval(function() {
@@ -78,27 +76,6 @@ function clock() {
 	$("#screen").css("background-position",backgroundPos+"px 1px");
 }
 
-function userSpeak() {
-	if(!speaking) {
-		$("#user .perso").append("<div class='buble'><input type='text' id='userSpeak'/></div>");
-		$("#userSpeak").focus();
-		speaking=true;
-	}else {
-		var speak = $("#userSpeak").val();
-		speak = speak.replace(":)","<span class='smiley yellow'>:)</span>");
-		speak = speak.replace(":(","<span class='smiley red'>:(</span>");
-		speak = speak.replace(":-)","<span class='smiley yellow'>:-)</span>");
-		speak = speak.replace(":-(","<span class='smiley red'>:-(</span>");
-		speak = speak.replace(":O","<span class='smiley blue'>:O</span>");
-		speak = speak.replace(":'(","<span class='smiley blue'>:'(</span>");
-		speak = speak.replace(";)","<span class='smiley yellow'>;)</span>");
-		$("#user .perso .buble").html(speak);
-		setTimeout(function() {
-			$("#user .perso .buble").fadeOut('slow');
-			speaking=false;
-		}, 2000);
-	}
-}
 
 function init() {
 	var currentDate = new Date();
@@ -107,9 +84,6 @@ function init() {
 	map = mapContent[mapID];
 	console.log(map);
 	mapOrig = invertMap(map.occupation);
-	
-	
-	var diagonale=Math.sqrt(map.size.height*map.size.height+map.size.width*map.size.width);
 	
 	var offset = {x:-250,y:50};
 	var top = map.size.height;
@@ -121,7 +95,7 @@ function init() {
 			
 			if(mapContent[id]!=undefined) {
 				var rep = changeFrame({x:left*x,y:top*y},true);
-				var repere = {x:rep.x*unit,y:rep.y*unit};
+				var repere = {x:rep.x*UNIT,y:rep.y*UNIT};
 				drawMap(id,repere.y+offset.y,repere.x+offset.x);
 				
 				if(mapContent["map_"+(map.position.x+x+1)+"_"+(map.position.y+y)+"_"+map.position.z]==undefined) {
@@ -133,169 +107,8 @@ function init() {
 			}
 		}
 	}
-	
-	drawPerso(mapID);
-}
-		
-function drawPerso(mapID) {
-	$("#"+mapID).append('<div class="occupation" style="top:220px;left:220px;" id="user"></div>');
-	$("#user").append('<div class="perso stand up left"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
-}
-		
-function moveTo(mapID,persoID,x,y) {
-	var position = getPersoPosition2D(persoID);
-
-	if(position.x == x && position.y == y || mapOrig[x][y] != 1) {
-		return MOVE_FINISHED;
-	}
-	
-	$("#"+persoID).find(".perso").removeClass("stand");
-	$("#"+persoID).find(".perso").addClass("walk");
-
-	var map1 = copyMap(mapOrig);
-	var graph = new Graph(map1);
-	
-	var start = graph.nodes[position.x][position.y];
-    var end = graph.nodes[x][y];
-	var map2 = graph.input;
-	
-	var result = astar.search(graph.nodes, start, end, true);
-	
-	move(mapID,persoID,map1,result);
 }
 
-function direction(persoID,dir) {
-	var perso =$("#"+persoID).find(".perso");
-	if(dir==DIRECTIONS.LEFT) {
-		perso.removeClass("right");
-		perso.removeClass("down");
-		perso.addClass("left");
-		perso.addClass("up");
-	//	console.log("LEFT")
-	}
-	if(dir==DIRECTIONS.RIGHT) {
-		perso.removeClass("left");
-		perso.removeClass("up");
-		perso.addClass("right");
-		perso.addClass("down");
-	//	console.log("RIGHT")
-	}
-	if(dir==DIRECTIONS.DOWN) {
-		perso.removeClass("up");
-		perso.removeClass("right");
-		perso.addClass("down");
-		perso.addClass("left");
-	//	console.log("DOWN")
-	}
-	if(dir==DIRECTIONS.UP) {
-		perso.removeClass("down");
-		perso.removeClass("left");
-		perso.addClass("up");
-		perso.addClass("right");
-	//	console.log("UP")
-	}
-}
-
-function move(mapID, persoID, mapArray, nodes) {
-	var timeout = 0;
-	var i = 1;
-	var moveResult = MOVE_ON;
-	moveByStep(mapID, persoID, mapArray, nodes, 0);
-	var intId = setInterval(function() {
-		var position = getPersoPosition2D(persoID);
-		if(i == nodes.length || moveResult == MOVE_FINISHED) {
-			if(i == nodes.length) {
-				i--;
-			}
-			clearInterval(intId);
-			setTimeout(function() {
-				$("#"+persoID).find(".perso").addClass("stand");
-				$("#"+persoID).find(".perso").removeClass("walk");
-				isMoving = false;
-				var position = getPersoPosition2D(persoID);
-				console.log("Actual ("+position.x +", "+position.y+")");
-				console.log("Target ("+nodes[i].x+", "+nodes[i].y+")");
-				console.log("FINISHED");
-			}, FOOT_STEP_DURATION);
-			return 0;
-		}
-		//if(nodes[i-1].x == position.x && nodes[i-1].y == position.y) {
-			//console.log("ARRIVED ("+position.x +", "+position.y+") => ("+nodes[i-1].x+", "+nodes[i-1].y+")");
-			moveResult = moveByStep(mapID, persoID, mapArray, nodes, i);
-			i++;
-		//} else {
-		//	console.log("NOT YET ARRIVED ("+position.x +", "+position.y+") => ("+nodes[i-1].x+", "+nodes[i-1].y+")");
-		//}
-	}, STEP_DURATION);
-}
-
-function moveByStep(mapID, persoID, mapArray, nodes, i) {	
-	if(nodes[i] == undefined) {
-		console.log("nodes["+i+"] undefined");
-		return MOVE_FINISHED;
-	}
-	if(mapArray[nodes[i].x][nodes[i].y] != 2) {
-		// Pas d'ennemi
-		//mapArray[nodes[i].x][nodes[i].y]=4;
-		var posX=nodes[i].x*unit;
-		var posY=nodes[i].y*unit;
-		isMoving = true;
-		moveCss(mapID,persoID,posX,posY);
-		
-		return MOVE_ON;
-	} else {
-		// Ennemi en vue
-		console.log("Ennemi at ("+nodes[i].x+", "+nodes[i].y+")");
-		
-		mapArray=copyMap(mapOrig);
-		mapArray[nodes[i].x][nodes[i].y]=0;
-		
-		var graph = new Graph(mapArray);		
-		var start = graph.nodes[nodes[i-1].x][nodes[i-1].y];
-		var end = graph.nodes[nodes[nodes.length-1].x][nodes[nodes.length-1].y];
-		var result = astar.search(graph.nodes, start, end, true);
-		
-		move(mapID, persoID, mapArray, nodes);
-		return MOVE_FINISHED;
-	}
-}
-
-function moveCss(mapID,persoID,x,y) {
-	var unitMove=Math.round(unit/5);
-	
-	var position = getPersoPosition2D(persoID);
-	var persoX = position.x;
-	var persoY = position.y;
-	
-	var position2 = getPersoPosition(persoID);
-	var left = position2.x;
-	var top = position2.y;
-	
-	//move X
-	if(left<x) {
-		direction(persoID,DIRECTIONS.RIGHT);
-		$("#"+persoID).css("left",(left*1 + unitMove) + "px");
-	}else if(left>x) {
-		direction(persoID,DIRECTIONS.LEFT);
-		$("#"+persoID).css("left",(left*1 - unitMove) + "px");
-	}
-	//move Y
-	if(top>y) {
-		direction(persoID,DIRECTIONS.UP);
-		$("#"+persoID).css("top",(top*1 - unitMove) + "px");
-	}else if(top<y) {
-		direction(persoID,DIRECTIONS.DOWN);
-		$("#"+persoID).css("top",(top*1 + unitMove) + "px");
-	}
-	
-	//continue moving
-	if(left!=x || top!=y) {
-		setTimeout(function() {
-		    moveCss(mapID,persoID,x,y);
-		}, FOOT_STEP_DURATION);
-	}
-}
-		
 function drawMap(mapID,top,left) {
 	$("#screen").append('<div id="'+mapID+'" class="map" style="left:'+left+'px;top:'+top+'px;"></div>');
 
@@ -308,7 +121,7 @@ function drawMap(mapID,top,left) {
 					type+=" noPass";
 				}
 			}
-			$("#"+mapID).prepend("<div class='tile "+type+"' id='tile_"+x+"_"+y+"' style='left:"+x*unit+"px;top:"+y*unit+"px;"+"'></div>");
+			$("#"+mapID).prepend("<div class='tile "+type+"' id='tile_"+x+"_"+y+"' style='left:"+x*UNIT+"px;top:"+y*UNIT+"px;"+"'></div>");
 			/*
 			$("#miniMap").height(map.size.height*2);
 			$("#miniMap").width(map.size.width*2);
@@ -317,28 +130,8 @@ function drawMap(mapID,top,left) {
 		}
 	}
 }
-		
-function getPersoPosition2D(persoID) {
-	var left = $("#"+persoID).css("left").substring(0,$("#"+persoID).css("left").length - 2);
-	var top = $("#"+persoID).css("top").substring(0, $("#"+persoID).css("top").length - 2);
-	
-	var result = Object();
-	result.x = Math.floor(left/unit);
-	result.y = Math.floor(top/unit);
-	
-	return result;
-}
 
-function getPersoPosition(persoID) {
-	var result = Object();
-	
-	result.x = $("#"+persoID).css("left").substring(0,$("#"+persoID).css("left").length - 2);
-	result.y = $("#"+persoID).css("top").substring(0, $("#"+persoID).css("top").length - 2);
-	
-	return result;
-}
-
-function getMouseMapPosition(mapID,event) {
+function getMouseMapPosition(mapID, event) {
 	var result = new Object();
 	
 	var offsetLeft = $("#screen").offset().left+$("#"+mapID).position().left;
@@ -351,7 +144,7 @@ function getMouseMapPosition(mapID,event) {
 	var posY = y - offsetTop;
 	
 	//position de la souris par rapport à la carte 2D
-	var position = {"x":posX/unit,"y":posY/unit};
+	var position = {"x":posX/UNIT,"y":posY/UNIT};
 	var returnedPosition = changeFrame(position,false);
 	console.log(returnedPosition);
 	return returnedPosition;
@@ -369,13 +162,13 @@ function changeFrame(position,toISO) {
 	var posY = position.y;
 	
 	if(!toISO) {
-		var posX2 = Math.floor((Math.sqrt(2)/2)*(posX + posY*2)) - 10;
-		var posY2 = Math.floor((Math.sqrt(2)/2)*(posY*2 - posX)) + 10;
+		var posX2 = Math.floor((Math.sqrt(2)/2)*(posX + posY*2) - map.size.width/2);
+		var posY2 = Math.floor((Math.sqrt(2)/2)*(posY*2 - posX) + map.size.height/2);
 		
 		return {"x":posX2,"y":posY2};
 	} else {
-		var posX2 = Math.round((posX - posY + 20) / Math.sqrt(2));
-		var posY2 = Math.round((posX + posY) / (2*Math.sqrt(2)));
+		var posX2 = Math.round((posX - posY + map.size.width/2 + map.size.height/2) / Math.sqrt(2));
+		var posY2 = Math.round((posX + posY + map.size.width/2 - map.size.height/2) / (2*Math.sqrt(2)));
 		
 		return {"x":posX2,"y":posY2};
 	}
