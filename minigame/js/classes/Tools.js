@@ -13,6 +13,14 @@
 */
 newObject=function(json) {return JSON.parse(JSON.stringify(json));}
 
+/**
+*	Include a javascript file
+*		ex:	include("javaBleue.js");
+*/
+function include(fileName){
+	document.write("<script type='text/javascript' src='"+fileName+"'></script>" );
+}
+
 /**  Math.uid
 *	crée un identifiant unique
 *		ex: 	var UID = Math.uid();

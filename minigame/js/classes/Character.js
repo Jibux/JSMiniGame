@@ -36,4 +36,4 @@ var CharacterHelper = {
 	setCurrentLife:function(character,life){
 		character.currentLife = life;
 	}
-}
+};
