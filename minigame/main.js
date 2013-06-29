@@ -4,7 +4,7 @@ var DIRECTIONS={"UP":"UP","DOWN":"DOWN","RIGHT":"RIGHT","LEFT":"LEFT"};
 
 var MOVE_FINISHED = -1;
 var MOVE_ON = 0;
-var STEP_DURATION = 770;
+var STEP_DURATION = 800;
 var FOOT_STEP_DURATION = 150;
 
 var moves=new Object();
@@ -219,13 +219,13 @@ function move(mapID, persoID, mapArray, nodes) {
 			}, FOOT_STEP_DURATION);
 			return 0;
 		}
-		if(nodes[i-1].x == position.x && nodes[i-1].y == position.y) {
-			console.log("ARRIVED ("+position.x +", "+position.y+") => ("+nodes[i-1].x+", "+nodes[i-1].y+")");
+		//if(nodes[i-1].x == position.x && nodes[i-1].y == position.y) {
+			//console.log("ARRIVED ("+position.x +", "+position.y+") => ("+nodes[i-1].x+", "+nodes[i-1].y+")");
 			moveResult = moveByStep(mapID, persoID, mapArray, nodes, i);
 			i++;
-		} else {
-			console.log("NOT YET ARRIVED ("+position.x +", "+position.y+") => ("+nodes[i-1].x+", "+nodes[i-1].y+")");
-		}
+		//} else {
+		//	console.log("NOT YET ARRIVED ("+position.x +", "+position.y+") => ("+nodes[i-1].x+", "+nodes[i-1].y+")");
+		//}
 	}, STEP_DURATION);
 }
 
@@ -352,7 +352,9 @@ function getMouseMapPosition(mapID,event) {
 	
 	//position de la souris par rapport à la carte 2D
 	var position = {"x":posX/unit,"y":posY/unit};
-	return changeFrame(position,false);
+	var returnedPosition = changeFrame(position,false);
+	console.log(returnedPosition);
+	return returnedPosition;
 }	
 
 /**
