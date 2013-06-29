@@ -1,5 +1,5 @@
-var character = new Character("TYPEDEFOU");
+var character = CharacterHelper.newCharacter();
 
-console.log(character.typeOfCharacter());
-console.log(character.typeOfCharacter("undefined"));
-console.log(character.typeOfCharacter("TTEST"));
+console.log(CharacterHelper.getCurrentLife(character));
+CharacterHelper.setCurrentLife(character,50);
+console.log(CharacterHelper.getCurrentLife(character));
