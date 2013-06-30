@@ -35,12 +35,14 @@ var ActionManager = {
 		Actions.subjectList = new Array();
 	},
 	
+	//TODO DO NOT WORK
 	getActionList:function() {
-		return Actions.actionList;
+		return Actions.actionList.copy();
 	},
 	
+	//TODO DO NOT WORK
 	getSubjectList:function() {
-		return Actions.subjectList;
+		return Actions.subjectList.copy();
 	},
 	
 	addSubject:function(subject) {
@@ -64,9 +66,6 @@ var ActionManager = {
 		if(PointHelper.equals(position, destination) || mapOrig[destination.x][destination.y] != 1) {
 			return MOVE_FINISHED;
 		}
-		
-		$("#"+characterID).find(".perso").removeClass("stand");
-		$("#"+characterID).find(".perso").addClass("walk");
 
 		var map1 = copyMap(mapOrig);
 		var graph = new Graph(map1);
@@ -76,6 +75,13 @@ var ActionManager = {
 		var map2 = graph.input;
 		
 		var result = astar.search(graph.nodes, start, end, true);
+		
+		if(result.length == 0) {
+			return MOVE_FINISHED;
+		}
+		
+		$("#"+characterID).find(".perso").removeClass("stand");
+		$("#"+characterID).find(".perso").addClass("walk");
 		
 		ActionManager.move(mapID, character, map1, result);
 	},
@@ -116,7 +122,7 @@ var ActionManager = {
 	},
 
 	moveByStep:function(mapID, character, mapArray, nodes, i) {	
-		if(nodes[i] == undefined) {
+		if(nodes[i] == undefined || nodes.length == 0) {
 			console.log("nodes["+i+"] undefined");
 			return MOVE_FINISHED;
 		}
@@ -176,5 +182,22 @@ var ActionManager = {
 				ActionManager.moveCss(mapID, character, destination);
 			}, FOOT_STEP_DURATION);
 		}
+	},
+	
+	getMouseMapPosition:function(mapID, event) {
+		var offsetLeft = $("#screen").offset().left+$("#"+mapID).position().left;
+		var offsetTop = $("#screen").offset().top+$("#"+mapID).position().top;
+		
+		var x = event.pageX;
+		var y = event.pageY;
+		
+		var posX = x - offsetLeft;
+		var posY = y - offsetTop;
+		
+		//position de la souris par rapport à la carte 2D
+		var position = PointHelper.newPoint(posX/UNIT, posY/UNIT);
+		var returnedPosition = PointHelper.changeFrame(position,false);
+		console.log(returnedPosition);
+		return returnedPosition;
 	},
 };

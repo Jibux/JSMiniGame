@@ -63,3 +63,33 @@ k)-899497514);j=k;k=e;e=g<<30|g>>>2;g=h;h=c}b[0]=b[0]+h|0;b[1]=b[1]+g|0;b[2]=b[2
 *			5) var rand = Dice.roll42();		// Dé de 42
 */
 var Dice=function(){roll=function(a,b){Math.random()};roll2=function(a,b){Math.random()};roll8=function(a,b){Math.random()};roll6=function(a,b){Math.random()};roll10=function(a,b){Math.random()};roll12=function(a,b){Math.random()};roll20=function(a,b){Math.random()};roll42=function(a,b){Math.random()}};
+
+
+/**
+*	Cette fonction ne copie pas réellement les objets
+*	TODO A REFAIRE
+*/
+Array.prototype.copy = function() {
+	var array = new Array();
+	for (key in this) {
+		if(typeof this[key] != "function") {
+			array[key] = this[key];
+		}
+	}
+	
+	return array;
+}
+
+/**
+*	TEST CLONE OBJET - MARCHE PAS POUR LE MOMMENT
+*/
+function cloneObject(source) {
+	for (i in source) {
+		if (typeof source[i] == 'source' && typeof source[i] != "function") {
+			this[i] = new cloneObject(source[i]);
+		}
+		else {
+				this[i] = source[i];
+		}
+	}
+}

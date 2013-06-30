@@ -52,13 +52,13 @@ $("document").ready(function() {
 	
 	$(".tile").click(function(e) {
 		var ID = $(this).parent().attr('id');
-		var position = getMouseMapPosition(ID, e);
+		var position = ActionManager.getMouseMapPosition(ID, e);
 		ActionManager.addAction(ACTION_ENUM.MOVE, CharacterHelper.getID(character), position);
 		ActionManager.moveTo(ID, character, position);
 	});
 	$(".perso").click(function(e) {
 		var ID = $(this).parent().parent().attr('id');
-		var position = getMouseMapPosition(ID, e);
+		var position = ActionManager.getMouseMapPosition(ID, e);
 		ActionManager.addAction(ACTION_ENUM.MOVE, CharacterHelper.getID(character), position);
 		ActionManager.moveTo(ID, character, position);
 	});
@@ -109,6 +109,9 @@ function init(character) {
 	
 	ActionManager.init();
 	ActionManager.addSubject(character);
+	var character2 = CharacterHelper.newCharacter();
+	CharacterHelper.setID(character2, "TEST");
+	ActionManager.addSubject(character2);
 	
 	CharacterHelper.drawPerso(character, mapID);
 }
@@ -134,23 +137,3 @@ function drawMap(mapID,top,left) {
 		}
 	}
 }
-
-function getMouseMapPosition(mapID, event) {
-	var result = new Object();
-	
-	var offsetLeft = $("#screen").offset().left+$("#"+mapID).position().left;
-	var offsetTop = $("#screen").offset().top+$("#"+mapID).position().top;
-	
-	var x = event.pageX;
-	var y = event.pageY;
-	
-	var posX = x - offsetLeft;
-	var posY = y - offsetTop;
-	
-	//position de la souris par rapport à la carte 2D
-	var position = PointHelper.newPoint(posX/UNIT, posY/UNIT);
-	var returnedPosition = PointHelper.changeFrame(position,false);
-	console.log(returnedPosition);
-	return returnedPosition;
-}	
-
