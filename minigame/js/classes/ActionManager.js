@@ -8,6 +8,12 @@ var ACTION_ENUM = {
 /**
 *	Action : classe définissant une action
 *		type : type d'action (move, jump, cook, reboot, eat, sleep...)
+*		subject : ID du sujet. Les sujets peuvent être des characters, des shadoks, des pommes, des poires et même des tartes à la banane
+*		target : la plus part du temps le point sur lequel s'applique l'action que le sujet soit effectuer
+*			Ex :
+*				Action.type = MOVE
+*				Action.sujet = "user"
+*				Action.target = Point(x, y, z) de destination
 */
 var Action = {
 	type:ACTION_ENUM.MOVE,
@@ -17,7 +23,6 @@ var Action = {
 
 /**
 *	Classe Actions : contient une liste d'action (actionList) et une liste d'ID de sujets (subjectList)
-*	Les sujets peuvent être des characters, des shadoks, des pommes, des poires et même des tartes à la banane
 */
 var Actions = {
 	actionList:null,
