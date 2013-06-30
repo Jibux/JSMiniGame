@@ -1,13 +1,62 @@
-var ActionManager = {
-	heap: function() {
-        return new BinaryHeap();
-    },
+var ACTION_ENUM = {
+	MOVE:"move",
+	JUMP:"jump",
+	COOK:"cook",
+	SLEEP:"sleep",
+};
+
+/**
+*	Action : classe définissant une action
+*		type : type d'action (move, jump, cook, reboot, eat, sleep...)
+*/
+var Action = {
+	type:ACTION_ENUM.MOVE,
+	subject:null,
+	target:null,
+};
+
+/**
+*	Classe Actions : contient une liste d'action (actionList) et une liste d'ID de sujets (subjectList)
+*	Les sujets peuvent être des characters, des shadoks, des pommes, des poires et même des tartes à la banane
+*/
+var Actions = {
+	actionList:null,
+	subjectList:null,
+};
+
+var ActionManager = {	
+	init:function() {
+		Actions.actionList = new Array();
+		Actions.subjectList = new Array();
+	},
 	
-	moveTo:function(mapID, character, x, y) {
+	getActionList:function() {
+		return Actions.actionList;
+	},
+	
+	getSubjectList:function() {
+		return Actions.subjectList;
+	},
+	
+	addSubject:function(subject) {
+		var subjectID = CharacterHelper.getID(subject);
+		Actions.subjectList[subjectID] = subject;
+	},
+	
+	addAction:function(type, subject, target) {
+		var action = newObject(Action);
+		action.type = type;
+		action.target = target;
+		action.subject = subject;
+		
+		Actions.actionList.push(action);
+	},
+	
+	moveTo:function(mapID, character, destination) {
 		var characterID = CharacterHelper.getID(character);
 		var position = CharacterHelper.getPersoPosition2D(character);
 
-		if(position.x == x && position.y == y || mapOrig[x][y] != 1) {
+		if(PointHelper.equals(position, destination) || mapOrig[destination.x][destination.y] != 1) {
 			return MOVE_FINISHED;
 		}
 		
@@ -18,7 +67,7 @@ var ActionManager = {
 		var graph = new Graph(map1);
 		
 		var start = graph.nodes[position.x][position.y];
-		var end = graph.nodes[x][y];
+		var end = graph.nodes[destination.x][destination.y];
 		var map2 = graph.input;
 		
 		var result = astar.search(graph.nodes, start, end, true);
@@ -46,6 +95,7 @@ var ActionManager = {
 					var position = CharacterHelper.getPersoPosition2D(character);
 					console.log("Actual ("+position.x +", "+position.y+")");
 					console.log("Target ("+nodes[i].x+", "+nodes[i].y+")");
+					console.log(Actions.actionList);
 					console.log("FINISHED");
 				}, FOOT_STEP_DURATION);
 				return 0;
@@ -68,10 +118,9 @@ var ActionManager = {
 		if(mapArray[nodes[i].x][nodes[i].y] != 2) {
 			// Pas d'ennemi
 			//mapArray[nodes[i].x][nodes[i].y]=4;
-			var posX=nodes[i].x*UNIT;
-			var posY=nodes[i].y*UNIT;
-			CharacterHelper.stop(character);
-			ActionManager.moveCss(mapID, character, posX, posY);
+			var destination = PointHelper.newPoint(nodes[i].x*UNIT, nodes[i].y*UNIT);
+			CharacterHelper.move(character);
+			ActionManager.moveCss(mapID, character, destination);
 			
 			return MOVE_ON;
 		} else {
@@ -91,39 +140,35 @@ var ActionManager = {
 		}
 	},
 
-	moveCss:function(mapID, character, x, y) {
+	moveCss:function(mapID, character, destination) {
 		var unitMove=Math.round(UNIT/5);
 		var characterID = CharacterHelper.getID(character);
 		
-		var position = CharacterHelper.getPersoPosition2D(character);
-		var persoX = position.x;
-		var persoY = position.y;
-		
-		var position2 = CharacterHelper.getPersoPosition(character);
-		var left = position2.x;
-		var top = position2.y;
+		var position = CharacterHelper.getPersoPosition(character);
+		var left = position.x;
+		var top = position.y;
 		
 		//move X
-		if(left<x) {
+		if(position.x < destination.x) {
 			CharacterHelper.direction(character,DIRECTIONS.RIGHT);
 			$("#"+characterID).css("left",(left*1 + unitMove) + "px");
-		}else if(left>x) {
+		}else if(position.x > destination.x) {
 			CharacterHelper.direction(character,DIRECTIONS.LEFT);
 			$("#"+characterID).css("left",(left*1 - unitMove) + "px");
 		}
 		//move Y
-		if(top>y) {
+		if(position.y > destination.y) {
 			CharacterHelper.direction(character,DIRECTIONS.UP);
 			$("#"+characterID).css("top",(top*1 - unitMove) + "px");
-		}else if(top<y) {
+		}else if(position.y < destination.y) {
 			CharacterHelper.direction(character,DIRECTIONS.DOWN);
 			$("#"+characterID).css("top",(top*1 + unitMove) + "px");
 		}
 		
 		//continue moving
-		if(left!=x || top!=y) {
+		if(!PointHelper.equals(position, destination)) {
 			setTimeout(function() {
-				ActionManager.moveCss(mapID, character, x, y);
+				ActionManager.moveCss(mapID, character, destination);
 			}, FOOT_STEP_DURATION);
 		}
 	},

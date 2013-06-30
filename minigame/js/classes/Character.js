@@ -1,5 +1,5 @@
 /**
- * This class describe a Character. It can run, sing, eat, and whatever you want if you have created the method to do so !
+ *	This class describe a Character. It can run, sing, eat, and whatever you want if you have created the method to do so!
  */
 
 
@@ -66,18 +66,16 @@ var CharacterHelper = {
 		var left = $("#"+character.ID).css("left").substring(0,$("#"+character.ID).css("left").length - 2);
 		var top = $("#"+character.ID).css("top").substring(0, $("#"+character.ID).css("top").length - 2);
 		
-		var result = Object();
-		result.x = Math.floor(left/UNIT);
-		result.y = Math.floor(top/UNIT);
+		var result = PointHelper.newPoint(Math.floor(left/UNIT), Math.floor(top/UNIT));
 		
 		return result;
 	},
 
 	getPersoPosition:function(character) {
-		var result = Object();
+		var x = $("#"+character.ID).css("left").substring(0,$("#"+character.ID).css("left").length - 2);
+		var y = $("#"+character.ID).css("top").substring(0, $("#"+character.ID).css("top").length - 2);
 		
-		result.x = $("#"+character.ID).css("left").substring(0,$("#"+character.ID).css("left").length - 2);
-		result.y = $("#"+character.ID).css("top").substring(0, $("#"+character.ID).css("top").length - 2);
+		var result = PointHelper.newPoint(x, y);
 		
 		return result;
 	},
@@ -114,10 +112,10 @@ var CharacterHelper = {
 		}
 	},
 	
-	drawPersofunction:(character, mapID) {
+	drawPerso:function(character, mapID) {
 		$("#"+mapID).append('<div class="occupation" style="top:220px;left:220px;" id="'+character.ID+'"></div>');
 		$("#"+character.ID).append('<div class="perso stand up left"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
-	}
+	},
 	
 	userSpeak:function(character) {
 		if(!character.speaking) {

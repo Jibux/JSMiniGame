@@ -46,23 +46,21 @@ $("document").ready(function() {
 		}
 	}
 
-	init();
+	init(character);
 	
-	CharacterHelper.drawPerso(character, mapID);
+	console.log(ActionManager.getSubjectList());
 	
 	$(".tile").click(function(e) {
-		var ID=$(this).parent().attr('id');
+		var ID = $(this).parent().attr('id');
 		var position = getMouseMapPosition(ID, e);
-		var x = position.x;
-		var y = position.y;
-		ActionManager.moveTo(ID, character, x, y);
+		ActionManager.addAction(ACTION_ENUM.MOVE, CharacterHelper.getID(character), position);
+		ActionManager.moveTo(ID, character, position);
 	});
 	$(".perso").click(function(e) {
-		var ID=$(this).parent().parent().attr('id');
+		var ID = $(this).parent().parent().attr('id');
 		var position = getMouseMapPosition(ID, e);
-		var x = position.x;
-		var y = position.y;
-		ActionManager.moveTo(ID, character, x, y);
+		ActionManager.addAction(ACTION_ENUM.MOVE, CharacterHelper.getID(character), position);
+		ActionManager.moveTo(ID, character, position);
 	});
 	clock();
 	setInterval(function() {
@@ -77,7 +75,7 @@ function clock() {
 }
 
 
-function init() {
+function init(character) {
 	var currentDate = new Date();
 	currentDate.getHours();
 	var mapID = "map_0_0_0";
@@ -94,7 +92,8 @@ function init() {
 			var id="map_"+(map.position.x+x)+"_"+(map.position.y+y)+"_"+map.position.z;
 			
 			if(mapContent[id]!=undefined) {
-				var rep = changeFrame({x:left*x,y:top*y},true);
+				var point = PointHelper.newPoint(left*x, top*y);
+				var rep = PointHelper.changeFrame(point, true);
 				var repere = {x:rep.x*UNIT,y:rep.y*UNIT};
 				drawMap(id,repere.y+offset.y,repere.x+offset.x);
 				
@@ -107,6 +106,11 @@ function init() {
 			}
 		}
 	}
+	
+	ActionManager.init();
+	ActionManager.addSubject(character);
+	
+	CharacterHelper.drawPerso(character, mapID);
 }
 
 function drawMap(mapID,top,left) {
@@ -144,32 +148,9 @@ function getMouseMapPosition(mapID, event) {
 	var posY = y - offsetTop;
 	
 	//position de la souris par rapport à la carte 2D
-	var position = {"x":posX/UNIT,"y":posY/UNIT};
-	var returnedPosition = changeFrame(position,false);
+	var position = PointHelper.newPoint(posX/UNIT, posY/UNIT);
+	var returnedPosition = PointHelper.changeFrame(position,false);
 	console.log(returnedPosition);
 	return returnedPosition;
 }	
 
-/**
-* Change les coordonées passées en paramétre dans le repère ISOmétrique ou 2D
-*
-* position : position={x:"coordonnée en x", y:"coordonnée en y"};
-* toISO : boolean {0=>ISO to 2D, 1=>2D to ISO}
-* TODO Laisser le choix d'utiliser floor, round ou ceil
-**/
-function changeFrame(position,toISO) {
-	var posX = position.x;
-	var posY = position.y;
-	
-	if(!toISO) {
-		var posX2 = Math.floor((Math.sqrt(2)/2)*(posX + posY*2) - map.size.width/2);
-		var posY2 = Math.floor((Math.sqrt(2)/2)*(posY*2 - posX) + map.size.height/2);
-		
-		return {"x":posX2,"y":posY2};
-	} else {
-		var posX2 = Math.round((posX - posY + map.size.width/2 + map.size.height/2) / Math.sqrt(2));
-		var posY2 = Math.round((posX + posY + map.size.width/2 - map.size.height/2) / (2*Math.sqrt(2)));
-		
-		return {"x":posX2,"y":posY2};
-	}
-}
