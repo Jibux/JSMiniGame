@@ -5,7 +5,7 @@ branchs=`git branch | awk '{print $NF}'`
 current=`git branch | grep '*' | awk '{print $NF}'`
 
 echo "git fetch all..."
-git fetch --all
+git fetch origin
 
 echo "Update branchs..."
 for branch in `echo -e $branchs`; do
