@@ -37,12 +37,12 @@ function invertMap(map) {
 $("document").ready(function() {
 	$("#screen").addClass(configuration.mode).addClass(configuration.quality+"_quality");
 	
-	var character = CharacterHelper.newCharacter();
+	var character = new Character("user");
 	
 	window.onkeypress=function(e) {
 		var e=window.event || e;
 		if(e.charCode==13) {
-			CharacterHelper.userSpeak(character);
+			character.userSpeak();
 		}
 	}
 
@@ -53,13 +53,13 @@ $("document").ready(function() {
 	$(".tile").click(function(e) {
 		var ID = $(this).parent().attr('id');
 		var position = ActionManager.getMouseMapPosition(ID, e);
-		ActionManager.addAction(ACTION_ENUM.MOVE, CharacterHelper.getID(character), position);
+		ActionManager.addAction(ACTION_ENUM.MOVE, character.getID(), position);
 		ActionManager.moveTo(ID, character, position);
 	});
 	$(".perso").click(function(e) {
 		var ID = $(this).parent().parent().attr('id');
 		var position = ActionManager.getMouseMapPosition(ID, e);
-		ActionManager.addAction(ACTION_ENUM.MOVE, CharacterHelper.getID(character), position);
+		ActionManager.addAction(ACTION_ENUM.MOVE, character.getID(), position);
 		ActionManager.moveTo(ID, character, position);
 	});
 	clock();
@@ -92,8 +92,8 @@ function init(character) {
 			var id="map_"+(map.position.x+x)+"_"+(map.position.y+y)+"_"+map.position.z;
 			
 			if(mapContent[id]!=undefined) {
-				var point = PointHelper.newPoint(left*x, top*y);
-				var rep = PointHelper.changeFrame(point, true);
+				var point = new Point(left*x, top*y);
+				var rep = point.changeFrame(true);
 				var repere = {x:rep.x*UNIT,y:rep.y*UNIT};
 				drawMap(id,repere.y+offset.y,repere.x+offset.x);
 				
@@ -109,11 +109,10 @@ function init(character) {
 	
 	ActionManager.init();
 	ActionManager.addSubject(character);
-	var character2 = CharacterHelper.newCharacter();
-	CharacterHelper.setID(character2, "TEST");
+	var character2 = new Character("TEST");
 	ActionManager.addSubject(character2);
 	
-	CharacterHelper.drawPerso(character, mapID);
+	character.drawPerso(mapID);
 }
 
 function drawMap(mapID,top,left) {

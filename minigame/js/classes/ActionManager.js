@@ -1,10 +1,3 @@
-var ACTION_ENUM = {
-	MOVE:"move",
-	JUMP:"jump",
-	COOK:"cook",
-	SLEEP:"sleep",
-};
-
 /**
 *	Action : classe définissant une action
 *		type : type d'action (move, jump, cook, reboot, eat, sleep...)
@@ -15,11 +8,36 @@ var ACTION_ENUM = {
 *				Action.sujet = "user"
 *				Action.target = Point(x, y, z) de destination
 */
-var Action = {
-	type:ACTION_ENUM.MOVE,
-	subject:null,
-	target:null,
-};
+var Action = function(typeOfAction, theSubject, theTarget) {
+	this.type = typeOfAction || ACTION_ENUM.MOVE;
+	this.subject = theSubject;
+	this.target = theTarget;
+}
+
+Action.prototype.getType = function() {
+	return this.type;
+}
+
+Action.prototype.getSubject = function() {
+	return this.subject;
+}
+
+Action.prototype.getTarget = function() {
+	return this.target;
+}
+
+Action.prototype.setType = function(type) {
+	this.type = type;
+}
+
+Action.prototype.setSubject = function(subject) {
+	this.subject = subject;
+}
+
+Action.prototype.setTarget = function(target) {
+	this.target = target;
+}
+
 
 /**
 *	Classe Actions : contient une liste d'action (actionList) et une liste d'ID de sujets (subjectList)
@@ -29,6 +47,7 @@ var Actions = {
 	subjectList:null,
 };
 
+
 var ActionManager = {	
 	init:function() {
 		Actions.actionList = new Array();
@@ -37,33 +56,30 @@ var ActionManager = {
 	
 	//TODO DO NOT WORK
 	getActionList:function() {
-		return Actions.actionList.copy();
+		return Actions.actionList;
 	},
 	
 	//TODO DO NOT WORK
 	getSubjectList:function() {
-		return Actions.subjectList.copy();
+		return Actions.subjectList;
 	},
 	
 	addSubject:function(subject) {
-		var subjectID = CharacterHelper.getID(subject);
+		var subjectID = subject.getID();
 		Actions.subjectList[subjectID] = subject;
 	},
 	
 	addAction:function(type, subject, target) {
-		var action = newObject(Action);
-		action.type = type;
-		action.target = target;
-		action.subject = subject;
+		var action = new Action(type, subject, target);
 		
 		Actions.actionList.push(action);
 	},
 	
 	moveTo:function(mapID, character, destination) {
-		var characterID = CharacterHelper.getID(character);
-		var position = CharacterHelper.getPersoPosition2D(character);
+		var characterID = character.getID();
+		var position = character.getPersoPosition2D();
 
-		if(PointHelper.equals(position, destination) || mapOrig[destination.x][destination.y] != 1) {
+		if(position.equals(destination) || mapOrig[destination.x][destination.y] != 1) {
 			return MOVE_FINISHED;
 		}
 
@@ -90,10 +106,10 @@ var ActionManager = {
 		var timeout = 0;
 		var i = 1;
 		var moveResult = MOVE_ON;
-		var characterID = CharacterHelper.getID(character);
+		var characterID = character.getID();
 		ActionManager.moveByStep(mapID, character, mapArray, nodes, 0);
 		var intId = setInterval(function() {
-			var position = CharacterHelper.getPersoPosition2D(character);
+			var position = character.getPersoPosition2D();
 			if(i == nodes.length || moveResult == MOVE_FINISHED) {
 				if(i == nodes.length) {
 					i--;
@@ -102,8 +118,8 @@ var ActionManager = {
 				setTimeout(function() {
 					$("#"+characterID).find(".perso").addClass("stand");
 					$("#"+characterID).find(".perso").removeClass("walk");
-					CharacterHelper.stop(character);
-					var position = CharacterHelper.getPersoPosition2D(character);
+					character.stop();
+					var position = character.getPersoPosition2D();
 					console.log("Actual ("+position.x +", "+position.y+")");
 					console.log("Target ("+nodes[i].x+", "+nodes[i].y+")");
 					console.log(Actions.actionList);
@@ -129,8 +145,8 @@ var ActionManager = {
 		if(mapArray[nodes[i].x][nodes[i].y] != 2) {
 			// Pas d'ennemi
 			//mapArray[nodes[i].x][nodes[i].y]=4;
-			var destination = PointHelper.newPoint(nodes[i].x*UNIT, nodes[i].y*UNIT);
-			CharacterHelper.move(character);
+			var destination = new Point(nodes[i].x*UNIT, nodes[i].y*UNIT);
+			character.move();
 			ActionManager.moveCss(mapID, character, destination);
 			
 			return MOVE_ON;
@@ -153,31 +169,31 @@ var ActionManager = {
 
 	moveCss:function(mapID, character, destination) {
 		var unitMove=Math.round(UNIT/5);
-		var characterID = CharacterHelper.getID(character);
+		var characterID = character.getID();
 		
-		var position = CharacterHelper.getPersoPosition(character);
+		var position = character.getPersoPosition();
 		var left = position.x;
 		var top = position.y;
 		
 		//move X
 		if(position.x < destination.x) {
-			CharacterHelper.direction(character,DIRECTIONS.RIGHT);
+			character.direction(DIRECTIONS.RIGHT);
 			$("#"+characterID).css("left",(left*1 + unitMove) + "px");
 		}else if(position.x > destination.x) {
-			CharacterHelper.direction(character,DIRECTIONS.LEFT);
+			character.direction(DIRECTIONS.LEFT);
 			$("#"+characterID).css("left",(left*1 - unitMove) + "px");
 		}
 		//move Y
 		if(position.y > destination.y) {
-			CharacterHelper.direction(character,DIRECTIONS.UP);
+			character.direction(DIRECTIONS.UP);
 			$("#"+characterID).css("top",(top*1 - unitMove) + "px");
 		}else if(position.y < destination.y) {
-			CharacterHelper.direction(character,DIRECTIONS.DOWN);
+			character.direction(DIRECTIONS.DOWN);
 			$("#"+characterID).css("top",(top*1 + unitMove) + "px");
 		}
 		
 		//continue moving
-		if(!PointHelper.equals(position, destination)) {
+		if(!position.equals(destination)) {
 			setTimeout(function() {
 				ActionManager.moveCss(mapID, character, destination);
 			}, FOOT_STEP_DURATION);
@@ -195,8 +211,8 @@ var ActionManager = {
 		var posY = y - offsetTop;
 		
 		//position de la souris par rapport à la carte 2D
-		var position = PointHelper.newPoint(posX/UNIT, posY/UNIT);
-		var returnedPosition = PointHelper.changeFrame(position,false);
+		var position = new Point(posX/UNIT, posY/UNIT);
+		var returnedPosition = position.changeFrame(false);
 		console.log(returnedPosition);
 		return returnedPosition;
 	},
