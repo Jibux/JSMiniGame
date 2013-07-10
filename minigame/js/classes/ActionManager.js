@@ -12,32 +12,33 @@ var Action = function(typeOfAction, theSubject, theTarget) {
 	this.type = typeOfAction || ACTION_ENUM.MOVE;
 	this.subject = theSubject;
 	this.target = theTarget;
-}
+};
 
-Action.prototype.getType = function() {
-	return this.type;
-}
+Action.prototype = { 
+	getType: function() {
+		return this.type;
+	},
 
-Action.prototype.getSubject = function() {
-	return this.subject;
-}
+	getSubject: function() {
+		return this.subject;
+	},
 
-Action.prototype.getTarget = function() {
-	return this.target;
-}
+	getTarget: function() {
+		return this.target;
+	},
 
-Action.prototype.setType = function(type) {
-	this.type = type;
-}
+	setType: function(type) {
+		this.type = type;
+	},
 
-Action.prototype.setSubject = function(subject) {
-	this.subject = subject;
-}
+	setSubject: function(subject) {
+		this.subject = subject;
+	},
 
-Action.prototype.setTarget = function(target) {
-	this.target = target;
-}
-
+	setTarget: function(target) {
+		this.target = target;
+	},
+};
 
 /**
 *	Classe Actions : contient une liste d'action (actionList) et une liste d'ID de sujets (subjectList)
@@ -49,33 +50,33 @@ var Actions = {
 
 
 var ActionManager = {	
-	init:function() {
+	init: function() {
 		Actions.actionList = new Array();
 		Actions.subjectList = new Array();
 	},
 	
 	//TODO DO NOT WORK
-	getActionList:function() {
+	getActionList: function() {
 		return Actions.actionList;
 	},
 	
 	//TODO DO NOT WORK
-	getSubjectList:function() {
+	getSubjectList: function() {
 		return Actions.subjectList;
 	},
 	
-	addSubject:function(subject) {
+	addSubject: function(subject) {
 		var subjectID = subject.getID();
 		Actions.subjectList[subjectID] = subject;
 	},
 	
-	addAction:function(type, subject, target) {
-		var action = new Action(type, subject, target);
-		
-		Actions.actionList.push(action);
+	addAction: function(type, subjectID, target) {
+		var action = new Action(type, subjectID, target);
+		Actions.actionList[subjectID] = new Array();
+		Actions.actionList[subjectID].push(action);
 	},
 	
-	moveTo:function(mapID, character, destination) {
+	moveTo: function(mapID, character, destination) {
 		var characterID = character.getID();
 		var position = character.getPersoPosition2D();
 
@@ -102,7 +103,7 @@ var ActionManager = {
 		ActionManager.move(mapID, character, map1, result);
 	},
 	
-	move:function(mapID, character, mapArray, nodes) {
+	move: function(mapID, character, mapArray, nodes) {
 		var timeout = 0;
 		var i = 1;
 		var moveResult = MOVE_ON;
@@ -137,7 +138,7 @@ var ActionManager = {
 		}, STEP_DURATION);
 	},
 
-	moveByStep:function(mapID, character, mapArray, nodes, i) {	
+	moveByStep: function(mapID, character, mapArray, nodes, i) {	
 		if(nodes[i] == undefined || nodes.length == 0) {
 			console.log("nodes["+i+"] undefined");
 			return MOVE_FINISHED;
@@ -167,7 +168,7 @@ var ActionManager = {
 		}
 	},
 
-	moveCss:function(mapID, character, destination) {
+	moveCss: function(mapID, character, destination) {
 		var unitMove=Math.round(UNIT/5);
 		var characterID = character.getID();
 		
@@ -200,7 +201,7 @@ var ActionManager = {
 		}
 	},
 	
-	getMouseMapPosition:function(mapID, event) {
+	getMouseMapPosition: function(mapID, event) {
 		var offsetLeft = $("#screen").offset().left+$("#"+mapID).position().left;
 		var offsetTop = $("#screen").offset().top+$("#"+mapID).position().top;
 		
