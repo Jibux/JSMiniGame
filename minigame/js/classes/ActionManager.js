@@ -1,7 +1,7 @@
 /**
 *	Action : classe définissant une action
 *		type : type d'action (move, jump, cook, reboot, eat, sleep...)
-*		subject : ID du sujet. Les sujets peuvent être des characters, des shadoks, des pommes, des poires et même des tartes à la banane
+*		subjectID : ID du sujet. Les sujets peuvent être des characters, des shadoks, des pommes, des poires et même des tartes à la banane
 *		target : la plus part du temps le point sur lequel s'applique l'action que le sujet soit effectuer
 *			Ex :
 *				Action.type = MOVE
@@ -10,7 +10,7 @@
 */
 var Action = function(typeOfAction, theSubject, theTarget) {
 	this.type = typeOfAction || ACTION_ENUM.MOVE;
-	this.subject = theSubject;
+	this.subjectID = theSubject;
 	this.target = theTarget;
 };
 
@@ -19,8 +19,8 @@ Action.prototype = {
 		return this.type;
 	},
 
-	getSubject: function() {
-		return this.subject;
+	getSubjectID: function() {
+		return this.subjectID;
 	},
 
 	getTarget: function() {
@@ -31,8 +31,8 @@ Action.prototype = {
 		this.type = type;
 	},
 
-	setSubject: function(subject) {
-		this.subject = subject;
+	setSubjectID: function(subjectID) {
+		this.subjectID = subjectID;
 	},
 
 	setTarget: function(target) {
@@ -72,8 +72,22 @@ var ActionManager = {
 	
 	addAction: function(type, subjectID, target) {
 		var action = new Action(type, subjectID, target);
-		Actions.actionList[subjectID] = new Array();
-		Actions.actionList[subjectID].push(action);
+		Actions.actionList.push(action);
+	},
+	
+	start: function(mapID) {
+		var intId = setInterval(function() {
+			var action = Actions.actionList.pop();
+			if(action) {
+				var type = action.getType();
+				var subjectID = action.getSubjectID();
+				var target = action.getTarget();
+				switch(type) {
+					case ACTION_ENUM.MOVE: ActionManager.moveTo(mapID, Actions.subjectList[subjectID], target); break;
+					default: console.log("Unknown action!"); break;
+				}
+			}
+		}, CHECK_DURATION);
 	},
 	
 	moveTo: function(mapID, character, destination) {
@@ -178,18 +192,18 @@ var ActionManager = {
 		
 		//move X
 		if(position.x < destination.x) {
-			character.direction(DIRECTIONS.RIGHT);
+			character.direction(DIRECTION_ENUM.RIGHT);
 			$("#"+characterID).css("left",(left*1 + unitMove) + "px");
 		}else if(position.x > destination.x) {
-			character.direction(DIRECTIONS.LEFT);
+			character.direction(DIRECTION_ENUM.LEFT);
 			$("#"+characterID).css("left",(left*1 - unitMove) + "px");
 		}
 		//move Y
 		if(position.y > destination.y) {
-			character.direction(DIRECTIONS.UP);
+			character.direction(DIRECTION_ENUM.UP);
 			$("#"+characterID).css("top",(top*1 - unitMove) + "px");
 		}else if(position.y < destination.y) {
-			character.direction(DIRECTIONS.DOWN);
+			character.direction(DIRECTION_ENUM.DOWN);
 			$("#"+characterID).css("top",(top*1 + unitMove) + "px");
 		}
 		

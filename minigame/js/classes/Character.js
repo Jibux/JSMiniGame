@@ -82,28 +82,28 @@ Character.prototype = {
 
 	direction: function(dir) {
 		var perso = $("#"+this.ID).find(".perso");
-		if(dir == DIRECTIONS.LEFT) {
+		if(dir == DIRECTION_ENUM.LEFT) {
 			perso.removeClass("right");
 			perso.removeClass("down");
 			perso.addClass("left");
 			perso.addClass("up");
 		//	console.log("LEFT")
 		}
-		if(dir == DIRECTIONS.RIGHT) {
+		if(dir == DIRECTION_ENUM.RIGHT) {
 			perso.removeClass("left");
 			perso.removeClass("up");
 			perso.addClass("right");
 			perso.addClass("down");
 		//	console.log("RIGHT")
 		}
-		if(dir == DIRECTIONS.DOWN) {
+		if(dir == DIRECTION_ENUM.DOWN) {
 			perso.removeClass("up");
 			perso.removeClass("right");
 			perso.addClass("down");
 			perso.addClass("left");
 		//	console.log("DOWN")
 		}
-		if(dir == DIRECTIONS.UP) {
+		if(dir == DIRECTION_ENUM.UP) {
 			perso.removeClass("down");
 			perso.removeClass("left");
 			perso.addClass("up");

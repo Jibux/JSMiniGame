@@ -54,14 +54,19 @@ $("document").ready(function() {
 		var ID = $(this).parent().attr('id');
 		var position = ActionManager.getMouseMapPosition(ID, e);
 		ActionManager.addAction(ACTION_ENUM.MOVE, character.getID(), position);
-		ActionManager.moveTo(ID, character, position);
+		//ActionManager.moveTo(ID, character, position);
 	});
 	$(".perso").click(function(e) {
 		var ID = $(this).parent().parent().attr('id');
 		var position = ActionManager.getMouseMapPosition(ID, e);
 		ActionManager.addAction(ACTION_ENUM.MOVE, character.getID(), position);
-		ActionManager.moveTo(ID, character, position);
+		//ActionManager.moveTo(ID, character, position);
 	});
+	
+	// TODO: WHAT TO DO WITH MAPID?
+	var mapID = "map_0_0_0";
+	ActionManager.start(mapID);
+	
 	clock();
 	setInterval(function() {
 		clock();

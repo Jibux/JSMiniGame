@@ -26,7 +26,6 @@ configuration.load={
 			"Tools",
 			"astar",
 			"graph",
-			"DirectionEnum",
 			"Point",
 			"Character",
 			"KeyManager",
