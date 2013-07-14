@@ -53,12 +53,16 @@ $("document").ready(function() {
 	$(".tile").click(function(e) {
 		var ID = $(this).parent().attr('id');
 		var position = ActionManager.getMouseMapPosition(ID, e);
+		console.log(character.getPersoPosition());
+		console.log(character.getPersoPosition2D());
 		ActionManager.addAction(ACTION_ENUM.MOVE, character.getID(), position);
 		//ActionManager.moveTo(ID, character, position);
 	});
 	$(".perso").click(function(e) {
 		var ID = $(this).parent().parent().attr('id');
 		var position = ActionManager.getMouseMapPosition(ID, e);
+		console.log(character.getPersoPosition());
+		console.log(character.getPersoPosition2D());
 		ActionManager.addAction(ACTION_ENUM.MOVE, character.getID(), position);
 		//ActionManager.moveTo(ID, character, position);
 	});

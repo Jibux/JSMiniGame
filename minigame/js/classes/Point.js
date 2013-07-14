@@ -2,9 +2,9 @@
  * This class describe a Point in a 3D space. We are running a 2D game but, well why not?
  */
 var Point = function(x, y, z) {
-	this.x = x;
-	this.y = y;
-	this.z = z;
+	this.x = x*1;
+	this.y = y*1;
+	this.z = z*1;
 };
 
 Point.prototype = {

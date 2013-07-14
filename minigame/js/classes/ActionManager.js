@@ -97,6 +97,10 @@ var ActionManager = {
 		if(position.equals(destination) || mapOrig[destination.x][destination.y] != 1) {
 			return MOVE_FINISHED;
 		}
+		
+		if(character.isMoving()) {
+			character.setOverrideAction();
+		}
 
 		var map1 = copyMap(mapOrig);
 		var graph = new Graph(map1);
@@ -111,48 +115,47 @@ var ActionManager = {
 			return MOVE_FINISHED;
 		}
 		
-		$("#"+characterID).find(".perso").removeClass("stand");
-		$("#"+characterID).find(".perso").addClass("walk");
-		
 		ActionManager.move(mapID, character, map1, result);
 	},
 	
 	move: function(mapID, character, mapArray, nodes) {
 		var timeout = 0;
-		var i = 1;
+		var i = 0;
 		var moveResult = MOVE_ON;
 		var characterID = character.getID();
-		ActionManager.moveByStep(mapID, character, mapArray, nodes, 0);
+		var destination = new Point(nodes[i].x*UNIT, nodes[i].y*UNIT);
+		
+		character.move();
+		moveResult = ActionManager.moveByStep(mapID, character, mapArray, nodes, i, destination);
 		var intId = setInterval(function() {
-			var position = character.getPersoPosition2D();
-			if(i == nodes.length || moveResult == MOVE_FINISHED) {
+			var position = character.getPersoPosition();
+			if(i == nodes.length || moveResult == MOVE_FINISHED || character.hasAnOverrideAction()) {
+				character.hasNoOverrideAction();
 				if(i == nodes.length) {
 					i--;
 				}
 				clearInterval(intId);
-				setTimeout(function() {
-					$("#"+characterID).find(".perso").addClass("stand");
-					$("#"+characterID).find(".perso").removeClass("walk");
-					character.stop();
-					var position = character.getPersoPosition2D();
-					console.log("Actual ("+position.x +", "+position.y+")");
-					console.log("Target ("+nodes[i].x+", "+nodes[i].y+")");
-					console.log(Actions.actionList);
-					console.log("FINISHED");
-				}, FOOT_STEP_DURATION);
+				character.stop();
+				var position = character.getPersoPosition2D();
+				console.log("Actual ("+position.x +", "+position.y+")");
+				console.log("Target ("+nodes[i].x+", "+nodes[i].y+")");
+				console.log(Actions.actionList);
+				console.log("FINISHED");
 				return 0;
 			}
-			//if(nodes[i-1].x == position.x && nodes[i-1].y == position.y) {
-				//console.log("ARRIVED ("+position.x +", "+position.y+") => ("+nodes[i-1].x+", "+nodes[i-1].y+")");
-				moveResult = ActionManager.moveByStep(mapID, character, mapArray, nodes, i);
+			moveResult = ActionManager.moveByStep(mapID, character, mapArray, nodes, i, destination);
+			
+			if(moveResult == MOVE_WAIT) {
+				console.log("ARRIVED ("+position.x / UNIT +", "+position.y / UNIT+") => ("+nodes[i].x+", "+nodes[i].y+")");
 				i++;
-			//} else {
-			//	console.log("NOT YET ARRIVED ("+position.x +", "+position.y+") => ("+nodes[i-1].x+", "+nodes[i-1].y+")");
-			//}
-		}, STEP_DURATION);
+				if(i != nodes.length) {
+					destination = new Point(nodes[i].x*UNIT, nodes[i].y*UNIT);
+				}
+			}
+		}, FOOT_STEP_DURATION);
 	},
 
-	moveByStep: function(mapID, character, mapArray, nodes, i) {	
+	moveByStep: function(mapID, character, mapArray, nodes, i, destination) {	
 		if(nodes[i] == undefined || nodes.length == 0) {
 			console.log("nodes["+i+"] undefined");
 			return MOVE_FINISHED;
@@ -160,11 +163,9 @@ var ActionManager = {
 		if(mapArray[nodes[i].x][nodes[i].y] != 2) {
 			// Pas d'ennemi
 			//mapArray[nodes[i].x][nodes[i].y]=4;
-			var destination = new Point(nodes[i].x*UNIT, nodes[i].y*UNIT);
-			character.move();
-			ActionManager.moveCss(mapID, character, destination);
+			var moveResult = ActionManager.moveCss(mapID, character, destination);
 			
-			return MOVE_ON;
+			return moveResult;
 		} else {
 			// Ennemi en vue
 			console.log("Ennemi at ("+nodes[i].x+", "+nodes[i].y+")");
@@ -183,9 +184,9 @@ var ActionManager = {
 	},
 
 	moveCss: function(mapID, character, destination) {
-		var unitMove=Math.round(UNIT/5);
+		var unitMove = Math.round(UNIT/5);
 		var characterID = character.getID();
-		
+		var moveResult = MOVE_ON;
 		var position = character.getPersoPosition();
 		var left = position.x;
 		var top = position.y;
@@ -207,12 +208,12 @@ var ActionManager = {
 			$("#"+characterID).css("top",(top*1 + unitMove) + "px");
 		}
 		
-		//continue moving
-		if(!position.equals(destination)) {
-			setTimeout(function() {
-				ActionManager.moveCss(mapID, character, destination);
-			}, FOOT_STEP_DURATION);
+		// We have reached the end of the step because there was only one unitMove step left
+		if(Math.abs(destination.x - position.x) == unitMove || Math.abs(destination.y - position.y) == unitMove) {
+			moveResult = MOVE_WAIT;
 		}
+		
+		return moveResult;
 	},
 	
 	getMouseMapPosition: function(mapID, event) {

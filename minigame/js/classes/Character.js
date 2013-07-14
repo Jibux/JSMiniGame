@@ -28,7 +28,8 @@ var Character = function(idCharacter) {
 	this.level = 0;
 	
 	this.speaking = false;
-	this.isMoving = false;
+	this.moving = false;
+	this.overrideAction = false;
 	
 	//race:RACE.HUMAN,
 };
@@ -51,15 +52,31 @@ Character.prototype = {
 	},
 
 	isMoving: function() {
-		return this.isMoving;
+		return this.moving;
+	},
+	
+	setOverrideAction: function() {
+		this.overrideAction = true;
+	},
+	
+	hasAnOverrideAction: function(){
+		return this.overrideAction;
+	},
+	
+	hasNoOverrideAction: function() {
+		this.overrideAction = false;
 	},
 
 	stop: function() {
-		this.isMoving = false;
+		$("#"+this.ID).find(".perso").addClass("stand");
+		$("#"+this.ID).find(".perso").removeClass("walk");
+		this.moving = false;
 	},
 
 	move: function() {
-		this.isMoving = true;
+		$("#"+this.ID).find(".perso").removeClass("stand");
+		$("#"+this.ID).find(".perso").addClass("walk");
+		this.moving = true;
 	},
 
 	getPersoPosition2D: function() {
@@ -87,34 +104,34 @@ Character.prototype = {
 			perso.removeClass("down");
 			perso.addClass("left");
 			perso.addClass("up");
-		//	console.log("LEFT")
+			console.log("LEFT")
 		}
 		if(dir == DIRECTION_ENUM.RIGHT) {
 			perso.removeClass("left");
 			perso.removeClass("up");
 			perso.addClass("right");
 			perso.addClass("down");
-		//	console.log("RIGHT")
+			console.log("RIGHT")
 		}
 		if(dir == DIRECTION_ENUM.DOWN) {
 			perso.removeClass("up");
 			perso.removeClass("right");
 			perso.addClass("down");
 			perso.addClass("left");
-		//	console.log("DOWN")
+			console.log("DOWN")
 		}
 		if(dir == DIRECTION_ENUM.UP) {
 			perso.removeClass("down");
 			perso.removeClass("left");
 			perso.addClass("up");
 			perso.addClass("right");
-		//	console.log("UP")
+			console.log("UP")
 		}
 	},
 
 	drawPerso: function(mapID) {
-		$("#"+mapID).append('<div class="occupation" style="top:220px;left:220px;" id="'+this.ID+'"></div>');
-		$("#"+this.ID).append('<div class="perso stand up left"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
+		$("#"+mapID).append('<div class="occupation" style="top:20px;left:0px;" id="'+this.ID+'"></div>');
+		$("#"+this.ID).append('<div class="perso stand down right"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
 	},
 
 	userSpeak: function() {
