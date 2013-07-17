@@ -149,10 +149,10 @@ Character.prototype = {
 			speak = speak.replace(":'(","<span class='smiley blue'>:'(</span>");
 			speak = speak.replace(";)","<span class='smiley yellow'>;)</span>");
 			$("#"+this.ID+" .perso .buble").html(speak);
-			var characterID=this.ID;
+			var characterID = this.ID;
 			setTimeout(function() {
 				$("#"+characterID+" .perso .buble").fadeOut('slow');
-				this.speaking=false;
+				this.speaking = false;
 			}, 2000);
 		}
 	},
