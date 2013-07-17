@@ -264,7 +264,6 @@ var ActionManager = {
 					currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
 					//Actions.actionList.push(action);
 				} //else {
-					console.log(action);
 					subject.setCurrentAction(action);
 					switch(type) {
 						case ACTION_ENUM.MOVE: action.moveTo(); break;
