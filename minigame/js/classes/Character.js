@@ -29,7 +29,7 @@ var Character = function(idCharacter) {
 	
 	this.speaking = false;
 	this.moving = false;
-	this.overrideAction = false;
+	this.currentAction = null;
 	
 	//race:RACE.HUMAN,
 };
@@ -55,12 +55,12 @@ Character.prototype = {
 		return this.moving;
 	},
 	
-	setOverrideAction: function() {
-		this.overrideAction = true;
+	setCurrentAction: function(action) {
+		this.currentAction = action;
 	},
 	
-	hasAnOverrideAction: function(){
-		return this.overrideAction;
+	getCurrentAction: function(){
+		return this.currentAction;
 	},
 	
 	hasNoOverrideAction: function() {
@@ -104,28 +104,28 @@ Character.prototype = {
 			perso.removeClass("down");
 			perso.addClass("left");
 			perso.addClass("up");
-			console.log("LEFT")
+			//console.log("LEFT")
 		}
 		if(dir == DIRECTION_ENUM.RIGHT) {
 			perso.removeClass("left");
 			perso.removeClass("up");
 			perso.addClass("right");
 			perso.addClass("down");
-			console.log("RIGHT")
+			//console.log("RIGHT")
 		}
 		if(dir == DIRECTION_ENUM.DOWN) {
 			perso.removeClass("up");
 			perso.removeClass("right");
 			perso.addClass("down");
 			perso.addClass("left");
-			console.log("DOWN")
+			//console.log("DOWN")
 		}
 		if(dir == DIRECTION_ENUM.UP) {
 			perso.removeClass("down");
 			perso.removeClass("left");
 			perso.addClass("up");
 			perso.addClass("right");
-			console.log("UP")
+			//console.log("UP")
 		}
 	},
 

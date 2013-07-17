@@ -55,7 +55,7 @@ $("document").ready(function() {
 		var position = ActionManager.getMouseMapPosition(ID, e);
 		console.log(character.getPersoPosition());
 		console.log(character.getPersoPosition2D());
-		ActionManager.addAction(ACTION_ENUM.MOVE, character.getID(), position);
+		ActionManager.addAction(ACTION_ENUM.MOVE, mapID, character, position);
 		//ActionManager.moveTo(ID, character, position);
 	});
 	$(".perso").click(function(e) {
@@ -63,7 +63,7 @@ $("document").ready(function() {
 		var position = ActionManager.getMouseMapPosition(ID, e);
 		console.log(character.getPersoPosition());
 		console.log(character.getPersoPosition2D());
-		ActionManager.addAction(ACTION_ENUM.MOVE, character.getID(), position);
+		ActionManager.addAction(ACTION_ENUM.MOVE, mapID, character, position);
 		//ActionManager.moveTo(ID, character, position);
 	});
 	
