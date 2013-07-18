@@ -7,6 +7,9 @@ var QUATLITY_ENUM={"LOW":"LOW","MEDIUM":"MEDIUM","HIGH":"HIGH"};
 var configuration=new Object();
 configuration.mode=MODE_ENUM.DEBUG;
 configuration.quality=QUATLITY_ENUM.LOW;
+
+configuration.language="en_GB";
+
 configuration.load={
 	js:{
 		config:[
@@ -68,6 +71,9 @@ configuration.autoload=function(){
 	for(var i in configuration.load.js.libraries){
 		document.write("<script src='libraries/"+configuration.load.js.libraries[i]+".js'></script>" );
 	}
+	//Ajout des langues
+	document.write("<script src='lang/lang.js'></script>" );
+	
 	for(var i in configuration.load.js.data){
 		document.write("<script src='js/data/"+configuration.load.js.data[i]+".js'></script>" );
 	}
