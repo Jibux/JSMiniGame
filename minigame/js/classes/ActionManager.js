@@ -178,28 +178,51 @@ Move.prototype.moveByStep = function(mapArray, nodes, i, destination) {
 
 Move.prototype.moveCss = function(destination) {
 	var unitMove = Math.round(UNIT/5);
+	var unitMoveMap = unitMove/Math.sqrt(2);
 	var subjectID = this.subject.getID();
+	var mapID = this.getMapID();
 	var moveResult = MOVE_ON;
 	var position = this.subject.getPersoPosition();
 	var left = position.x;
 	var top = position.y;
 	
+	var mapLeft = $("#"+mapID).css("left").substring(0,$("#"+mapID).css("left").length - 2);
+	var mapTop = $("#"+mapID).css("top").substring(0, $("#"+mapID).css("top").length - 2);
+	
+	var direction = this.getDirection(position, destination);
+	console.log(direction);
+	
 	//move X
 	if(position.x < destination.x) {
 		this.subject.direction(DIRECTION_ENUM.RIGHT);
 		$("#"+subjectID).css("left",(left*1 + unitMove) + "px");
+		$("#"+mapID).css("top",(mapTop*1 - unitMoveMap/2) + "px");
+		$("#"+mapID).css("left",(mapLeft*1 - unitMoveMap) + "px");
 	}else if(position.x > destination.x) {
 		this.subject.direction(DIRECTION_ENUM.LEFT);
 		$("#"+subjectID).css("left",(left*1 - unitMove) + "px");
+		$("#"+mapID).css("top",(mapTop*1 + unitMoveMap/2) + "px");
+		$("#"+mapID).css("left",(mapLeft*1 + unitMoveMap) + "px");
 	}
 	//move Y
 	if(position.y > destination.y) {
 		this.subject.direction(DIRECTION_ENUM.UP);
 		$("#"+subjectID).css("top",(top*1 - unitMove) + "px");
+		$("#"+mapID).css("top",(mapTop*1 + unitMoveMap/2) + "px");
+		$("#"+mapID).css("left",(mapLeft*1 - unitMoveMap) + "px");
 	}else if(position.y < destination.y) {
 		this.subject.direction(DIRECTION_ENUM.DOWN);
 		$("#"+subjectID).css("top",(top*1 + unitMove) + "px");
+		$("#"+mapID).css("top",(mapTop*1 - unitMoveMap/2) + "px");
+		$("#"+mapID).css("left",(mapLeft*1 + unitMoveMap) + "px");
 	}
+	
+	/*
+	foreach(displayedMaps){
+$("#"+map).css("left",(left1 - unitMove) + "px");
+$("#"+map).css("top",(top1 - unitMove) + "px");
+}
+	*/
 	
 	// We have reached the end of the step because there was only one unitMove step left
 	if(Math.abs(destination.x - position.x) == unitMove || Math.abs(destination.y - position.y) == unitMove) {
@@ -207,6 +230,49 @@ Move.prototype.moveCss = function(destination) {
 	}
 	
 	return moveResult;
+}
+
+Move.prototype.getDirection = function(from, to) {
+	var directionX = "";
+	var directionY = "";
+	
+	if(from.x < to.x) {
+		directionX = DIRECTION_ENUM.RIGHT;
+	} else if(from.x > to.x) {
+		directionX = DIRECTION_ENUM.LEFT;
+	}
+	
+	if(from.y < to.y) {
+		directionY = DIRECTION_ENUM.DOWN;
+	} else if(from.y > to.y) {
+		directionY = DIRECTION_ENUM.UP;
+	}
+	
+	if(directionX == "") {
+		return directionY;
+	}
+	
+	if(directionY == "") {
+		return directionX;
+	}
+	
+	if(directionX == DIRECTION_ENUM.RIGHT && directionY == DIRECTION_ENUM.DOWN) {
+		return DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT;
+	}
+	
+	if(directionX == DIRECTION_ENUM.LEFT && directionY == DIRECTION_ENUM.DOWN) {
+		return DIRECTION_ENUM.DIAGONAL_DOWN_LEFT;
+	}
+	
+	if(directionX == DIRECTION_ENUM.RIGHT && directionY == DIRECTION_ENUM.UP) {
+		return DIRECTION_ENUM.DIAGONAL_UP_RIGHT;
+	}
+	
+	if(directionX == DIRECTION_ENUM.LEFT && directionY == DIRECTION_ENUM.UP) {
+		return DIRECTION_ENUM.DIAGONAL_UP_LEFT;
+	}
+	
+	return DIRECTION_ENUM.NOCHANGE;
 }
 
 

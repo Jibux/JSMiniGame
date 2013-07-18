@@ -37,7 +37,7 @@ function invertMap(map) {
 $("document").ready(function() {
 	$("#screen").addClass(configuration.mode).addClass(configuration.quality+"_quality");
 	
-	var character = new Character("user");
+	var character = new Character("user", "map_0_0_0");
 	
 	window.onkeypress=function(e) {
 		var e=window.event || e;
@@ -50,13 +50,14 @@ $("document").ready(function() {
 	
 	console.log(ActionManager.getSubjectList());
 	
+	var mapID = "map_0_0_0";
+	
 	$(".tile").click(function(e) {
 		var ID = $(this).parent().attr('id');
 		var position = ActionManager.getMouseMapPosition(ID, e);
 		console.log(character.getPersoPosition());
 		console.log(character.getPersoPosition2D());
 		ActionManager.addAction(ACTION_ENUM.MOVE, mapID, character, position);
-		//ActionManager.moveTo(ID, character, position);
 	});
 	$(".perso").click(function(e) {
 		var ID = $(this).parent().parent().attr('id');
@@ -64,12 +65,9 @@ $("document").ready(function() {
 		console.log(character.getPersoPosition());
 		console.log(character.getPersoPosition2D());
 		ActionManager.addAction(ACTION_ENUM.MOVE, mapID, character, position);
-		//ActionManager.moveTo(ID, character, position);
 	});
 	
-	// TODO: WHAT TO DO WITH MAPID?
-	var mapID = "map_0_0_0";
-	ActionManager.start(mapID);
+	ActionManager.start();
 	
 	clock();
 	setInterval(function() {
@@ -118,10 +116,10 @@ function init(character) {
 	
 	ActionManager.init();
 	ActionManager.addSubject(character);
-	var character2 = new Character("TEST");
+	var character2 = new Character("TEST", "map_0_0_0");
 	ActionManager.addSubject(character2);
 	
-	character.drawPerso(mapID);
+	character.drawPerso();
 }
 
 function drawMap(mapID,top,left) {
