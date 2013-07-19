@@ -1,44 +1,280 @@
 /**
 *	Action : classe définissant une action
 *		type : type d'action (move, jump, cook, reboot, eat, sleep...)
-*		subjectID : ID du sujet. Les sujets peuvent être des characters, des shadoks, des pommes, des poires et même des tartes à la banane
+*		subject : sujet. Les sujets peuvent être des this.subjects, des shadoks, des pommes, des poires et même des tartes à la banane
 *		target : la plus part du temps le point sur lequel s'applique l'action que le sujet soit effectuer
 *			Ex :
 *				Action.type = MOVE
 *				Action.sujet = "user"
 *				Action.target = Point(x, y, z) de destination
 */
-var Action = function(typeOfAction, theSubject, theTarget) {
+var Action = function(typeOfAction, mapID, subject, target) {
 	this.type = typeOfAction || ACTION_ENUM.MOVE;
-	this.subjectID = theSubject;
-	this.target = theTarget;
+	this.mapID = mapID;
+	this.subject = subject;
+	this.target = target;
+	this.state = ACTION_STATE_ENUM.TOSTART;
 };
 
 Action.prototype = { 
 	getType: function() {
 		return this.type;
 	},
+	
+	getMapID: function() {
+		return this.mapID;
+	},
 
-	getSubjectID: function() {
-		return this.subjectID;
+	getSubject: function() {
+		return this.subject;
 	},
 
 	getTarget: function() {
 		return this.target;
 	},
+	
+	getState: function() {
+		return this.state;
+	},
 
 	setType: function(type) {
 		this.type = type;
 	},
+	
+	setMapID: function(mapID) {
+		this.mapID = mapID;
+	},
 
-	setSubjectID: function(subjectID) {
-		this.subjectID = subjectID;
+	setSubject: function(subject) {
+		this.subject = subject;
 	},
 
 	setTarget: function(target) {
 		this.target = target;
 	},
+	
+	setState: function(state) {
+		this.state = state;
+	},
 };
+
+function Move(mapID, subject, target) {
+	this.type = ACTION_ENUM.MOVE;
+	this.mapID = mapID;
+	this.subject = subject;
+	this.target = target;
+	this.state = ACTION_STATE_ENUM.TOSTART;
+	this.moveState = MOVE_STATE_ENUM.STOPPED;
+};
+
+Move.prototype = Object.create(Action.prototype);
+
+Move.prototype.start = function() {
+	this.state = ACTION_STATE_ENUM.STARTED;
+	this.moveState = MOVE_STATE_ENUM.MOVING;
+}
+
+Move.prototype.stop = function() {
+	this.state = ACTION_STATE_ENUM.FINISHED;
+	this.moveState = MOVE_STATE_ENUM.STOPPED;
+}
+
+Move.prototype.getMoveState = function() {
+	return this.moveState;
+}
+
+Move.prototype.moveTo = function() {
+	var subjectID = this.subject.getID();
+	var position = this.subject.getPersoPosition2D();
+	this.state = ACTION_STATE_ENUM.STARTED;
+
+	if(position.equals(this.target) || mapOrig[this.target.x][this.target.y] != 1) {
+		return MOVE_FINISHED;
+	}
+
+	var map1 = copyMap(mapOrig);
+	var graph = new Graph(map1);
+	
+	var start = graph.nodes[position.x][position.y];
+	var end = graph.nodes[this.target.x][this.target.y];
+	var map2 = graph.input;
+	
+	var result = astar.search(graph.nodes, start, end, true);
+	
+	if(result.length == 0) {
+		return MOVE_FINISHED;
+	}
+	
+	this.move(map1, result);
+}
+
+Move.prototype.move = function(mapArray, nodes) {
+	var timeout = 0;
+	var i = 0;
+	var moveResult = MOVE_ON;
+	var subjectID = this.subject.getID();
+	var destination = new Point(nodes[i].x*UNIT, nodes[i].y*UNIT);
+	
+	var action = this;
+	
+	this.subject.move();
+	moveResult = action.moveByStep(mapArray, nodes, i, destination);
+	var intId = setInterval(function() {
+		var position = action.getSubject().getPersoPosition();
+		if(i == nodes.length || moveResult == MOVE_FINISHED) {
+			if(i == nodes.length) {
+				i--;
+			}
+			clearInterval(intId);
+			action.stop();
+			// If the subject has no more moves in the stack (subject current action == this action)
+			if(action.getSubject().getCurrentAction().getState() == ACTION_STATE_ENUM.FINISHED) {
+				action.getSubject().stop();
+			}
+			var position = action.getSubject().getPersoPosition2D();
+			console.log("Actual ("+position.x +", "+position.y+")");
+			console.log("Target ("+nodes[i].x+", "+nodes[i].y+")");
+			return 0;
+		}
+		moveResult = action.moveByStep(mapArray, nodes, i, destination);
+		
+		if(moveResult == MOVE_WAIT) {
+			console.log("ARRIVED ("+position.x / UNIT +", "+position.y / UNIT+") => ("+nodes[i].x+", "+nodes[i].y+")");
+			i++;
+			if(i != nodes.length) {
+				destination = new Point(nodes[i].x*UNIT, nodes[i].y*UNIT);
+			}
+		}
+	}, FOOT_STEP_DURATION);
+}
+
+Move.prototype.moveByStep = function(mapArray, nodes, i, destination) {	
+	if(nodes[i] == undefined || nodes.length == 0 || this.state == ACTION_STATE_ENUM.TOFINISH) {
+		console.log("nodes["+i+"] undefined");
+		return MOVE_FINISHED;
+	}
+	if(mapArray[nodes[i].x][nodes[i].y] != 2) {
+		// Pas d'ennemi
+		//mapArray[nodes[i].x][nodes[i].y]=4;
+		var moveResult = this.moveCss(destination);
+		
+		return moveResult;
+	} else {
+		// Ennemi en vue
+		console.log("Ennemi at ("+nodes[i].x+", "+nodes[i].y+")");
+		
+		mapArray=copyMap(mapOrig);
+		mapArray[nodes[i].x][nodes[i].y]=0;
+		
+		var graph = new Graph(mapArray);		
+		var start = graph.nodes[nodes[i-1].x][nodes[i-1].y];
+		var end = graph.nodes[nodes[nodes.length-1].x][nodes[nodes.length-1].y];
+		var result = astar.search(graph.nodes, start, end, true);
+		
+		this.move(this.subject, mapArray, nodes);
+		return MOVE_FINISHED;
+	}
+}
+
+Move.prototype.moveCss = function(destination) {
+	var unitMove = Math.round(UNIT/5);
+	var unitMoveMap = unitMove/Math.sqrt(2);
+	var subjectID = this.subject.getID();
+	var mapID = this.getMapID();
+	var moveResult = MOVE_ON;
+	var position = this.subject.getPersoPosition();
+	var left = position.x;
+	var top = position.y;
+	
+	var mapLeft = $("#"+mapID).css("left").substring(0,$("#"+mapID).css("left").length - 2);
+	var mapTop = $("#"+mapID).css("top").substring(0, $("#"+mapID).css("top").length - 2);
+	
+	var direction = this.getDirection(position, destination);
+	console.log(direction);
+	
+	//move X
+	if(position.x < destination.x) {
+		this.subject.direction(DIRECTION_ENUM.RIGHT);
+		$("#"+subjectID).css("left",(left*1 + unitMove) + "px");
+		$("#"+mapID).css("top",(mapTop*1 - unitMoveMap/2) + "px");
+		$("#"+mapID).css("left",(mapLeft*1 - unitMoveMap) + "px");
+	}else if(position.x > destination.x) {
+		this.subject.direction(DIRECTION_ENUM.LEFT);
+		$("#"+subjectID).css("left",(left*1 - unitMove) + "px");
+		$("#"+mapID).css("top",(mapTop*1 + unitMoveMap/2) + "px");
+		$("#"+mapID).css("left",(mapLeft*1 + unitMoveMap) + "px");
+	}
+	//move Y
+	if(position.y > destination.y) {
+		this.subject.direction(DIRECTION_ENUM.UP);
+		$("#"+subjectID).css("top",(top*1 - unitMove) + "px");
+		$("#"+mapID).css("top",(mapTop*1 + unitMoveMap/2) + "px");
+		$("#"+mapID).css("left",(mapLeft*1 - unitMoveMap) + "px");
+	}else if(position.y < destination.y) {
+		this.subject.direction(DIRECTION_ENUM.DOWN);
+		$("#"+subjectID).css("top",(top*1 + unitMove) + "px");
+		$("#"+mapID).css("top",(mapTop*1 - unitMoveMap/2) + "px");
+		$("#"+mapID).css("left",(mapLeft*1 + unitMoveMap) + "px");
+	}
+	
+	/*
+	foreach(displayedMaps){
+$("#"+map).css("left",(left1 - unitMove) + "px");
+$("#"+map).css("top",(top1 - unitMove) + "px");
+}
+	*/
+	
+	// We have reached the end of the step because there was only one unitMove step left
+	if(Math.abs(destination.x - position.x) == unitMove || Math.abs(destination.y - position.y) == unitMove) {
+		moveResult = MOVE_WAIT;
+	}
+	
+	return moveResult;
+}
+
+Move.prototype.getDirection = function(from, to) {
+	var directionX = "";
+	var directionY = "";
+	
+	if(from.x < to.x) {
+		directionX = DIRECTION_ENUM.RIGHT;
+	} else if(from.x > to.x) {
+		directionX = DIRECTION_ENUM.LEFT;
+	}
+	
+	if(from.y < to.y) {
+		directionY = DIRECTION_ENUM.DOWN;
+	} else if(from.y > to.y) {
+		directionY = DIRECTION_ENUM.UP;
+	}
+	
+	if(directionX == "") {
+		return directionY;
+	}
+	
+	if(directionY == "") {
+		return directionX;
+	}
+	
+	if(directionX == DIRECTION_ENUM.RIGHT && directionY == DIRECTION_ENUM.DOWN) {
+		return DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT;
+	}
+	
+	if(directionX == DIRECTION_ENUM.LEFT && directionY == DIRECTION_ENUM.DOWN) {
+		return DIRECTION_ENUM.DIAGONAL_DOWN_LEFT;
+	}
+	
+	if(directionX == DIRECTION_ENUM.RIGHT && directionY == DIRECTION_ENUM.UP) {
+		return DIRECTION_ENUM.DIAGONAL_UP_RIGHT;
+	}
+	
+	if(directionX == DIRECTION_ENUM.LEFT && directionY == DIRECTION_ENUM.UP) {
+		return DIRECTION_ENUM.DIAGONAL_UP_LEFT;
+	}
+	
+	return DIRECTION_ENUM.NOCHANGE;
+}
+
 
 /**
 *	Classe Actions : contient une liste d'action (actionList) et une liste d'ID de sujets (subjectList)
@@ -70,150 +306,38 @@ var ActionManager = {
 		Actions.subjectList[subjectID] = subject;
 	},
 	
-	addAction: function(type, subjectID, target) {
-		var action = new Action(type, subjectID, target);
+	addAction: function(type, mapID, subject, target) {
+		var action;
+		switch(type) {
+			case ACTION_ENUM.MOVE: action = new Move(mapID, subject, target); break;
+			default: action = new Action(type, mapID, subject, target); break;
+		}
+		console.log(action);
 		Actions.actionList.push(action);
 	},
 	
-	start: function(mapID) {
+	start: function() {
 		var intId = setInterval(function() {
 			var action = Actions.actionList.pop();
 			if(action) {
 				var type = action.getType();
-				var subjectID = action.getSubjectID();
+				var subject = action.getSubject();
 				var target = action.getTarget();
-				switch(type) {
-					case ACTION_ENUM.MOVE: ActionManager.moveTo(mapID, Actions.subjectList[subjectID], target); break;
-					default: console.log("Unknown action!"); break;
-				}
+				var currentAction = subject.getCurrentAction();
+				
+				if(currentAction && currentAction.getState() != ACTION_STATE_ENUM.FINISHED) {
+					console.log("ACTION NOT FINISHED");
+					currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
+					//Actions.actionList.push(action);
+				} //else {
+					subject.setCurrentAction(action);
+					switch(type) {
+						case ACTION_ENUM.MOVE: action.moveTo(); break;
+						default: console.log("Unknown action!"); break;
+					}
+				//}
 			}
 		}, CHECK_DURATION);
-	},
-	
-	moveTo: function(mapID, character, destination) {
-		var characterID = character.getID();
-		var position = character.getPersoPosition2D();
-
-		if(position.equals(destination) || mapOrig[destination.x][destination.y] != 1) {
-			return MOVE_FINISHED;
-		}
-		
-		if(character.isMoving()) {
-			character.setOverrideAction();
-		}
-
-		var map1 = copyMap(mapOrig);
-		var graph = new Graph(map1);
-		
-		var start = graph.nodes[position.x][position.y];
-		var end = graph.nodes[destination.x][destination.y];
-		var map2 = graph.input;
-		
-		var result = astar.search(graph.nodes, start, end, true);
-		
-		if(result.length == 0) {
-			return MOVE_FINISHED;
-		}
-		
-		ActionManager.move(mapID, character, map1, result);
-	},
-	
-	move: function(mapID, character, mapArray, nodes) {
-		var timeout = 0;
-		var i = 0;
-		var moveResult = MOVE_ON;
-		var characterID = character.getID();
-		var destination = new Point(nodes[i].x*UNIT, nodes[i].y*UNIT);
-		
-		character.move();
-		moveResult = ActionManager.moveByStep(mapID, character, mapArray, nodes, i, destination);
-		var intId = setInterval(function() {
-			var position = character.getPersoPosition();
-			if(i == nodes.length || moveResult == MOVE_FINISHED || character.hasAnOverrideAction()) {
-				character.hasNoOverrideAction();
-				if(i == nodes.length) {
-					i--;
-				}
-				clearInterval(intId);
-				character.stop();
-				var position = character.getPersoPosition2D();
-				console.log("Actual ("+position.x +", "+position.y+")");
-				console.log("Target ("+nodes[i].x+", "+nodes[i].y+")");
-				console.log(Actions.actionList);
-				console.log("FINISHED");
-				return 0;
-			}
-			moveResult = ActionManager.moveByStep(mapID, character, mapArray, nodes, i, destination);
-			
-			if(moveResult == MOVE_WAIT) {
-				console.log("ARRIVED ("+position.x / UNIT +", "+position.y / UNIT+") => ("+nodes[i].x+", "+nodes[i].y+")");
-				i++;
-				if(i != nodes.length) {
-					destination = new Point(nodes[i].x*UNIT, nodes[i].y*UNIT);
-				}
-			}
-		}, FOOT_STEP_DURATION);
-	},
-
-	moveByStep: function(mapID, character, mapArray, nodes, i, destination) {	
-		if(nodes[i] == undefined || nodes.length == 0) {
-			console.log("nodes["+i+"] undefined");
-			return MOVE_FINISHED;
-		}
-		if(mapArray[nodes[i].x][nodes[i].y] != 2) {
-			// Pas d'ennemi
-			//mapArray[nodes[i].x][nodes[i].y]=4;
-			var moveResult = ActionManager.moveCss(mapID, character, destination);
-			
-			return moveResult;
-		} else {
-			// Ennemi en vue
-			console.log("Ennemi at ("+nodes[i].x+", "+nodes[i].y+")");
-			
-			mapArray=copyMap(mapOrig);
-			mapArray[nodes[i].x][nodes[i].y]=0;
-			
-			var graph = new Graph(mapArray);		
-			var start = graph.nodes[nodes[i-1].x][nodes[i-1].y];
-			var end = graph.nodes[nodes[nodes.length-1].x][nodes[nodes.length-1].y];
-			var result = astar.search(graph.nodes, start, end, true);
-			
-			ActionManager.move(mapID, character, mapArray, nodes);
-			return MOVE_FINISHED;
-		}
-	},
-
-	moveCss: function(mapID, character, destination) {
-		var unitMove = Math.round(UNIT/5);
-		var characterID = character.getID();
-		var moveResult = MOVE_ON;
-		var position = character.getPersoPosition();
-		var left = position.x;
-		var top = position.y;
-		
-		//move X
-		if(position.x < destination.x) {
-			character.direction(DIRECTION_ENUM.RIGHT);
-			$("#"+characterID).css("left",(left*1 + unitMove) + "px");
-		}else if(position.x > destination.x) {
-			character.direction(DIRECTION_ENUM.LEFT);
-			$("#"+characterID).css("left",(left*1 - unitMove) + "px");
-		}
-		//move Y
-		if(position.y > destination.y) {
-			character.direction(DIRECTION_ENUM.UP);
-			$("#"+characterID).css("top",(top*1 - unitMove) + "px");
-		}else if(position.y < destination.y) {
-			character.direction(DIRECTION_ENUM.DOWN);
-			$("#"+characterID).css("top",(top*1 + unitMove) + "px");
-		}
-		
-		// We have reached the end of the step because there was only one unitMove step left
-		if(Math.abs(destination.x - position.x) == unitMove || Math.abs(destination.y - position.y) == unitMove) {
-			moveResult = MOVE_WAIT;
-		}
-		
-		return moveResult;
 	},
 	
 	getMouseMapPosition: function(mapID, event) {

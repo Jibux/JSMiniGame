@@ -1,7 +1,7 @@
 /**
  *	This class describe a Character. It can run, sing, eat, and whatever you want if you have created the method to do so!
  */
-var Character = function(idCharacter) {
+var Character = function(idCharacter, mapID) {
 	
 	// TODO THROW EXCEPTION HERE
 	if(!idCharacter) {
@@ -9,6 +9,8 @@ var Character = function(idCharacter) {
 	}
 
 	this.ID = idCharacter;
+	
+	this.mapID = mapID;
 	
 	this.currentLife = 100;// %
 	this.maxLife = 100;
@@ -29,7 +31,7 @@ var Character = function(idCharacter) {
 	
 	this.speaking = false;
 	this.moving = false;
-	this.overrideAction = false;
+	this.currentAction = null;
 	
 	//race:RACE.HUMAN,
 };
@@ -50,17 +52,25 @@ Character.prototype = {
 	setID: function(idCharacter) {
 		this.ID = idCharacter;
 	},
+	
+	getMapID: function() {
+		return this.mapID;
+	},
+	
+	setMapID: function(mapID) {
+		this.mapID = mapID;
+	},
 
 	isMoving: function() {
 		return this.moving;
 	},
 	
-	setOverrideAction: function() {
-		this.overrideAction = true;
+	setCurrentAction: function(action) {
+		this.currentAction = action;
 	},
 	
-	hasAnOverrideAction: function(){
-		return this.overrideAction;
+	getCurrentAction: function(){
+		return this.currentAction;
 	},
 	
 	hasNoOverrideAction: function() {
@@ -104,33 +114,29 @@ Character.prototype = {
 			perso.removeClass("down");
 			perso.addClass("left");
 			perso.addClass("up");
-			console.log("LEFT")
 		}
 		if(dir == DIRECTION_ENUM.RIGHT) {
 			perso.removeClass("left");
 			perso.removeClass("up");
 			perso.addClass("right");
 			perso.addClass("down");
-			console.log("RIGHT")
 		}
 		if(dir == DIRECTION_ENUM.DOWN) {
 			perso.removeClass("up");
 			perso.removeClass("right");
 			perso.addClass("down");
 			perso.addClass("left");
-			console.log("DOWN")
 		}
 		if(dir == DIRECTION_ENUM.UP) {
 			perso.removeClass("down");
 			perso.removeClass("left");
 			perso.addClass("up");
 			perso.addClass("right");
-			console.log("UP")
 		}
 	},
 
-	drawPerso: function(mapID) {
-		$("#"+mapID).append('<div class="occupation" style="top:20px;left:0px;" id="'+this.ID+'"></div>');
+	drawPerso: function() {
+		$("#"+this.mapID).append('<div class="occupation" style="top:20px;left:0px;" id="'+this.ID+'"></div>');
 		$("#"+this.ID).append('<div class="perso stand down right"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
 	},
 
@@ -149,10 +155,10 @@ Character.prototype = {
 			speak = speak.replace(":'(","<span class='smiley blue'>:'(</span>");
 			speak = speak.replace(";)","<span class='smiley yellow'>;)</span>");
 			$("#"+this.ID+" .perso .buble").html(speak);
-			var characterID=this.ID;
+			var characterID = this.ID;
 			setTimeout(function() {
 				$("#"+characterID+" .perso .buble").fadeOut('slow');
-				this.speaking=false;
+				this.speaking = false;
 			}, 2000);
 		}
 	},
