@@ -33,7 +33,8 @@ configuration.load={
 			"Point",
 			"Character",
 			"KeyManager",
-			"ActionManager"
+			"ActionManager",
+			"HTMLGenerator",
 		],
 		main:[
 			"main"
