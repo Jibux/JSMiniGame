@@ -1,127 +1,150 @@
 /**
  *	This class describe a Character. It can run, sing, eat, and whatever you want if you have created the method to do so!
  */
-
-
-var Character = {
-	ID:"user",
+var Character = function(idCharacter, mapID) {
 	
-	currentLife:100,// %
-	maxLife:100,
+	// TODO THROW EXCEPTION HERE
+	if(!idCharacter) {
+		return null;
+	}
 
-	currentStrenght:100,// %
-	maxStrength:100,
-
-	currentSpeed:100,//%
-	maxSpeed:100,
-
-	currentInteligence:100,//%
-	maxInteligence:100,
-
-	currentMagic:100,//%
-	maxMagic:100,
-
-	level:0,
+	this.ID = idCharacter;
 	
-	speaking:false,
-	isMoving:false,
+	this.mapID = mapID;
+	
+	this.currentLife = 100;// %
+	this.maxLife = 100;
+    
+	this.currentStrenght = 100;// %
+	this.maxStrength = 100;
+	
+	this.currentSpeed = 100;//%
+	this.maxSpeed = 100;
+	
+	this.currentInteligence = 100;//%
+	this.maxInteligence = 100;
+	
+	this.currentMagic = 100;//%
+	this.maxMagic = 100;
+	
+	this.level = 0;
+	
+	this.speaking = false;
+	this.moving = false;
+	this.currentAction = null;
 	
 	//race:RACE.HUMAN,
 };
 
-var CharacterHelper = {
-	newCharacter:function() {
-		return newObject(Character);
+Character.prototype = {
+	getCurrentLife: function() {
+		return this.currentLife;
+	},
+
+	setCurrentLife: function(life) {
+		this.currentLife = life;
+	},
+
+	getID: function() {
+		return this.ID;
+	},
+
+	setID: function(idCharacter) {
+		this.ID = idCharacter;
 	},
 	
-	getCurrentLife:function(character) {
-		return character.currentLife;
+	getMapID: function() {
+		return this.mapID;
 	},
 	
-	setCurrentLife:function(character,life) {
-		character.currentLife = life;
+	setMapID: function(mapID) {
+		this.mapID = mapID;
+	},
+
+	isMoving: function() {
+		return this.moving;
 	},
 	
-	getID:function(character) {
-		return character.ID;
+	setCurrentAction: function(action) {
+		this.currentAction = action;
 	},
 	
-	setID:function(character, ID) {
-		character.ID = ID;
+	getCurrentAction: function(){
+		return this.currentAction;
 	},
 	
-	isMoving:function(character) {
-		return character.isMoving;
+	hasNoOverrideAction: function() {
+		this.overrideAction = false;
 	},
-	
-	stop:function(character) {
-		character.isMoving = false;
+
+	stop: function() {
+		$("#"+this.ID).find(".perso").addClass("stand");
+		$("#"+this.ID).find(".perso").removeClass("walk");
+		this.moving = false;
 	},
-	
-	move:function(character) {
-		character.isMoving = true;
+
+	move: function() {
+		$("#"+this.ID).find(".perso").removeClass("stand");
+		$("#"+this.ID).find(".perso").addClass("walk");
+		this.moving = true;
 	},
-	
-	getPersoPosition2D:function(character) {
-		var left = $("#"+character.ID).css("left").substring(0,$("#"+character.ID).css("left").length - 2);
-		var top = $("#"+character.ID).css("top").substring(0, $("#"+character.ID).css("top").length - 2);
+
+	getPersoPosition2D: function() {
+		var left = $("#"+this.ID).css("left").substring(0,$("#"+this.ID).css("left").length - 2);
+		var top = $("#"+this.ID).css("top").substring(0, $("#"+this.ID).css("top").length - 2);
 		
-		var result = PointHelper.newPoint(Math.floor(left/UNIT), Math.floor(top/UNIT));
+		var result = new Point(Math.floor(left/UNIT), Math.floor(top/UNIT));
 		
 		return result;
 	},
 
-	getPersoPosition:function(character) {
-		var x = $("#"+character.ID).css("left").substring(0,$("#"+character.ID).css("left").length - 2);
-		var y = $("#"+character.ID).css("top").substring(0, $("#"+character.ID).css("top").length - 2);
+	getPersoPosition: function() {
+		var x = $("#"+this.ID).css("left").substring(0,$("#"+this.ID).css("left").length - 2);
+		var y = $("#"+this.ID).css("top").substring(0, $("#"+this.ID).css("top").length - 2);
 		
-		var result = PointHelper.newPoint(x, y);
+		var result = new Point(x, y);
 		
 		return result;
 	},
-	
-	direction:function(character, dir) {
-		var perso = $("#"+character.ID).find(".perso");
-		if(dir==DIRECTIONS.LEFT) {
+
+	direction: function(dir) {
+		var perso = $("#"+this.ID).find(".perso");
+		if(dir == DIRECTION_ENUM.LEFT) {
 			perso.removeClass("right");
 			perso.removeClass("down");
 			perso.addClass("left");
 			perso.addClass("up");
-		//	console.log("LEFT")
 		}
-		if(dir==DIRECTIONS.RIGHT) {
+		if(dir == DIRECTION_ENUM.RIGHT) {
 			perso.removeClass("left");
 			perso.removeClass("up");
 			perso.addClass("right");
 			perso.addClass("down");
-		//	console.log("RIGHT")
 		}
-		if(dir==DIRECTIONS.DOWN) {
+		if(dir == DIRECTION_ENUM.DOWN) {
 			perso.removeClass("up");
 			perso.removeClass("right");
 			perso.addClass("down");
 			perso.addClass("left");
-		//	console.log("DOWN")
 		}
-		if(dir==DIRECTIONS.UP) {
+		if(dir == DIRECTION_ENUM.UP) {
 			perso.removeClass("down");
 			perso.removeClass("left");
 			perso.addClass("up");
 			perso.addClass("right");
-		//	console.log("UP")
 		}
 	},
-	
-	drawPerso:function(character, mapID) {
-		$("#"+mapID).append('<div class="occupation" style="top:220px;left:220px;" id="'+character.ID+'"></div>');
-		$("#"+character.ID).append('<div class="perso stand up left"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
+
+	drawPerso: function() {
+		$("#"+this.mapID).append('<div class="occupation" style="top:20px;left:0px;" id="'+this.ID+'"></div>');
+		$("#"+this.ID).append('<div class="perso stand down right"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
 	},
-	
-	userSpeak:function(character) {
-		if(!character.speaking) {
-			$("#"+character.ID+" .perso").append("<div class='buble'><input type='text' id='userSpeak'/></div>");
+
+	userSpeak: function() {
+		if(!this.speaking) {
+			$("#"+this.ID+" .perso").append("<div class='buble'><input type='text' id='userSpeak'/></div>");
 			$("#userSpeak").focus();
-			character.speaking = true;
+			this.speaking = true;
 		} else {
 			var speak = $("#userSpeak").val();
 			speak = speak.replace(":)","<span class='smiley yellow'>:)</span>");
@@ -131,10 +154,11 @@ var CharacterHelper = {
 			speak = speak.replace(":O","<span class='smiley blue'>:O</span>");
 			speak = speak.replace(":'(","<span class='smiley blue'>:'(</span>");
 			speak = speak.replace(";)","<span class='smiley yellow'>;)</span>");
-			$("#"+character.ID+" .perso .buble").html(speak);
+			$("#"+this.ID+" .perso .buble").html(speak);
+			var characterID = this.ID;
 			setTimeout(function() {
-				$("#"+character.ID+" .perso .buble").fadeOut('slow');
-				character.speaking=false;
+				$("#"+characterID+" .perso .buble").fadeOut('slow');
+				this.speaking = false;
 			}, 2000);
 		}
 	},
