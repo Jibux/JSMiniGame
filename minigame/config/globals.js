@@ -3,6 +3,8 @@
 */
 
 var UNIT = 20;
+var UNIT_ENUM = generateUnitMoveEnum();
+
 var DIRECTION_ENUM = {
 	"LEFT":"LEFT",
 	"RIGHT":"RIGHT",
@@ -42,6 +44,15 @@ var MOVE_STATE_ENUM = {
 	MOVING:"MOVING",
 };
 
+var STATIC_OCCUPATION_ENUM = {
+	WATER:0,
+	UNAVAILABLE:0,
+	CHARACTER:2,
+	ROCK:4,
+	OBJECT:3,
+	GRASS:1
+};
+
 
 var MOVE_FINISHED = -1;
 var MOVE_ON = 0;
@@ -49,3 +60,25 @@ var MOVE_WAIT = 1;
 
 var FOOT_STEP_DURATION = 100;
 var CHECK_DURATION = 200;
+
+
+function generateUnitMoveEnum() {
+	var unit = UNIT;
+	var unitMove = UNIT/5;
+	var unitMove2 = unitMove/2;
+	var unitMoveMap = unitMove/Math.sqrt(2);
+	var unitMoveMap2 = unitMoveMap/2;
+	var unitMoveDiagonal = unitMove*Math.sqrt(2);
+	var unitMoveDiagonal2 = unitMoveDiagonal/2;
+	
+	return {
+		UNIT:UNIT,
+		UNIT_MOVE:unitMove,
+		UNIT_MOVE2:unitMove2,
+		UNIT_MOVE_MAP:unitMoveMap,
+		UNIT_MOVE_MAP2:unitMoveMap2,
+		UNIT_MOVE_DIAGONAL:unitMoveDiagonal,
+		UNIT_MOVE_DIAGONAL2:unitMoveDiagonal2,
+	};
+}
+

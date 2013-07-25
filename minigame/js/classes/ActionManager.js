@@ -134,7 +134,7 @@ Move.prototype.move = function(mapArray, nodes) {
 			var position = action.getSubject().getPersoPosition2D();
 			console.log("Actual ("+position.x +", "+position.y+")");
 			console.log("Target ("+nodes[i].x+", "+nodes[i].y+")");
-			return 0;
+			return MOVE_FINISHED;
 		}
 		moveResult = action.moveByStep(mapArray, nodes, i, destination);
 		
@@ -150,10 +150,12 @@ Move.prototype.move = function(mapArray, nodes) {
 
 Move.prototype.moveByStep = function(mapArray, nodes, i, destination) {	
 	if(nodes[i] == undefined || nodes.length == 0 || this.state == ACTION_STATE_ENUM.TOFINISH) {
-		console.log("nodes["+i+"] undefined");
+		if(nodes[i] == undefined) {
+			console.log("nodes["+i+"] undefined");
+		}
 		return MOVE_FINISHED;
 	}
-	if(mapArray[nodes[i].x][nodes[i].y] != 2) {
+	if(mapArray[nodes[i].x][nodes[i].y] != STATIC_OCCUPATION_ENUM.CHARACTER) {
 		// Pas d'ennemi
 		//mapArray[nodes[i].x][nodes[i].y]=4;
 		var moveResult = this.moveCss(destination);
@@ -164,7 +166,7 @@ Move.prototype.moveByStep = function(mapArray, nodes, i, destination) {
 		console.log("Ennemi at ("+nodes[i].x+", "+nodes[i].y+")");
 		
 		mapArray=copyMap(mapOrig);
-		mapArray[nodes[i].x][nodes[i].y]=0;
+		mapArray[nodes[i].x][nodes[i].y] = 0;
 		
 		var graph = new Graph(mapArray);		
 		var start = graph.nodes[nodes[i-1].x][nodes[i-1].y];
@@ -177,8 +179,6 @@ Move.prototype.moveByStep = function(mapArray, nodes, i, destination) {
 }
 
 Move.prototype.moveCss = function(destination) {
-	var unitMove = Math.round(UNIT/5);
-	var unitMoveMap = unitMove/Math.sqrt(2);
 	var subjectID = this.subject.getID();
 	var mapID = this.getMapID();
 	var moveResult = MOVE_ON;
@@ -191,41 +191,57 @@ Move.prototype.moveCss = function(destination) {
 	
 	var direction = this.getDirection(position, destination);
 	console.log(direction);
+	this.subject.direction(direction);
 	
-	//move X
-	if(position.x < destination.x) {
-		this.subject.direction(DIRECTION_ENUM.RIGHT);
-		$("#"+subjectID).css("left",(left*1 + unitMove) + "px");
-		$("#"+mapID).css("top",(mapTop*1 - unitMoveMap/2) + "px");
-		$("#"+mapID).css("left",(mapLeft*1 - unitMoveMap) + "px");
-	}else if(position.x > destination.x) {
-		this.subject.direction(DIRECTION_ENUM.LEFT);
-		$("#"+subjectID).css("left",(left*1 - unitMove) + "px");
-		$("#"+mapID).css("top",(mapTop*1 + unitMoveMap/2) + "px");
-		$("#"+mapID).css("left",(mapLeft*1 + unitMoveMap) + "px");
-	}
-	//move Y
-	if(position.y > destination.y) {
-		this.subject.direction(DIRECTION_ENUM.UP);
-		$("#"+subjectID).css("top",(top*1 - unitMove) + "px");
-		$("#"+mapID).css("top",(mapTop*1 + unitMoveMap/2) + "px");
-		$("#"+mapID).css("left",(mapLeft*1 - unitMoveMap) + "px");
-	}else if(position.y < destination.y) {
-		this.subject.direction(DIRECTION_ENUM.DOWN);
-		$("#"+subjectID).css("top",(top*1 + unitMove) + "px");
-		$("#"+mapID).css("top",(mapTop*1 - unitMoveMap/2) + "px");
-		$("#"+mapID).css("left",(mapLeft*1 + unitMoveMap) + "px");
+	switch(direction) {
+		case DIRECTION_ENUM.RIGHT:
+			$("#"+subjectID).css("left",(left*1 + UNIT_ENUM.UNIT_MOVE) + "px");
+			$("#"+mapID).css("top",(mapTop*1 - UNIT_ENUM.UNIT_MOVE_MAP2) + "px");
+			$("#"+mapID).css("left",(mapLeft*1 - UNIT_ENUM.UNIT_MOVE_MAP) + "px");
+			break;
+		case DIRECTION_ENUM.LEFT:
+			$("#"+subjectID).css("left",(left*1 - UNIT_ENUM.UNIT_MOVE) + "px");
+			$("#"+mapID).css("top",(mapTop*1 + UNIT_ENUM.UNIT_MOVE_MAP2) + "px");
+			$("#"+mapID).css("left",(mapLeft*1 + UNIT_ENUM.UNIT_MOVE_MAP) + "px");
+			break;
+		case DIRECTION_ENUM.UP:
+			$("#"+subjectID).css("top",(top*1 - UNIT_ENUM.UNIT_MOVE) + "px");
+			$("#"+mapID).css("top",(mapTop*1 + UNIT_ENUM.UNIT_MOVE_MAP2) + "px");
+			$("#"+mapID).css("left",(mapLeft*1 - UNIT_ENUM.UNIT_MOVE_MAP) + "px");
+			break;
+		case DIRECTION_ENUM.DOWN:
+			$("#"+subjectID).css("top",(top*1 + UNIT_ENUM.UNIT_MOVE) + "px");
+			$("#"+mapID).css("top",(mapTop*1 - UNIT_ENUM.UNIT_MOVE_MAP2) + "px");
+			$("#"+mapID).css("left",(mapLeft*1 + UNIT_ENUM.UNIT_MOVE_MAP) + "px");
+			break;
+		case DIRECTION_ENUM.DIAGONAL_UP_RIGHT:
+			$("#"+subjectID).css("left",(left*1 + UNIT_ENUM.UNIT_MOVE2) + "px");
+			$("#"+subjectID).css("top",(top*1 - UNIT_ENUM.UNIT_MOVE2) + "px");
+			$("#"+mapID).css("left",(mapLeft*1 - UNIT_ENUM.UNIT_MOVE_DIAGONAL2) + "px");
+			break;
+		case DIRECTION_ENUM.DIAGONAL_UP_LEFT:
+			$("#"+subjectID).css("left",(left*1 - UNIT_ENUM.UNIT_MOVE) + "px");
+			$("#"+subjectID).css("top",(top*1 - UNIT_ENUM.UNIT_MOVE) + "px");
+			$("#"+mapID).css("top",(mapTop*1 + UNIT_ENUM.UNIT_MOVE_DIAGONAL2) + "px");
+			break;
+		case DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT:
+			$("#"+subjectID).css("left",(left*1 + UNIT_ENUM.UNIT_MOVE) + "px");
+			$("#"+subjectID).css("top",(top*1 + UNIT_ENUM.UNIT_MOVE) + "px");
+			$("#"+mapID).css("top",(mapTop*1 - UNIT_ENUM.UNIT_MOVE_DIAGONAL2) + "px");
+			break;
+		case DIRECTION_ENUM.DIAGONAL_DOWN_LEFT:
+			$("#"+subjectID).css("left",(left*1 - UNIT_ENUM.UNIT_MOVE2) + "px");
+			$("#"+subjectID).css("top",(top*1 + UNIT_ENUM.UNIT_MOVE2) + "px");
+			$("#"+mapID).css("left",(mapLeft*1 + UNIT_ENUM.UNIT_MOVE_DIAGONAL2) + "px");
+			break;
+		default: break;
 	}
 	
-	/*
-	foreach(displayedMaps){
-$("#"+map).css("left",(left1 - unitMove) + "px");
-$("#"+map).css("top",(top1 - unitMove) + "px");
-}
-	*/
+	this.subject.updatePosition();
 	
 	// We have reached the end of the step because there was only one unitMove step left
-	if(Math.abs(destination.x - position.x) == unitMove || Math.abs(destination.y - position.y) == unitMove) {
+	//if(Math.abs(destination.x - position.x) == UNIT_ENUM.UNIT_MOVE || Math.abs(destination.y - position.y) == UNIT_ENUM.UNIT_MOVE) {
+	if(this.subject.getPersoPosition().equals(destination)) {
 		moveResult = MOVE_WAIT;
 	}
 	
@@ -307,6 +323,10 @@ var ActionManager = {
 	},
 	
 	addAction: function(type, mapID, subject, target) {
+		if(mapOrig[target.x][target.y] == STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
+			return null;
+		}
+		
 		var action;
 		switch(type) {
 			case ACTION_ENUM.MOVE: action = new Move(mapID, subject, target); break;
@@ -326,7 +346,7 @@ var ActionManager = {
 				var currentAction = subject.getCurrentAction();
 				
 				if(currentAction && currentAction.getState() != ACTION_STATE_ENUM.FINISHED) {
-					console.log("ACTION NOT FINISHED");
+					console.log("CURRENT ACTION NOT FINISHED");
 					currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
 					//Actions.actionList.push(action);
 				} //else {
