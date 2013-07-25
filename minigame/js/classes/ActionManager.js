@@ -240,7 +240,6 @@ Move.prototype.moveCss = function(destination) {
 	this.subject.updatePosition();
 	
 	// We have reached the end of the step because there was only one unitMove step left
-	//if(Math.abs(destination.x - position.x) == UNIT_ENUM.UNIT_MOVE || Math.abs(destination.y - position.y) == UNIT_ENUM.UNIT_MOVE) {
 	if(this.subject.getPersoPosition().equals(destination)) {
 		moveResult = MOVE_WAIT;
 	}

@@ -86,8 +86,8 @@ Character.prototype = {
 	},
 
 	move: function() {
-		//$("#"+this.ID).find(".perso").removeClass("stand");
-		//$("#"+this.ID).find(".perso").addClass("walk");
+		$("#"+this.ID).find(".perso").removeClass("stand");
+		$("#"+this.ID).find(".perso").addClass("walk");
 		this.moving = true;
 	},
 	
