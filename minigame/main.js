@@ -88,9 +88,9 @@ function init(character) {
 	var mapID = "map_0_0_0";
 	map = mapContent[mapID];
 	console.log(map);
-	mapOrig = invertMap(map.occupation);
+	mapOrig = map.occupation;
 	
-	var offset = {x:-250,y:50};
+	var offset = {x:-225,y:45};
 	var top = map.size.height;
 	var left = map.size.width;
 

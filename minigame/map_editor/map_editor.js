@@ -210,7 +210,7 @@ function drawMap(mapID,top,left){
 				}
 			}else{
 				mapContent[mapID].tile[x+"_"+y]=type;
-				mapContent[mapID].occupation[x+"_"+y]=StaticOccupationTypes.grass;
+				mapContent[mapID].occupation[x+"_"+y]=STATIC_OCCUPATION_ENUM.GRASS;
 			}
 			$("#"+mapID).prepend("<div class='tile "+type+"' id='tile_"+x+"_"+y+"' style='left:"+x*mapConfiguration.unit+"px;top:"+y*mapConfiguration.unit+"px;"+"'></div>");
 		}
@@ -628,11 +628,11 @@ function getJson(){
 			for(var y=0;y<mapConfiguration.height;y++){
 				var tileNumber=x+"_"+y;
 				if($.inArray(tileNumber, occupation)>=0){
-					mapContent[name].occupation[x].push(StaticOccupationTypes.water);
-					mapsUpdates[name].occupation[x].push(StaticOccupationTypes.water);
+					mapContent[name].occupation[x].push(STATIC_OCCUPATION_ENUM.WATER);
+					mapsUpdates[name].occupation[x].push(STATIC_OCCUPATION_ENUM.WATER);
 				}else{
-					mapContent[name].occupation[x].push(StaticOccupationTypes.grass);
-					mapsUpdates[name].occupation[x].push(StaticOccupationTypes.grass);
+					mapContent[name].occupation[x].push(STATIC_OCCUPATION_ENUM.GRASS);
+					mapsUpdates[name].occupation[x].push(STATIC_OCCUPATION_ENUM.GRASS);
 				}
 			}
 		}

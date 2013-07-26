@@ -22,7 +22,6 @@ configuration.load={
 		],
 		data:[
 			"maps",
-			"staticOccupationTypes",
 			"TemplateOccupation"
 		],
 		classes:[

@@ -12,7 +12,7 @@ var Character = function(idCharacter, mapID) {
 	
 	this.mapID = mapID;
 	
-	this.position = new Point(300, 100);
+	this.position = new Point(200, 200);
 	
 	this.currentLife = 100;// %
 	this.maxLife = 100;
