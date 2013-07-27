@@ -66,6 +66,20 @@ var Dice=function(){roll=function(a,b){Math.random()};roll2=function(a,b){Math.r
 
 
 /**
+* Return the min of 2 numbers
+*/
+function min(a, b) {
+	return (a < b ? a : b);
+}
+
+/**
+* Return the max of 2 numbers
+*/
+function max(a, b) {
+	return (a > b ? a : b);
+}
+
+/**
 *	Cette fonction ne copie pas réellement les objets
 *	TODO A REFAIRE
 */

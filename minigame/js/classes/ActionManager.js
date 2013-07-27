@@ -8,12 +8,13 @@
 *				Action.sujet = "user"
 *				Action.target = Point(x, y, z) de destination
 */
-var Action = function(typeOfAction, mapID, subject, target) {
+var Action = function(typeOfAction, map, subject, target) {
 	this.type = typeOfAction || ACTION_ENUM.MOVE;
-	this.mapID = mapID;
+	this.currentMap = map;
 	this.subject = subject;
 	this.target = target;
 	this.state = ACTION_STATE_ENUM.TOSTART;
+	this.blocking = false;
 };
 
 Action.prototype = { 
@@ -21,8 +22,8 @@ Action.prototype = {
 		return this.type;
 	},
 	
-	getMapID: function() {
-		return this.mapID;
+	getCurrentMap: function() {
+		return this.currentMap;
 	},
 
 	getSubject: function() {
@@ -36,13 +37,17 @@ Action.prototype = {
 	getState: function() {
 		return this.state;
 	},
+	
+	isBlocking: function() {
+		return this.blocking;
+	},
 
 	setType: function(type) {
 		this.type = type;
 	},
 	
-	setMapID: function(mapID) {
-		this.mapID = mapID;
+	setCurrentMap: function(map) {
+		this.currentMap = map;
 	},
 
 	setSubject: function(subject) {
@@ -56,15 +61,20 @@ Action.prototype = {
 	setState: function(state) {
 		this.state = state;
 	},
+	
+	setBlocking: function(blocking) {
+		this.blocking = blocking;
+	},
 };
 
-function Move(mapID, subject, target) {
+function Move(map, subject, target) {
 	this.type = ACTION_ENUM.MOVE;
-	this.mapID = mapID;
+	this.currentMap = map;
 	this.subject = subject;
 	this.target = target;
 	this.state = ACTION_STATE_ENUM.TOSTART;
 	this.moveState = MOVE_STATE_ENUM.STOPPED;
+	this.blocking = true;
 };
 
 Move.prototype = Object.create(Action.prototype);
@@ -179,65 +189,12 @@ Move.prototype.moveByStep = function(mapArray, nodes, i, destination) {
 }
 
 Move.prototype.moveCss = function(destination) {
-	var subjectID = this.subject.getID();
-	var mapID = this.getMapID();
 	var moveResult = MOVE_ON;
 	var position = this.subject.getPersoPosition();
-	var left = position.x;
-	var top = position.y;
-	
-	var mapLeft = $("#"+mapID).css("left").substring(0,$("#"+mapID).css("left").length - 2);
-	var mapTop = $("#"+mapID).css("top").substring(0, $("#"+mapID).css("top").length - 2);
 	
 	var direction = this.getDirection(position, destination);
 	console.log(direction);
 	this.subject.direction(direction);
-	
-	switch(direction) {
-		case DIRECTION_ENUM.RIGHT:
-			$("#"+subjectID).css("left",(left*1 + UNIT_ENUM.UNIT_MOVE) + "px");
-			$("#"+mapID).css("top",(mapTop*1 - UNIT_ENUM.UNIT_MOVE_MAP2) + "px");
-			$("#"+mapID).css("left",(mapLeft*1 - UNIT_ENUM.UNIT_MOVE_MAP) + "px");
-			break;
-		case DIRECTION_ENUM.LEFT:
-			$("#"+subjectID).css("left",(left*1 - UNIT_ENUM.UNIT_MOVE) + "px");
-			$("#"+mapID).css("top",(mapTop*1 + UNIT_ENUM.UNIT_MOVE_MAP2) + "px");
-			$("#"+mapID).css("left",(mapLeft*1 + UNIT_ENUM.UNIT_MOVE_MAP) + "px");
-			break;
-		case DIRECTION_ENUM.UP:
-			$("#"+subjectID).css("top",(top*1 - UNIT_ENUM.UNIT_MOVE) + "px");
-			$("#"+mapID).css("top",(mapTop*1 + UNIT_ENUM.UNIT_MOVE_MAP2) + "px");
-			$("#"+mapID).css("left",(mapLeft*1 - UNIT_ENUM.UNIT_MOVE_MAP) + "px");
-			break;
-		case DIRECTION_ENUM.DOWN:
-			$("#"+subjectID).css("top",(top*1 + UNIT_ENUM.UNIT_MOVE) + "px");
-			$("#"+mapID).css("top",(mapTop*1 - UNIT_ENUM.UNIT_MOVE_MAP2) + "px");
-			$("#"+mapID).css("left",(mapLeft*1 + UNIT_ENUM.UNIT_MOVE_MAP) + "px");
-			break;
-		case DIRECTION_ENUM.DIAGONAL_UP_RIGHT:
-			$("#"+subjectID).css("left",(left*1 + UNIT_ENUM.UNIT_MOVE2) + "px");
-			$("#"+subjectID).css("top",(top*1 - UNIT_ENUM.UNIT_MOVE2) + "px");
-			$("#"+mapID).css("left",(mapLeft*1 - UNIT_ENUM.UNIT_MOVE_DIAGONAL2) + "px");
-			break;
-		case DIRECTION_ENUM.DIAGONAL_UP_LEFT:
-			$("#"+subjectID).css("left",(left*1 - UNIT_ENUM.UNIT_MOVE) + "px");
-			$("#"+subjectID).css("top",(top*1 - UNIT_ENUM.UNIT_MOVE) + "px");
-			$("#"+mapID).css("top",(mapTop*1 + UNIT_ENUM.UNIT_MOVE_DIAGONAL2) + "px");
-			break;
-		case DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT:
-			$("#"+subjectID).css("left",(left*1 + UNIT_ENUM.UNIT_MOVE) + "px");
-			$("#"+subjectID).css("top",(top*1 + UNIT_ENUM.UNIT_MOVE) + "px");
-			$("#"+mapID).css("top",(mapTop*1 - UNIT_ENUM.UNIT_MOVE_DIAGONAL2) + "px");
-			break;
-		case DIRECTION_ENUM.DIAGONAL_DOWN_LEFT:
-			$("#"+subjectID).css("left",(left*1 - UNIT_ENUM.UNIT_MOVE2) + "px");
-			$("#"+subjectID).css("top",(top*1 + UNIT_ENUM.UNIT_MOVE2) + "px");
-			$("#"+mapID).css("left",(mapLeft*1 + UNIT_ENUM.UNIT_MOVE_DIAGONAL2) + "px");
-			break;
-		default: break;
-	}
-	
-	this.subject.updatePosition();
 	
 	// We have reached the end of the step because there was only one unitMove step left
 	if(this.subject.getPersoPosition().equals(destination)) {
@@ -321,15 +278,15 @@ var ActionManager = {
 		Actions.subjectList[subjectID] = subject;
 	},
 	
-	addAction: function(type, mapID, subject, target) {
+	addAction: function(type, map, subject, target) {
 		if(mapOrig[target.x][target.y] == STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
 			return null;
 		}
 		
 		var action;
 		switch(type) {
-			case ACTION_ENUM.MOVE: action = new Move(mapID, subject, target); break;
-			default: action = new Action(type, mapID, subject, target); break;
+			case ACTION_ENUM.MOVE: action = new Move(map, subject, target); break;
+			default: action = new Action(type, map, subject, target); break;
 		}
 		console.log(action);
 		Actions.actionList.push(action);
@@ -344,12 +301,14 @@ var ActionManager = {
 				var target = action.getTarget();
 				var currentAction = subject.getCurrentAction();
 				
-				if(currentAction && currentAction.getState() != ACTION_STATE_ENUM.FINISHED) {
+				if(action.isBlocking() && currentAction && currentAction.getState() != ACTION_STATE_ENUM.FINISHED) {
 					console.log("CURRENT ACTION NOT FINISHED");
 					currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
 					//Actions.actionList.push(action);
 				} //else {
-					subject.setCurrentAction(action);
+					if(action.isBlocking()) {
+						subject.setCurrentAction(action);
+					}
 					switch(type) {
 						case ACTION_ENUM.MOVE: action.moveTo(); break;
 						default: console.log("Unknown action!"); break;
@@ -357,6 +316,52 @@ var ActionManager = {
 				//}
 			}
 		}, CHECK_DURATION);
+	},
+	
+	loadMap: function(mapID) {
+		var map = new Map(mapContent[mapID]);
+		
+		if(map.getPosition().x == mapContentBorders.right) {
+			map.setEdgeType(EDGE_TYPE_ENUM.RIGHT, true);
+		}
+		
+		if(map.getPosition().y == mapContentBorders.bottom) {
+			map.setEdgeType(EDGE_TYPE_ENUM.BOTTOM, true);
+		}
+		
+		return map;
+	},
+	
+	loadMaps: function(initialPosition, fromPosition, toPosition) {
+		var initialMapID = "map_"+initialPosition.x+"_"+initialPosition.y+"_"+initialPosition.z;
+		var map = ActionManager.loadMap(initialMapID);
+		
+		var fromZ = min(fromPosition.z, toPosition.z);
+		var toZ = max(fromPosition.z, toPosition.z);
+		var fromY = min(fromPosition.y, toPosition.y);
+		var toY = max(fromPosition.y, toPosition.y);
+		var fromX = min(fromPosition.x, toPosition.x);
+		var toX = max(fromPosition.x, toPosition.x);
+		
+		map.addNeighbour(map);
+		
+		for(var z = fromZ; z <= toZ; z++) {
+			for(var y = fromY; y <= toY; y++) {
+				for(var x = fromX; x <= toX; x++) {
+					mapID = "map_"+x+"_"+y+"_"+z;
+					if(mapID != initialMapID) {
+						if(mapContent[mapID]) {
+							var tmpMap = ActionManager.loadMap(mapID);
+							map.addNeighbour(tmpMap);
+						} else {
+							console.log("mapContent["+mapID+"] undefined");
+						}
+					}
+				}
+			}
+		}
+		
+		return map;
 	},
 	
 	getMouseMapPosition: function(mapID, event) {
@@ -372,7 +377,7 @@ var ActionManager = {
 		//position de la souris par rapport à la carte 2D
 		var position = new Point(posX/UNIT, posY/UNIT);
 		var returnedPosition = position.changeFrame(false);
-		console.log(returnedPosition);
+		console.log("CLICKED POSITION:", returnedPosition);
 		return returnedPosition;
 	},
 };

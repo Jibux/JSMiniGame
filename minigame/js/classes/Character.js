@@ -1,7 +1,7 @@
 /**
- *	This class describe a Character. It can run, sing, eat, and whatever you want if you have created the method to do so!
+ *	This class describes a Character. It can run, sing, eat, and whatever you want if you have created the method to do so!
  */
-var Character = function(idCharacter, mapID) {
+var Character = function(idCharacter, map, mainCharacter) {
 	
 	// TODO THROW EXCEPTION HERE
 	if(!idCharacter) {
@@ -10,7 +10,9 @@ var Character = function(idCharacter, mapID) {
 
 	this.ID = idCharacter;
 	
-	this.mapID = mapID;
+	this.mainCharacter = mainCharacter || false;
+	
+	this.currentMap = map;
 	
 	this.position = new Point(200, 200);
 	
@@ -55,12 +57,12 @@ Character.prototype = {
 		this.ID = idCharacter;
 	},
 	
-	getMapID: function() {
-		return this.mapID;
+	getCurrentMap: function() {
+		return this.currentMap;
 	},
 	
-	setMapID: function(mapID) {
-		this.mapID = mapID;
+	setCurrentMap: function(map) {
+		this.currentMap = map;
 	},
 
 	isMoving: function() {
@@ -75,8 +77,8 @@ Character.prototype = {
 		return this.currentAction;
 	},
 	
-	hasNoOverrideAction: function() {
-		this.overrideAction = false;
+	isMainCharacter: function() {
+		return this.mainCharacter;
 	},
 
 	stop: function() {
@@ -106,49 +108,74 @@ Character.prototype = {
 
 	direction: function(direction) {
 		var perso = $("#"+this.ID).find(".perso");
+		var left = this.position.x;
+		var top = this.position.y;
 		
 		switch(direction) {
 			case DIRECTION_ENUM.RIGHT:
+				$("#"+this.ID).css("left",(left*1 + UNIT_ENUM.UNIT_MOVE) + "px");
+			
 				perso.removeClass("left");
 				perso.removeClass("up");
 				perso.addClass("right");
 				perso.addClass("down");
 				break;
 			case DIRECTION_ENUM.LEFT:
+				$("#"+this.ID).css("left",(left*1 - UNIT_ENUM.UNIT_MOVE) + "px");
+				
 				perso.removeClass("right");
 				perso.removeClass("down");
 				perso.addClass("left");
 				perso.addClass("up");
 				break;
 			case DIRECTION_ENUM.UP:
+				$("#"+this.ID).css("top",(top*1 - UNIT_ENUM.UNIT_MOVE) + "px");
+				
 				perso.removeClass("down");
 				perso.removeClass("left");
 				perso.addClass("up");
 				perso.addClass("right");
 				break;
 			case DIRECTION_ENUM.DOWN:
+				$("#"+this.ID).css("top",(top*1 + UNIT_ENUM.UNIT_MOVE) + "px");
+				
 				perso.removeClass("up");
 				perso.removeClass("right");
 				perso.addClass("down");
 				perso.addClass("left");
 				break;
 			case DIRECTION_ENUM.DIAGONAL_UP_RIGHT:
+				$("#"+this.ID).css("left",(left*1 + UNIT_ENUM.UNIT_MOVE2) + "px");
+				$("#"+this.ID).css("top",(top*1 - UNIT_ENUM.UNIT_MOVE2) + "px");
 				
 				break;
 			case DIRECTION_ENUM.DIAGONAL_UP_LEFT:
+				$("#"+this.ID).css("left",(left*1 - UNIT_ENUM.UNIT_MOVE) + "px");
+				$("#"+this.ID).css("top",(top*1 - UNIT_ENUM.UNIT_MOVE) + "px");
 				
 				break;
 			case DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT:
+				$("#"+this.ID).css("left",(left*1 + UNIT_ENUM.UNIT_MOVE) + "px");
+				$("#"+this.ID).css("top",(top*1 + UNIT_ENUM.UNIT_MOVE) + "px");
 				
 				break;
 			case DIRECTION_ENUM.DIAGONAL_DOWN_LEFT:
+				$("#"+this.ID).css("left",(left*1 - UNIT_ENUM.UNIT_MOVE2) + "px");
+				$("#"+this.ID).css("top",(top*1 + UNIT_ENUM.UNIT_MOVE2) + "px");
+			
 				break;
 			default: break;
 		}
+		
+		if(this.mainCharacter) {
+			this.currentMap.directionNeighbours(direction);
+		}
+		
+		this.updatePosition();
 	},
 
 	drawPerso: function() {
-		$("#"+this.mapID).append('<div class="occupation" style="top:'+this.position.y+'px;left:'+this.position.x+'px;" id="'+this.ID+'"></div>');
+		$("#"+this.currentMap.getID()).append('<div class="occupation" style="top:'+this.position.y+'px;left:'+this.position.x+'px;" id="'+this.ID+'"></div>');
 		$("#"+this.ID).append('<div class="perso stand down right"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
 	},
 

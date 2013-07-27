@@ -1,10 +1,10 @@
 /**
- * This class describe a Point in a 3D space. We are running a 2D game but, well why not?
+ * This class describes a Point in a 3D space. We are running a 2D game but, well why not?
  */
 var Point = function(x, y, z) {
 	this.x = x*1;
 	this.y = y*1;
-	this.z = z*1;
+	this.z = z*1 || 0;
 };
 
 Point.prototype = {
@@ -19,6 +19,14 @@ Point.prototype = {
 			return false;
 		}
 	},
+	
+	scaleToArray: function() {
+		return new Point(this.x/UNIT, this.y/UNIT);
+	},
+	
+	scaleToCss: function() {
+		return new Point(this.x*UNIT, this.y*UNIT);
+	},
 
 	/**
 	* Change les coordonées passées en paramétre dans le repère ISOmétrique ou 2D
@@ -31,13 +39,13 @@ Point.prototype = {
 		var posY = this.y;
 		
 		if(!toISO) {
-			var posX2 = Math.floor((Math.sqrt(2)/2)*(posX + posY*2) - map.size.width/2);
-			var posY2 = Math.floor((Math.sqrt(2)/2)*(posY*2 - posX) + map.size.height/2);
+			var posX2 = Math.floor((Math.sqrt(2)/2)*(posX + posY*2) - MAPS_WIDTH/2);
+			var posY2 = Math.floor((Math.sqrt(2)/2)*(posY*2 - posX) + MAPS_HEIGHT/2);
 			
 			return new Point(posX2, posY2);
 		} else {
-			var posX2 = Math.round((posX - posY + map.size.width/2 + map.size.height/2) / Math.sqrt(2));
-			var posY2 = Math.round((posX + posY + map.size.width/2 - map.size.height/2) / (2*Math.sqrt(2)));
+			var posX2 = Math.round((posX - posY + MAPS_WIDTH/2 + MAPS_HEIGHT/2) / Math.sqrt(2));
+			var posY2 = Math.round((posX + posY + MAPS_WIDTH/2 - MAPS_HEIGHT/2) / (2*Math.sqrt(2)));
 			
 			return new Point(posX2, posY2);
 		}

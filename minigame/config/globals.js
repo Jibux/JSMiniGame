@@ -5,6 +5,9 @@
 var UNIT = 20;
 var UNIT_ENUM = generateUnitMoveEnum();
 
+var MAPS_HEIGHT = 20;
+var MAPS_WIDTH = 20;
+
 var DIRECTION_ENUM = {
 	"LEFT":"LEFT",
 	"RIGHT":"RIGHT",
@@ -42,6 +45,11 @@ var ACTION_STATE_ENUM = {
 var MOVE_STATE_ENUM = {
 	STOPPED:"STOPPED",
 	MOVING:"MOVING",
+};
+
+var EDGE_TYPE_ENUM = {
+	RIGHT:"right",
+	BOTTOM:"bottom",
 };
 
 var STATIC_OCCUPATION_ENUM = {

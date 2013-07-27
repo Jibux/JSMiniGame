@@ -29,6 +29,7 @@ configuration.load={
 			"astar",
 			"graph",
 			"Point",
+			"Map",
 			"Character",
 			"KeyManager",
 			"ActionManager",
