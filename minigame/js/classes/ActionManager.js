@@ -80,11 +80,17 @@ function Move(map, subject, target) {
 Move.prototype = Object.create(Action.prototype);
 
 Move.prototype.start = function() {
-	this.state = ACTION_STATE_ENUM.STARTED;
-	this.moveState = MOVE_STATE_ENUM.MOVING;
+	if(this.state == ACTION_STATE_ENUM.TOSTART) {
+		this.state = ACTION_STATE_ENUM.STARTED;
+		this.moveState = MOVE_STATE_ENUM.MOVING;
+		return true;
+	} else {
+		console.log("CACAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+		return false;
+	}
 }
 
-Move.prototype.stop = function() {
+Move.prototype.stopAction = function() {
 	this.state = ACTION_STATE_ENUM.FINISHED;
 	this.moveState = MOVE_STATE_ENUM.STOPPED;
 }
@@ -96,26 +102,100 @@ Move.prototype.getMoveState = function() {
 Move.prototype.moveTo = function() {
 	var subjectID = this.subject.getID();
 	var position = this.subject.getPersoPosition2D();
-	this.state = ACTION_STATE_ENUM.STARTED;
 
-	if(position.equals(this.target) || mapOrig[this.target.x][this.target.y] != 1) {
+	if(position.equals(this.target) || this.currentMap.getOccupation()[this.target.x][this.target.y] == STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
+		this.getSubject().stopSubject();
 		return MOVE_FINISHED;
 	}
-
-	var map1 = copyMap(mapOrig);
-	var graph = new Graph(map1);
 	
-	var start = graph.nodes[position.x][position.y];
-	var end = graph.nodes[this.target.x][this.target.y];
-	var map2 = graph.input;
+	if(!this.start()) {
+		this.stopAction();
+		return MOVE_FINISHED;
+	}
+	
+	var map;
+	var offsetX = 0;
+	var offsetY = 0;
+	// !!! PASSAGE D'UNE MAP A L'AUTRE
+	/*if(this.currentMap.getID() != this.subject.getCurrentMap().getID()) {
+		// Concat arrays
+		var begin;
+		var end;
+		var axe = "X";
+		var direction = this.getDirection(this.subject.getCurrentMap().getPosition(), this.currentMap.getPosition());
+		console.log("MAP DIRECTION: "+direction);
+		switch(direction) {
+			case DIRECTION_ENUM.RIGHT:
+				begin = this.subject.getCurrentMap().getOccupation();
+				end = this.currentMap.getOccupation();
+				axe = "X";
+				break;
+			case DIRECTION_ENUM.LEFT:
+				begin = this.currentMap.getOccupation();
+				end = this.subject.getCurrentMap().getOccupation();
+				offsetX = this.subject.getCurrentMap().getSize().width;
+				axe = "X";
+				break;
+			case DIRECTION_ENUM.UP:
+				begin = this.currentMap.getOccupation();
+				end = this.subject.getCurrentMap().getOccupation();
+				axe = "Y";
+				break;
+			case DIRECTION_ENUM.DOWN:
+				begin = this.subject.getCurrentMap().getOccupation();
+				end = this.currentMap.getOccupation();
+				axe = "Y";
+				break;
+			case DIRECTION_ENUM.DIAGONAL_UP_RIGHT:
+				
+				break;
+			case DIRECTION_ENUM.DIAGONAL_UP_LEFT:
+				
+				break;
+			case DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT:
+				
+				break;
+			case DIRECTION_ENUM.DIAGONAL_DOWN_LEFT:
+				
+				break;
+			default: break;
+		}
+		
+		map = concat2DArray(begin, end, axe);
+		console.log("concat ", map);
+	} else {
+		map = copy2DArray(this.subject.getCurrentMap().getOccupation());
+	}*/
+	
+	var test = this.subject.getCurrentMap().getNeighboursOccupation();
+	
+	console.log("TEST");
+	console.log(this.subject.getCurrentMap().getID());
+	
+	map = test;
+	offsetX = this.subject.getCurrentMap().getXOffset();
+	offsetY = this.subject.getCurrentMap().getYOffset();
+	
+	offsetMapX = this.currentMap.getXOffset();
+	offsetMapY = this.currentMap.getYOffset();
+	
+	var graph = new Graph(map);
+	
+	this.subject.setXOffset(offsetX);
+	this.subject.setYOffset(offsetY);
+	
+	var start = graph.nodes[position.x+offsetX][position.y+offsetY];
+	var end = graph.nodes[this.target.x+offsetMapX][this.target.y+offsetMapY];
 	
 	var result = astar.search(graph.nodes, start, end, true);
 	
-	if(result.length == 0) {
+	if(typeof result == "undefined" || result.length == 0) {
+		this.getSubject().stopSubject();
+		this.stopAction();
 		return MOVE_FINISHED;
 	}
 	
-	this.move(map1, result);
+	return this.move(map, result);
 }
 
 Move.prototype.move = function(mapArray, nodes) {
@@ -131,15 +211,16 @@ Move.prototype.move = function(mapArray, nodes) {
 	moveResult = action.moveByStep(mapArray, nodes, i, destination);
 	var intId = setInterval(function() {
 		var position = action.getSubject().getPersoPosition();
-		if(i == nodes.length || moveResult == MOVE_FINISHED) {
+		if(i == nodes.length || moveResult == MOVE_FINISHED || action.state == ACTION_STATE_ENUM.TOSTOP) {
 			if(i == nodes.length) {
 				i--;
 			}
 			clearInterval(intId);
-			action.stop();
+			action.stopAction();
 			// If the subject has no more moves in the stack (subject current action == this action)
 			if(action.getSubject().getCurrentAction().getState() == ACTION_STATE_ENUM.FINISHED) {
-				action.getSubject().stop();
+				action.getSubject().stopSubject();
+				action.getSubject().setCurrentAction(null);
 			}
 			var position = action.getSubject().getPersoPosition2D();
 			console.log("Actual ("+position.x +", "+position.y+")");
@@ -149,17 +230,21 @@ Move.prototype.move = function(mapArray, nodes) {
 		moveResult = action.moveByStep(mapArray, nodes, i, destination);
 		
 		if(moveResult == MOVE_WAIT) {
-			console.log("ARRIVED ("+position.x / UNIT +", "+position.y / UNIT+") => ("+nodes[i].x+", "+nodes[i].y+")");
+			//console.log("ARRIVED ("+position.x / UNIT +", "+position.y / UNIT+") => ("+nodes[i].x+", "+nodes[i].y+")");
 			i++;
 			if(i != nodes.length) {
 				destination = new Point(nodes[i].x*UNIT, nodes[i].y*UNIT);
+			}
+			
+			if(action.state == ACTION_STATE_ENUM.TOFINISH) {
+				moveResult = MOVE_FINISHED;
 			}
 		}
 	}, FOOT_STEP_DURATION);
 }
 
 Move.prototype.moveByStep = function(mapArray, nodes, i, destination) {	
-	if(nodes[i] == undefined || nodes.length == 0 || this.state == ACTION_STATE_ENUM.TOFINISH) {
+	if(nodes[i] == undefined || nodes.length == 0) {
 		if(nodes[i] == undefined) {
 			console.log("nodes["+i+"] undefined");
 		}
@@ -175,7 +260,7 @@ Move.prototype.moveByStep = function(mapArray, nodes, i, destination) {
 		// Ennemi en vue
 		console.log("Ennemi at ("+nodes[i].x+", "+nodes[i].y+")");
 		
-		mapArray=copyMap(mapOrig);
+		/*mapArray = copy2DArray(this.currentMap.getOccupation());
 		mapArray[nodes[i].x][nodes[i].y] = 0;
 		
 		var graph = new Graph(mapArray);		
@@ -184,20 +269,55 @@ Move.prototype.moveByStep = function(mapArray, nodes, i, destination) {
 		var result = astar.search(graph.nodes, start, end, true);
 		
 		this.move(this.subject, mapArray, nodes);
-		return MOVE_FINISHED;
+		return MOVE_FINISHED;*/
 	}
 }
 
 Move.prototype.moveCss = function(destination) {
 	var moveResult = MOVE_ON;
-	var position = this.subject.getPersoPosition();
 	
-	var direction = this.getDirection(position, destination);
+	var realPosition = this.subject.getOffsetedPosition();
+	
+	//console.log("DEST ",destination);
+	//console.log("POSITION ",realPosition);
+	
+	var direction = this.getDirection(realPosition, destination);
+
 	console.log(direction);
+	
 	this.subject.direction(direction);
 	
+	var position = this.subject.getPersoPosition();
+	
+	/*console.log(realPosition);
+	console.log(destination);*/
+	
+	
+	
+	var left = this.subject.getCurrentMap().getSize().width*UNIT - Math.abs(position.x*1);
+	var top = this.subject.getCurrentMap().getSize().height*UNIT - Math.abs(position.y*1);
+	
+	console.log("left "+left, "top "+top);
+	
+	if(position.x < 0) {
+		this.subject.setCurrentMap(this.getCurrentMap(), left, position.y);
+		this.subject.setXOffset(this.subject.getXOffset()-this.subject.getCurrentMap().getSize().width);
+	} else if(position.x >= this.subject.getCurrentMap().getSize().width*UNIT) {
+		this.subject.setCurrentMap(this.getCurrentMap(), left, position.y);
+		this.subject.setXOffset(this.subject.getXOffset()+this.subject.getCurrentMap().getSize().width);
+	}
+	
+	if(position.y < 0) {
+		this.subject.setCurrentMap(this.getCurrentMap(), position.x, top);
+		this.subject.setYOffset(this.subject.getYOffset()-this.subject.getCurrentMap().getSize().height);
+	} else if(position.y >= this.subject.getCurrentMap().getSize().height*UNIT) {
+		this.subject.setCurrentMap(this.getCurrentMap(), position.x, top);
+		this.subject.setYOffset(this.subject.getYOffset()+this.subject.getCurrentMap().getSize().height);
+	}
+	
 	// We have reached the end of the step because there was only one unitMove step left
-	if(this.subject.getPersoPosition().equals(destination)) {
+	// destination % 400 && mapID = perso.mapID
+	if(realPosition.equals(destination)) {
 		moveResult = MOVE_WAIT;
 	}
 	
@@ -243,7 +363,8 @@ Move.prototype.getDirection = function(from, to) {
 	if(directionX == DIRECTION_ENUM.LEFT && directionY == DIRECTION_ENUM.UP) {
 		return DIRECTION_ENUM.DIAGONAL_UP_LEFT;
 	}
-	
+
+	console.log("NO CHANGE");
 	return DIRECTION_ENUM.NOCHANGE;
 }
 
@@ -263,12 +384,10 @@ var ActionManager = {
 		Actions.subjectList = new Array();
 	},
 	
-	//TODO DO NOT WORK
 	getActionList: function() {
 		return Actions.actionList;
 	},
 	
-	//TODO DO NOT WORK
 	getSubjectList: function() {
 		return Actions.subjectList;
 	},
@@ -278,8 +397,12 @@ var ActionManager = {
 		Actions.subjectList[subjectID] = subject;
 	},
 	
-	addAction: function(type, map, subject, target) {
-		if(mapOrig[target.x][target.y] == STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
+	addAction: function(type, mapID, subject, target) {
+		var map = subject.getCurrentMap().getNeighbours()[mapID];
+		
+		console.log("NEW ACTION ",map);
+		
+		if(map.getOccupation()[target.x][target.y] == STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
 			return null;
 		}
 		
@@ -288,32 +411,52 @@ var ActionManager = {
 			case ACTION_ENUM.MOVE: action = new Move(map, subject, target); break;
 			default: action = new Action(type, map, subject, target); break;
 		}
-		console.log(action);
+		
 		Actions.actionList.push(action);
 	},
 	
 	start: function() {
 		var intId = setInterval(function() {
 			var action = Actions.actionList.pop();
+			
 			if(action) {
 				var type = action.getType();
 				var subject = action.getSubject();
 				var target = action.getTarget();
 				var currentAction = subject.getCurrentAction();
+				var nextAction = subject.getNextAction();
 				
+				if(nextAction) {
+					console.log("NEW NEXT ACTION lenght ",Actions.actionList);
+					Actions.actionList.unset(nextAction);
+				}
+				subject.setNextAction(action);
+				
+				//if(action.isBlocking() && currentAction && currentAction.getState() != ACTION_STATE_ENUM.FINISHED && currentAction.getState() != ACTION_STATE_ENUM.TOSTOP) {
 				if(action.isBlocking() && currentAction && currentAction.getState() != ACTION_STATE_ENUM.FINISHED) {
-					console.log("CURRENT ACTION NOT FINISHED");
+					console.log("CURRENT ACTION NOT FINISHED: subject ",currentAction.getState()," action ",action.getState());
+					/*if(currentAction.getState() == ACTION_STATE_ENUM.TOSTART) {
+						currentAction.setState(ACTION_STATE_ENUM.TOSTOP);
+					}
+					if(currentAction.getState() != ACTION_STATE_ENUM.FINISHED && currentAction.getState() != ACTION_STATE_ENUM.TOFINISH && currentAction.getState() != ACTION_STATE_ENUM.TOSTOP) {
+						currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
+					}*/
+					
 					currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
-					//Actions.actionList.push(action);
-				} //else {
+					//setTimeout(function(){
+					Actions.actionList.push(action);
+					//}, FOOT_STEP_DURATION);
+				} else {
 					if(action.isBlocking()) {
+						console.log("DELETE ACTION");
+						subject.setNextAction(null);
 						subject.setCurrentAction(action);
 					}
 					switch(type) {
 						case ACTION_ENUM.MOVE: action.moveTo(); break;
 						default: console.log("Unknown action!"); break;
 					}
-				//}
+				}
 			}
 		}, CHECK_DURATION);
 	},
@@ -360,6 +503,8 @@ var ActionManager = {
 				}
 			}
 		}
+		
+		map.updateNeighbours();
 		
 		return map;
 	},

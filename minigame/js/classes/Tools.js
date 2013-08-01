@@ -64,6 +64,56 @@ k)-899497514);j=k;k=e;e=g<<30|g>>>2;g=h;h=c}b[0]=b[0]+h|0;b[1]=b[1]+g|0;b[2]=b[2
 */
 var Dice=function(){roll=function(a,b){Math.random()};roll2=function(a,b){Math.random()};roll8=function(a,b){Math.random()};roll6=function(a,b){Math.random()};roll10=function(a,b){Math.random()};roll12=function(a,b){Math.random()};roll20=function(a,b){Math.random()};roll42=function(a,b){Math.random()}};
 
+/**
+*	Copy a 2D array
+*/
+function copy2DArray(array) {
+	var array2 = [];
+	
+	for (var i=0; i < array.length; i++) {
+		array2[i] = [];
+		for (var j=0; j < array[i].length; j++) {
+			array2[i][j] = array[i][j];
+		}
+	}
+	
+	return array2;
+}
+
+/**
+*	Copy a 2D array
+*/
+function concat2DArray(array1, array2, axe) {
+	console.log("LN 1 ",array1.length);
+	console.log("LN 2 ",array2.length);
+	console.log("AXE ",axe);
+	
+	var offsetX = array1.length;
+	
+	if(axe == "X") {
+		for (var i = 0; i < array2.length; i++) {
+			array1[i+offsetX] = [];
+			for (var j = 0; j < array2[i].length; j++) {
+				array1[i+offsetX][j] = array2[i][j];
+			}
+		}
+	} else if(axe == "Y") {
+		if(array1.length == 0) {
+			array1 = array2;
+		} else {
+			for (var i = 0; i < array2.length; i++) {
+				var offsetY = array1[i].length;
+				for (var j = 0; j < array2[i].length; j++) {
+					array1[i][j+offsetY] = array2[i][j];
+				}
+			}
+		}
+	} else {
+		console.log("AXE MUST BE X OR Y");
+	}
+	
+	return array1;
+}
 
 /**
 * Return the min of 2 numbers

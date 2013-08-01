@@ -14,7 +14,8 @@ var Character = function(idCharacter, map, mainCharacter) {
 	
 	this.currentMap = map;
 	
-	this.position = new Point(200, 200);
+	this.position = new Point(0, 360);
+	this.offset = new Point(0, 0);
 	
 	this.currentLife = 100;// %
 	this.maxLife = 100;
@@ -36,6 +37,7 @@ var Character = function(idCharacter, map, mainCharacter) {
 	this.speaking = false;
 	this.moving = false;
 	this.currentAction = null;
+	this.nextAction = null;
 	
 	//race:RACE.HUMAN,
 };
@@ -61,8 +63,26 @@ Character.prototype = {
 		return this.currentMap;
 	},
 	
-	setCurrentMap: function(map) {
+	setCurrentMap: function(map, left, top) {
+		map.setNeighbours(this.currentMap.getNeighbours());
 		this.currentMap = map;
+		//var persoHtml = ;
+		$("#"+this.ID).appendTo("#"+this.currentMap.getID());
+		//console.log(persoHtml);
+		/*$("#"+this.ID).remove();
+		$("#"+map.getID()).append(persoHtml);*/
+		
+		/*var left = this.getXOffset()*UNIT + this.position.x*1;
+		var top = this.getYOffset()*UNIT + this.position.y*1*/
+		
+		$("#"+this.ID).css("left", left);
+		$("#"+this.ID).css("top", top);
+		
+		console.log("Position 1 ",this.getPersoPosition());
+		
+		this.updatePosition();
+		
+		console.log("Position 2 ",this.getPersoPosition());
 	},
 
 	isMoving: function() {
@@ -77,11 +97,19 @@ Character.prototype = {
 		return this.currentAction;
 	},
 	
+	setNextAction: function(action) {
+		this.nextAction = action;
+	},
+	
+	getNextAction: function(){
+		return this.nextAction;
+	},
+	
 	isMainCharacter: function() {
 		return this.mainCharacter;
 	},
 
-	stop: function() {
+	stopSubject: function() {
 		$("#"+this.ID).find(".perso").addClass("stand");
 		$("#"+this.ID).find(".perso").removeClass("walk");
 		this.moving = false;
@@ -94,8 +122,8 @@ Character.prototype = {
 	},
 	
 	updatePosition: function() {
-		this.position.x = $("#"+this.ID).css("left").substring(0,$("#"+this.ID).css("left").length - 2);
-		this.position.y = $("#"+this.ID).css("top").substring(0, $("#"+this.ID).css("top").length - 2);
+		this.position.x = $("#"+this.ID).css("left").substring(0,$("#"+this.ID).css("left").length - 2)*1;
+		this.position.y = $("#"+this.ID).css("top").substring(0, $("#"+this.ID).css("top").length - 2)*1;
 	},
 
 	getPersoPosition2D: function() {
@@ -104,6 +132,26 @@ Character.prototype = {
 
 	getPersoPosition: function() {
 		return this.position;
+	},
+	
+	getOffsetedPosition: function() {
+		return new Point(this.position.x*1+this.offset.x*UNIT, this.position.y*1+this.offset.y*UNIT);
+	},
+	
+	getXOffset: function() {
+		return this.offset.x*1;
+	},
+	
+	getYOffset: function() {
+		return this.offset.y*1;
+	},
+	
+	setXOffset: function(x) {
+		this.offset.x = x*1;
+	},
+	
+	setYOffset: function(y) {
+		this.offset.y = y*1;
 	},
 
 	direction: function(direction) {

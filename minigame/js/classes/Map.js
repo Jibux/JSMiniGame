@@ -19,7 +19,8 @@ var Map = function(hash) {
 	this.tile = hash.tile;
 	this.occupation = hash.occupation;
 	this.neighbours = new Array();
-	this.offset = new Point(-225, 45);
+	this.drawOffset = new Point(-225, 45);
+	this.offset = new Point(0, 0);
 	this.edgeType = [];
 	this.edgeType[EDGE_TYPE_ENUM.RIGHT] = false;
 	this.edgeType[EDGE_TYPE_ENUM.BOTTOM] = false;
@@ -69,6 +70,22 @@ Map.prototype = {
 		this.occupation = occupation;
 	},
 	
+	getXOffset: function() {
+		return this.offset.x*1;
+	},
+	
+	getYOffset: function() {
+		return this.offset.y*1;
+	},
+	
+	setXOffset: function(x) {
+		this.offset.x = x*1;
+	},
+	
+	setYOffset: function(y) {
+		this.offset.y = y*1;
+	},
+	
 	getEdgeType: function(type) {
 		return this.edgeType[type];
 	},
@@ -81,12 +98,20 @@ Map.prototype = {
 		return this.neighbours;
 	},
 	
+	setNeighbours: function(neighbours) {
+		this.neighbours = neighbours;
+	},
+	
 	addNeighbour: function(map) {
 		this.neighbours[map.getID()] = map;
 	},
 	
 	deleteNeighbour: function(map) {
 		delete this.neighbours[map.getID()];
+	},
+	
+	updateNeighbours: function() {
+		this.updateOffset();
 	},
 	
 	direction: function(direction) {
@@ -136,20 +161,14 @@ Map.prototype = {
 	
 	draw: function() {
 		var newPosition = this.position.scaleToCss().changeFrame(true).scaleToCss();
-		newPosition.x = newPosition.x + this.offset.x;
-		newPosition.y = newPosition.y + this.offset.y;
+		newPosition.x = newPosition.x + this.drawOffset.x;
+		newPosition.y = newPosition.y + this.drawOffset.y;
 		
 		$("#screen").append('<div id="'+this.ID+'" class="map" style="left:'+newPosition.x+'px;top:'+newPosition.y+'px;"></div>');
 
 		for(var x = 0; x < this.size.width; x++) {
 			for(var y = 0; y < this.size.height; y++) {
 				var type = this.tile[x+"_"+y];
-					
-				// ON FAIT QUOI AVEC CA ?
-				/*if(this.occupation[x+"_"+y] != undefined) {
-					type+=" noPass";
-				}*/
-				//}
 				$("#"+this.ID).prepend("<div class='tile "+type+"' id='tile_"+x+"_"+y+"' style='left:"+x*UNIT+"px;top:"+y*UNIT+"px;"+"'></div>");
 			}
 		}
@@ -166,6 +185,50 @@ Map.prototype = {
 		for(var index in this.neighbours) {
 			if(typeof this.neighbours[index].draw === 'function') {
 				this.neighbours[index].draw();
+			}
+		}
+	},
+	
+	getNeighboursOccupation: function() {
+		var map = [];
+		for(var y = -1; y <= 1; y++) {
+			var tmpMap = [];
+			for(var x = -1; x <= 1; x++) {
+				var mapID = "map_"+(this.position.x+x)*1+"_"+(this.position.y+y)*1+"_0";
+				if(typeof this.neighbours[mapID] === 'undefined') {
+					console.log(mapID+" undefined");
+				} else {
+					console.log(mapID+" defined");
+					concat2DArray(tmpMap, this.neighbours[mapID].getOccupation(), "X");
+				}
+			}
+			if(tmpMap.length > 0) {
+				map = concat2DArray(map, tmpMap, "Y");
+			}
+		}
+		
+		return map;
+	},
+	
+	updateOffset: function(){
+		var offsetY = 0;
+		for(var y = -1; y <= 1; y++) {
+			var offsetX = 0;
+			for(var x = -1; x <= 1; x++) {
+				var mapID = "map_"+(this.position.x+x)*1+"_"+(this.position.y+y)*1+"_0";
+				if(typeof this.neighbours[mapID] === 'undefined') {
+					console.log(mapID+" undefined");
+				} else {
+					console.log(mapID+" defined");
+					this.neighbours[mapID].setXOffset(this.neighbours[mapID].getSize().width*offsetX);
+					this.neighbours[mapID].setYOffset(this.neighbours[mapID].getSize().height*offsetY);
+					console.log("OFFSET X "+this.neighbours[mapID].getXOffset());
+					console.log("OFFSET Y "+this.neighbours[mapID].getYOffset());
+					offsetX++;
+				}
+			}
+			if(offsetX > 0) {
+				offsetY++;
 			}
 		}
 	},

@@ -1,32 +1,3 @@
-var mapOrig = [];
-
-function copyMap(map) {
-	var map2=[];
-	
-	for (var i=0; i < map.length; i++) {
-		map2[i]=[];
-		for (var j=0; j < map[i].length; j++) {
-			map2[i][j] = map[i][j];
-		}
-		//map2[i] = map[i].slice(0);
-	}
-	
-	return map2;
-}
-
-function invertMap(map) {
-	var map2=[];
-	
-	for (var i=0; i < map.length; i++) {
-		map2[i]=[];
-		for (var j=0; j < map[i].length; j++) {
-			map2[i][j] = map[j][i];
-		}
-	}
-	
-	return map2;
-}
-
 $("document").ready(function() {
 	$("#screen").addClass(configuration.mode).addClass(configuration.quality+"_quality");
 	
@@ -46,15 +17,15 @@ $("document").ready(function() {
 		var position = ActionManager.getMouseMapPosition(ID, e);
 		console.log("CHARACTER POSITION: ", character.getPersoPosition());
 		console.log("CHARACTER POSITION 2D: ", character.getPersoPosition2D());
-		ActionManager.addAction(ACTION_ENUM.MOVE, map, character, position);
+		ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
 	});
-	$(".perso").click(function(e) {
+	/*$(".perso").click(function(e) {
 		var ID = $(this).parent().parent().attr('id');
 		var position = ActionManager.getMouseMapPosition(ID, e);
 		console.log("CHARACTER POSITION: ", character.getPersoPosition());
 		console.log("CHARACTER POSITION 2D: ", character.getPersoPosition2D());
-		ActionManager.addAction(ACTION_ENUM.MOVE, map, character, position);
-	});
+		ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
+	});*/
 	
 	ActionManager.start();
 	
@@ -78,8 +49,6 @@ function init() {
 	ActionManager.init();
 	
 	var map = initMaps();
-	
-	mapOrig = map.getOccupation();
 	
 	map.drawNeighbours();
 	
