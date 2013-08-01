@@ -283,21 +283,16 @@ Move.prototype.moveCss = function(destination) {
 	
 	var direction = this.getDirection(realPosition, destination);
 
-	console.log(direction);
+	//console.log("DIRECTION "+direction);
 	
 	this.subject.direction(direction);
 	
 	var position = this.subject.getPersoPosition();
 	
-	/*console.log(realPosition);
-	console.log(destination);*/
-	
-	
-	
 	var left = this.subject.getCurrentMap().getSize().width*UNIT - Math.abs(position.x*1);
 	var top = this.subject.getCurrentMap().getSize().height*UNIT - Math.abs(position.y*1);
 	
-	console.log("left "+left, "top "+top);
+	//console.log("left "+left, "top "+top);
 	
 	if(position.x < 0) {
 		this.subject.setCurrentMap(this.getCurrentMap(), left, position.y);
@@ -316,7 +311,6 @@ Move.prototype.moveCss = function(destination) {
 	}
 	
 	// We have reached the end of the step because there was only one unitMove step left
-	// destination % 400 && mapID = perso.mapID
 	if(realPosition.equals(destination)) {
 		moveResult = MOVE_WAIT;
 	}
@@ -325,8 +319,8 @@ Move.prototype.moveCss = function(destination) {
 }
 
 Move.prototype.getDirection = function(from, to) {
-	var directionX = "";
-	var directionY = "";
+	var directionX = DIRECTION_ENUM.NOCHANGE;
+	var directionY = DIRECTION_ENUM.NOCHANGE;
 	
 	if(from.x < to.x) {
 		directionX = DIRECTION_ENUM.RIGHT;
@@ -340,11 +334,11 @@ Move.prototype.getDirection = function(from, to) {
 		directionY = DIRECTION_ENUM.UP;
 	}
 	
-	if(directionX == "") {
+	if(directionX == DIRECTION_ENUM.NOCHANGE) {
 		return directionY;
 	}
 	
-	if(directionY == "") {
+	if(directionY == DIRECTION_ENUM.NOCHANGE) {
 		return directionX;
 	}
 	
@@ -363,8 +357,7 @@ Move.prototype.getDirection = function(from, to) {
 	if(directionX == DIRECTION_ENUM.LEFT && directionY == DIRECTION_ENUM.UP) {
 		return DIRECTION_ENUM.DIAGONAL_UP_LEFT;
 	}
-
-	console.log("NO CHANGE");
+	
 	return DIRECTION_ENUM.NOCHANGE;
 }
 
