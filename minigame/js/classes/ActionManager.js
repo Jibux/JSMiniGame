@@ -275,22 +275,12 @@ Move.prototype.moveByStep = function(mapArray, nodes, i, destination) {
 
 Move.prototype.moveCss = function(destination) {
 	var moveResult = MOVE_ON;
-	
 	var realPosition = this.subject.getOffsetedPosition();
-	
-	//console.log("DEST ",destination);
-	//console.log("POSITION ",realPosition);
-	
 	var direction = this.getDirection(realPosition, destination);
 
 	//console.log("DIRECTION "+direction);
 	
 	this.subject.direction(direction);
-	
-	var position = this.subject.getPersoPosition();
-	
-	var left = this.subject.getCurrentMap().getSize().width*UNIT - Math.abs(position.x*1);
-	var top = this.subject.getCurrentMap().getSize().height*UNIT - Math.abs(position.y*1);
 	
 	var mapDirection = this.getMapDirection();
 	
@@ -300,8 +290,10 @@ Move.prototype.moveCss = function(destination) {
 		this.subject.changeMap(mapDirection);
 	}
 	
+	var realPosition2 = this.subject.getOffsetedPosition();
+
 	// We have reached the end of the step because there was only one unitMove step left
-	if(realPosition.equals(destination)) {
+	if(realPosition2.equals(destination)) {
 		moveResult = MOVE_WAIT;
 	}
 	
