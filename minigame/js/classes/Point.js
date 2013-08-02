@@ -30,10 +30,10 @@ Point.prototype = {
 	
 	convertFromSize: function(size) {
 		if(this.x < 0 || this.x >= size.width) {
-			this.x = size.width - Math.abs(this.x);
+			this.x = Math.abs(size.width - Math.abs(this.x));
 		}
 		if(this.y < 0 || this.y >= size.height) {
-			this.y = size.height - Math.abs(this.y);
+			this.y = Math.abs(size.height - Math.abs(this.y));
 		}
 	},
 

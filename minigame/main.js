@@ -26,7 +26,7 @@ $("document").ready(function() {
 		// TODO BETTER CODE DIRECTION MAP ETC.
 		if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
 			ID = character.getCurrentMap().getMapIDFromDirection(mapDirection);
-			position.convertFromSize(character.getCurrentMap().getSize());
+			position.convertFromSize(character.getCurrentMap().getNeighbour(ID).getSize());
 			console.log("CLICKED POSITION2:", position);
 		}
 		

@@ -66,14 +66,8 @@ Character.prototype = {
 	setCurrentMap: function(map, left, top) {
 		map.setNeighbours(this.currentMap.getNeighbours());
 		this.currentMap = map;
-		//var persoHtml = ;
-		$("#"+this.ID).appendTo("#"+this.currentMap.getID());
-		//console.log(persoHtml);
-		/*$("#"+this.ID).remove();
-		$("#"+map.getID()).append(persoHtml);*/
 		
-		/*var left = this.getXOffset()*UNIT + this.position.x*1;
-		var top = this.getYOffset()*UNIT + this.position.y*1*/
+		$("#"+this.ID).appendTo("#"+this.currentMap.getID());
 		
 		$("#"+this.ID).css("left", left);
 		$("#"+this.ID).css("top", top);
@@ -223,8 +217,8 @@ Character.prototype = {
 	},
 
 	changeMap: function(direction) {
-		var left = this.currentMap.getSize().width*UNIT - Math.abs(this.position.x*1);
-		var top = this.currentMap.getSize().height*UNIT - Math.abs(this.position.y*1);
+		var left = Math.abs(this.currentMap.getSize().width*UNIT - Math.abs(this.position.x*1));
+		var top = Math.abs(this.currentMap.getSize().height*UNIT - Math.abs(this.position.y*1));
 		var x = this.currentMap.getPosition().x;
 		var y = this.currentMap.getPosition().y;
 		var z = this.currentMap.getPosition().z;
@@ -282,7 +276,6 @@ Character.prototype = {
 		}
 
 		var mapID = "map_"+x+"_"+y+"_"+z;
-		console.log("NEW MAP ID "+mapID);
 
 		this.setCurrentMap(this.currentMap.getNeighbour(mapID), left, top);
 		this.setXOffset(offsetX);

@@ -113,66 +113,11 @@ Move.prototype.moveTo = function() {
 		return MOVE_FINISHED;
 	}
 	
-	var map;
 	var offsetX = 0;
 	var offsetY = 0;
-	// !!! PASSAGE D'UNE MAP A L'AUTRE
-	/*if(this.currentMap.getID() != this.subject.getCurrentMap().getID()) {
-		// Concat arrays
-		var begin;
-		var end;
-		var axe = "X";
-		var direction = this.getDirection(this.subject.getCurrentMap().getPosition(), this.currentMap.getPosition());
-		console.log("MAP DIRECTION: "+direction);
-		switch(direction) {
-			case DIRECTION_ENUM.RIGHT:
-				begin = this.subject.getCurrentMap().getOccupation();
-				end = this.currentMap.getOccupation();
-				axe = "X";
-				break;
-			case DIRECTION_ENUM.LEFT:
-				begin = this.currentMap.getOccupation();
-				end = this.subject.getCurrentMap().getOccupation();
-				offsetX = this.subject.getCurrentMap().getSize().width;
-				axe = "X";
-				break;
-			case DIRECTION_ENUM.UP:
-				begin = this.currentMap.getOccupation();
-				end = this.subject.getCurrentMap().getOccupation();
-				axe = "Y";
-				break;
-			case DIRECTION_ENUM.DOWN:
-				begin = this.subject.getCurrentMap().getOccupation();
-				end = this.currentMap.getOccupation();
-				axe = "Y";
-				break;
-			case DIRECTION_ENUM.DIAGONAL_UP_RIGHT:
-				
-				break;
-			case DIRECTION_ENUM.DIAGONAL_UP_LEFT:
-				
-				break;
-			case DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT:
-				
-				break;
-			case DIRECTION_ENUM.DIAGONAL_DOWN_LEFT:
-				
-				break;
-			default: break;
-		}
 		
-		map = concat2DArray(begin, end, axe);
-		console.log("concat ", map);
-	} else {
-		map = copy2DArray(this.subject.getCurrentMap().getOccupation());
-	}*/
+	var map = this.subject.getCurrentMap().getNeighboursOccupation();
 	
-	var test = this.subject.getCurrentMap().getNeighboursOccupation();
-	
-	console.log("TEST");
-	console.log(this.subject.getCurrentMap().getID());
-	
-	map = test;
 	offsetX = this.subject.getCurrentMap().getXOffset();
 	offsetY = this.subject.getCurrentMap().getYOffset();
 	
