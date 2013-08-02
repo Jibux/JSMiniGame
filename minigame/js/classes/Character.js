@@ -222,6 +222,73 @@ Character.prototype = {
 		this.updatePosition();
 	},
 
+	changeMap: function(direction) {
+		var left = this.currentMap.getSize().width*UNIT - Math.abs(this.position.x*1);
+		var top = this.currentMap.getSize().height*UNIT - Math.abs(this.position.y*1);
+		var x = this.currentMap.getPosition().x;
+		var y = this.currentMap.getPosition().y;
+		var z = this.currentMap.getPosition().z;
+		var offsetX = this.getXOffset();
+		var offsetY = this.getYOffset();
+
+		var nextMapPosition = new Point();
+
+		switch(direction) {
+			case DIRECTION_ENUM.RIGHT:
+				top = this.position.y;
+				x++;
+				offsetX+= this.currentMap.getSize().width;
+				break;
+			case DIRECTION_ENUM.LEFT:
+				top = this.position.y;
+				x--;
+				offsetX-= this.currentMap.getSize().width;
+				break;
+			case DIRECTION_ENUM.UP:
+				left = this.position.x;
+				y--;
+				offsetY-= this.currentMap.getSize().height;
+				break;
+			case DIRECTION_ENUM.DOWN:
+				left = this.position.x;
+				y++;
+				offsetY+= this.currentMap.getSize().height;
+				break;
+			case DIRECTION_ENUM.DIAGONAL_UP_RIGHT:
+				x++;
+				y--;
+				offsetX+= this.currentMap.getSize().width;
+				offsetY-= this.currentMap.getSize().height;
+				break;
+			case DIRECTION_ENUM.DIAGONAL_UP_LEFT:
+				x--;
+				y--;
+				offsetX-= this.currentMap.getSize().width;
+				offsetY-= this.currentMap.getSize().height;
+				break;
+			case DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT:
+				x++;
+				y++;
+				offsetX+= this.currentMap.getSize().width;
+				offsetY+= this.currentMap.getSize().height;
+				break;
+			case DIRECTION_ENUM.DIAGONAL_DOWN_LEFT:
+				x--;
+				y++;
+				offsetX-= this.currentMap().getSize().width;
+				offsetY+= this.currentMap().getSize().height;
+				break;
+			default: break;
+		}
+
+		var mapID = "map_"+x+"_"+y+"_"+z;
+		console.log("NEW MAP ID "+mapID);
+
+		this.setCurrentMap(this.currentMap.getNeighbours()[mapID], left, top);
+		this.setXOffset(offsetX);
+		this.setYOffset(offsetY);
+	},
+
 	drawPerso: function() {
 		$("#"+this.currentMap.getID()).append('<div class="occupation" style="top:'+this.position.y+'px;left:'+this.position.x+'px;" id="'+this.ID+'"></div>');
 		$("#"+this.ID).append('<div class="perso stand down right"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');

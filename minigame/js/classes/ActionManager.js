@@ -292,22 +292,12 @@ Move.prototype.moveCss = function(destination) {
 	var left = this.subject.getCurrentMap().getSize().width*UNIT - Math.abs(position.x*1);
 	var top = this.subject.getCurrentMap().getSize().height*UNIT - Math.abs(position.y*1);
 	
-	//console.log("left "+left, "top "+top);
+	var mapDirection = this.getMapDirection();
 	
-	if(position.x < 0) {
-		this.subject.setCurrentMap(this.getCurrentMap(), left, position.y);
-		this.subject.setXOffset(this.subject.getXOffset()-this.subject.getCurrentMap().getSize().width);
-	} else if(position.x >= this.subject.getCurrentMap().getSize().width*UNIT) {
-		this.subject.setCurrentMap(this.getCurrentMap(), left, position.y);
-		this.subject.setXOffset(this.subject.getXOffset()+this.subject.getCurrentMap().getSize().width);
-	}
-	
-	if(position.y < 0) {
-		this.subject.setCurrentMap(this.getCurrentMap(), position.x, top);
-		this.subject.setYOffset(this.subject.getYOffset()-this.subject.getCurrentMap().getSize().height);
-	} else if(position.y >= this.subject.getCurrentMap().getSize().height*UNIT) {
-		this.subject.setCurrentMap(this.getCurrentMap(), position.x, top);
-		this.subject.setYOffset(this.subject.getYOffset()+this.subject.getCurrentMap().getSize().height);
+	// We have to change map
+	if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
+		console.log("CHANGE MAP: "+mapDirection);
+		this.subject.changeMap(mapDirection);
 	}
 	
 	// We have reached the end of the step because there was only one unitMove step left
@@ -316,6 +306,53 @@ Move.prototype.moveCss = function(destination) {
 	}
 	
 	return moveResult;
+}
+
+
+Move.prototype.getMapDirection = function() {
+	var directionX = DIRECTION_ENUM.NOCHANGE;
+	var directionY = DIRECTION_ENUM.NOCHANGE;
+
+	var position = this.subject.getPersoPosition();
+	var map = this.subject.getCurrentMap();
+
+	if(position.x >= map.getSize().width*UNIT) {
+		directionX = DIRECTION_ENUM.RIGHT;
+	} else if(position.x < 0) {
+		directionX = DIRECTION_ENUM.LEFT;
+	}
+	
+	if(position.y >= map.getSize().height*UNIT) {
+		directionY = DIRECTION_ENUM.DOWN;
+	} else if(position.y < 0) {
+		directionY = DIRECTION_ENUM.UP;
+	}
+	
+	if(directionX == DIRECTION_ENUM.NOCHANGE) {
+		return directionY;
+	}
+	
+	if(directionY == DIRECTION_ENUM.NOCHANGE) {
+		return directionX;
+	}
+	
+	if(directionX == DIRECTION_ENUM.RIGHT && directionY == DIRECTION_ENUM.DOWN) {
+		return DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT;
+	}
+	
+	if(directionX == DIRECTION_ENUM.LEFT && directionY == DIRECTION_ENUM.DOWN) {
+		return DIRECTION_ENUM.DIAGONAL_DOWN_LEFT;
+	}
+	
+	if(directionX == DIRECTION_ENUM.RIGHT && directionY == DIRECTION_ENUM.UP) {
+		return DIRECTION_ENUM.DIAGONAL_UP_RIGHT;
+	}
+	
+	if(directionX == DIRECTION_ENUM.LEFT && directionY == DIRECTION_ENUM.UP) {
+		return DIRECTION_ENUM.DIAGONAL_UP_LEFT;
+	}
+	
+	return DIRECTION_ENUM.NOCHANGE;
 }
 
 Move.prototype.getDirection = function(from, to) {
