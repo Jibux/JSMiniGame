@@ -19,13 +19,21 @@ $("document").ready(function() {
 		console.log("CHARACTER POSITION 2D: ", character.getPersoPosition2D());
 		ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
 	});
-	/*$(".perso").click(function(e) {
+	$(".perso").click(function(e) {
 		var ID = $(this).parent().parent().attr('id');
 		var position = ActionManager.getMouseMapPosition(ID, e);
+		var mapDirection = character.getCurrentMap().getMapDirection(position.scaleToCss());
+		// TODO BETTER CODE DIRECTION MAP ETC.
+		if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
+			ID = character.getCurrentMap().getMapIDFromDirection(mapDirection);
+			position.convertFromSize(character.getCurrentMap().getSize());
+			console.log("CLICKED POSITION2:", position);
+		}
+		
 		console.log("CHARACTER POSITION: ", character.getPersoPosition());
 		console.log("CHARACTER POSITION 2D: ", character.getPersoPosition2D());
 		ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
-	});*/
+	});
 	
 	ActionManager.start();
 	

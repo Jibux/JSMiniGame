@@ -284,7 +284,7 @@ Character.prototype = {
 		var mapID = "map_"+x+"_"+y+"_"+z;
 		console.log("NEW MAP ID "+mapID);
 
-		this.setCurrentMap(this.currentMap.getNeighbours()[mapID], left, top);
+		this.setCurrentMap(this.currentMap.getNeighbour(mapID), left, top);
 		this.setXOffset(offsetX);
 		this.setYOffset(offsetY);
 	},

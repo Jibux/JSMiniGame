@@ -27,6 +27,15 @@ Point.prototype = {
 	scaleToCss: function() {
 		return new Point(this.x*UNIT, this.y*UNIT);
 	},
+	
+	convertFromSize: function(size) {
+		if(this.x < 0 || this.x >= size.width) {
+			this.x = size.width - Math.abs(this.x);
+		}
+		if(this.y < 0 || this.y >= size.height) {
+			this.y = size.height - Math.abs(this.y);
+		}
+	},
 
 	/**
 	* Change les coordonées passées en paramétre dans le repère ISOmétrique ou 2D

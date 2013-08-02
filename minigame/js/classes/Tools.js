@@ -84,10 +84,6 @@ function copy2DArray(array) {
 *	Copy a 2D array
 */
 function concat2DArray(array1, array2, axe) {
-	console.log("LN 1 ",array1.length);
-	console.log("LN 2 ",array2.length);
-	console.log("AXE ",axe);
-	
 	var offsetX = array1.length;
 	
 	if(axe == "X") {

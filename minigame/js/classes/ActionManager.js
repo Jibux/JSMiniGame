@@ -282,7 +282,7 @@ Move.prototype.moveCss = function(destination) {
 	
 	this.subject.direction(direction);
 	
-	var mapDirection = this.getMapDirection();
+	var mapDirection = this.subject.getCurrentMap().getMapDirection(this.subject.getPersoPosition());
 	
 	// We have to change map
 	if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
@@ -298,53 +298,6 @@ Move.prototype.moveCss = function(destination) {
 	}
 	
 	return moveResult;
-}
-
-
-Move.prototype.getMapDirection = function() {
-	var directionX = DIRECTION_ENUM.NOCHANGE;
-	var directionY = DIRECTION_ENUM.NOCHANGE;
-
-	var position = this.subject.getPersoPosition();
-	var map = this.subject.getCurrentMap();
-
-	if(position.x >= map.getSize().width*UNIT) {
-		directionX = DIRECTION_ENUM.RIGHT;
-	} else if(position.x < 0) {
-		directionX = DIRECTION_ENUM.LEFT;
-	}
-	
-	if(position.y >= map.getSize().height*UNIT) {
-		directionY = DIRECTION_ENUM.DOWN;
-	} else if(position.y < 0) {
-		directionY = DIRECTION_ENUM.UP;
-	}
-	
-	if(directionX == DIRECTION_ENUM.NOCHANGE) {
-		return directionY;
-	}
-	
-	if(directionY == DIRECTION_ENUM.NOCHANGE) {
-		return directionX;
-	}
-	
-	if(directionX == DIRECTION_ENUM.RIGHT && directionY == DIRECTION_ENUM.DOWN) {
-		return DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT;
-	}
-	
-	if(directionX == DIRECTION_ENUM.LEFT && directionY == DIRECTION_ENUM.DOWN) {
-		return DIRECTION_ENUM.DIAGONAL_DOWN_LEFT;
-	}
-	
-	if(directionX == DIRECTION_ENUM.RIGHT && directionY == DIRECTION_ENUM.UP) {
-		return DIRECTION_ENUM.DIAGONAL_UP_RIGHT;
-	}
-	
-	if(directionX == DIRECTION_ENUM.LEFT && directionY == DIRECTION_ENUM.UP) {
-		return DIRECTION_ENUM.DIAGONAL_UP_LEFT;
-	}
-	
-	return DIRECTION_ENUM.NOCHANGE;
 }
 
 Move.prototype.getDirection = function(from, to) {
@@ -420,11 +373,31 @@ var ActionManager = {
 	},
 	
 	addAction: function(type, mapID, subject, target) {
-		var map = subject.getCurrentMap().getNeighbours()[mapID];
+		var map = subject.getCurrentMap().getNeighbour(mapID);
+		if(map === null) {
+			console.log("MAP "+mapID+" UNDEFINED");
+			return null;
+		}
+		
+		if(target.x <0 || target.y < 0) {
+			console.log("BAD TARGET: ",target);
+			return null;
+		}
+		
+		var occupation = map.getOccupation();
+		if(typeof(occupation) === 'undefined') {
+			console.log("OCCUPATION UNDEFINED");
+			return null;
+		}
+		
+		if(typeof(occupation[target.x][target.y]) === 'undefined') {
+			console.log("OCCUPATION["+target.x+"]["+target.y+"] UNDEFINED");
+			return null;
+		}
 		
 		console.log("NEW ACTION ",map);
 		
-		if(map.getOccupation()[target.x][target.y] == STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
+		if(occupation[target.x][target.y] == STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
 			return null;
 		}
 		

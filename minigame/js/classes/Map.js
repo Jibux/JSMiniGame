@@ -98,6 +98,13 @@ Map.prototype = {
 		return this.neighbours;
 	},
 	
+	getNeighbour: function(mapID) {
+		if(typeof(this.neighbours[mapID]) === 'undefined') {
+			return null;
+		}
+		return this.neighbours[mapID];
+	},
+	
 	setNeighbours: function(neighbours) {
 		this.neighbours = neighbours;
 	},
@@ -112,6 +119,91 @@ Map.prototype = {
 	
 	updateNeighbours: function() {
 		this.updateOffset();
+	},
+	
+	getMapDirection: function(position) {
+		var directionX = DIRECTION_ENUM.NOCHANGE;
+		var directionY = DIRECTION_ENUM.NOCHANGE;
+
+		if(position.x >= this.size.width*UNIT) {
+			directionX = DIRECTION_ENUM.RIGHT;
+		} else if(position.x < 0) {
+			directionX = DIRECTION_ENUM.LEFT;
+		}
+		
+		if(position.y >= this.size.height*UNIT) {
+			directionY = DIRECTION_ENUM.DOWN;
+		} else if(position.y < 0) {
+			directionY = DIRECTION_ENUM.UP;
+		}
+		
+		if(directionX == DIRECTION_ENUM.NOCHANGE) {
+			return directionY;
+		}
+		
+		if(directionY == DIRECTION_ENUM.NOCHANGE) {
+			return directionX;
+		}
+		
+		if(directionX == DIRECTION_ENUM.RIGHT && directionY == DIRECTION_ENUM.DOWN) {
+			return DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT;
+		}
+		
+		if(directionX == DIRECTION_ENUM.LEFT && directionY == DIRECTION_ENUM.DOWN) {
+			return DIRECTION_ENUM.DIAGONAL_DOWN_LEFT;
+		}
+		
+		if(directionX == DIRECTION_ENUM.RIGHT && directionY == DIRECTION_ENUM.UP) {
+			return DIRECTION_ENUM.DIAGONAL_UP_RIGHT;
+		}
+		
+		if(directionX == DIRECTION_ENUM.LEFT && directionY == DIRECTION_ENUM.UP) {
+			return DIRECTION_ENUM.DIAGONAL_UP_LEFT;
+		}
+		
+		return DIRECTION_ENUM.NOCHANGE;
+	},
+	
+	getMapIDFromDirection: function(direction) {
+		var x = this.position.x;
+		var y = this.position.y;
+		var z = this.position.z;
+		
+		switch(direction) {
+			case DIRECTION_ENUM.RIGHT:
+				x++;
+				break;
+			case DIRECTION_ENUM.LEFT:
+				x--;
+				break;
+			case DIRECTION_ENUM.UP:
+				y--;
+				break;
+			case DIRECTION_ENUM.DOWN:
+				y++;
+				break;
+			case DIRECTION_ENUM.DIAGONAL_UP_RIGHT:
+				x++;
+				y--;
+				break;
+			case DIRECTION_ENUM.DIAGONAL_UP_LEFT:
+				x--;
+				y--;
+				break;
+			case DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT:
+				x++;
+				y++;
+				break;
+			case DIRECTION_ENUM.DIAGONAL_DOWN_LEFT:
+				x--;
+				y++;
+				break;
+			default: break;
+		}
+
+		var mapID = "map_"+x+"_"+y+"_"+z;
+		
+		return mapID;
 	},
 	
 	direction: function(direction) {
