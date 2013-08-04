@@ -12,29 +12,6 @@ $("document").ready(function() {
 	
 	var map = character.getCurrentMap();
 	
-	$(".tile").click(function(e) {
-		var ID = $(this).parent().attr('id');
-		var position = ActionManager.getMouseMapPosition(ID, e);
-		console.log("CHARACTER POSITION: ", character.getPersoPosition());
-		console.log("CHARACTER POSITION 2D: ", character.getPersoPosition2D());
-		ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
-	});
-	$(".perso").click(function(e) {
-		var ID = $(this).parent().parent().attr('id');
-		var position = ActionManager.getMouseMapPosition(ID, e);
-		var mapDirection = character.getCurrentMap().getMapDirection(position.scaleToCss());
-		// TODO BETTER CODE DIRECTION MAP ETC.
-		if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
-			ID = character.getCurrentMap().getMapIDFromDirection(mapDirection);
-			position.convertFromSize(character.getCurrentMap().getNeighbour(ID).getSize());
-			console.log("CLICKED POSITION2:", position);
-		}
-		
-		console.log("CHARACTER POSITION: ", character.getPersoPosition());
-		console.log("CHARACTER POSITION 2D: ", character.getPersoPosition2D());
-		ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
-	});
-	
 	ActionManager.start();
 	
 	clock();
@@ -56,7 +33,10 @@ function init() {
 	
 	ActionManager.init();
 	
-	var map = initMaps();
+	var mapID = "map_0_0_0";
+	var map = ActionManager.loadMap(mapID);
+	
+	map.updateNeighbours();
 	
 	map.drawNeighbours();
 	
@@ -69,12 +49,4 @@ function init() {
 	character.drawPerso();
 	
 	return character;
-}
-
-function initMaps() {
-	var initialPosition = new Point(0, 0);
-	var fromPosition = new Point(0, 0);
-	var toPosition = new Point(-1, 1);
-	
-	return ActionManager.loadMaps(initialPosition, fromPosition, toPosition);
 }

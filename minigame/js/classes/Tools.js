@@ -112,6 +112,22 @@ function concat2DArray(array1, array2, axe) {
 }
 
 /**
+*	Generate a 2D array of "number"
+*/
+function generate2DArray(width, height, number) {
+	var array = [];
+	
+	for(var i = 0; i < width; i++) {
+		array[i] = [];
+		for(var j = 0; j < height; j++) {
+			array[i][j] = number;
+		}
+	}
+	
+	return array;
+}
+
+/**
 * Return the min of 2 numbers
 */
 function min(a, b) {

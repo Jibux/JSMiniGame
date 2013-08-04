@@ -14,7 +14,7 @@ var Character = function(idCharacter, map, mainCharacter) {
 	
 	this.currentMap = map;
 	
-	this.position = new Point(0, 360);
+	this.position = new Point(0, 0);
 	this.offset = new Point(0, 0);
 	
 	this.currentLife = 100;// %
@@ -64,8 +64,14 @@ Character.prototype = {
 	},
 	
 	setCurrentMap: function(map, left, top) {
-		map.setNeighbours(this.currentMap.getNeighbours());
+		//map.setNeighbours(this.currentMap.getNeighbours());
+		var oldMap = this.currentMap;
 		this.currentMap = map;
+		map.updateNeighbours();
+		map.drawNeighbours();
+		this.drawPerso();
+		this.move();
+		ActionManager.handleClicks();
 		
 		$("#"+this.ID).appendTo("#"+this.currentMap.getID());
 		
@@ -73,9 +79,7 @@ Character.prototype = {
 		$("#"+this.ID).css("top", top);
 		
 		console.log("Position 1 ",this.getPersoPosition());
-		
-		this.updatePosition();
-		
+		this.updatePosition();		
 		console.log("Position 2 ",this.getPersoPosition());
 	},
 
@@ -116,6 +120,10 @@ Character.prototype = {
 	},
 	
 	updatePosition: function() {
+		if(!$("#"+this.ID).length) {
+			console.log("Cannot find character "+this.ID);
+			return null;
+		}
 		this.position.x = $("#"+this.ID).css("left").substring(0,$("#"+this.ID).css("left").length - 2)*1;
 		this.position.y = $("#"+this.ID).css("top").substring(0, $("#"+this.ID).css("top").length - 2)*1;
 	},
@@ -224,8 +232,6 @@ Character.prototype = {
 		var z = this.currentMap.getPosition().z;
 		var offsetX = this.getXOffset();
 		var offsetY = this.getYOffset();
-
-		var nextMapPosition = new Point();
 
 		switch(direction) {
 			case DIRECTION_ENUM.RIGHT:

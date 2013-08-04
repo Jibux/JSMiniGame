@@ -24,6 +24,8 @@ var Map = function(hash) {
 	this.edgeType = [];
 	this.edgeType[EDGE_TYPE_ENUM.RIGHT] = false;
 	this.edgeType[EDGE_TYPE_ENUM.BOTTOM] = false;
+	this.minEdgeNeighbour = new Point(hash.position.x, hash.position.y, hash.position.z);
+	this.maxEdgeNeighbour = new Point(hash.position.x, hash.position.y, hash.position.z);
 };
 
 Map.prototype = {
@@ -118,7 +120,57 @@ Map.prototype = {
 	},
 	
 	updateNeighbours: function() {
-		this.updateOffset();
+		var xMin = 2;
+		var xMax = -1;
+		var yMin = 2;
+		var yMax = -1;
+		for(var y = -1; y <= 1; y++) {
+			for(var x = -1; x <= 1; x++) {
+				var mapID = "map_"+(this.position.x+x)*1+"_"+(this.position.y+y)*1+"_0";
+				var map;
+				if(this.ID != mapID) {
+					map = ActionManager.loadMap(mapID);
+				} else {
+					map = this;
+				}
+				if(map === null) {
+					console.log(mapID+" undefined");
+				} else {
+					console.log(mapID+" defined");
+					this.neighbours[mapID] = map;
+					xMin = min(x, xMin);
+					xMax = max(x, xMax);
+					yMin = min(y, yMin);
+					yMax = max(y, yMax);
+				}
+			}
+		}
+		
+		this.minEdgeNeighbour.x = xMin;
+		this.minEdgeNeighbour.y = yMin;
+		this.maxEdgeNeighbour.x = xMax;
+		this.maxEdgeNeighbour.y = yMax;
+		
+		this.updateNeighboursOffset();
+	},
+	
+	updateNeighboursOffset: function() {
+		var offsetY = 0;
+		for(var y = this.minEdgeNeighbour.y; y <= this.maxEdgeNeighbour.y; y++) {
+			var offsetX = 0;
+			for(var x = this.minEdgeNeighbour.x; x <= this.maxEdgeNeighbour.x; x++) {
+				var mapID = "map_"+(this.position.x+x)*1+"_"+(this.position.y+y)*1+"_0";
+				var map = this.neighbours[mapID];
+				if(map != null) {
+					map.setXOffset(map.getSize().width*offsetX);
+					map.setYOffset(map.getSize().height*offsetY);
+					console.log(mapID+" OFFSET X "+this.neighbours[mapID].getXOffset());
+					console.log(mapID+" OFFSET Y "+this.neighbours[mapID].getYOffset());
+				}
+				offsetX++;
+			}
+			offsetY++;
+		}
 	},
 	
 	getMapDirection: function(position) {
@@ -207,6 +259,10 @@ Map.prototype = {
 	},
 	
 	direction: function(direction) {
+		if(!$("#"+this.ID).length) {
+			console.log(this.ID+" NOT AVAILABLE ON SCREEN");
+			return null;
+		}
 		var mapLeft = $("#"+this.ID).css("left").substring(0,$("#"+this.ID).css("left").length - 2);
 		var mapTop = $("#"+this.ID).css("top").substring(0, $("#"+this.ID).css("top").length - 2);
 		
@@ -274,6 +330,7 @@ Map.prototype = {
 	},
 	
 	drawNeighbours: function() {
+		$("#screen").empty();
 		for(var index in this.neighbours) {
 			if(typeof this.neighbours[index].draw === 'function') {
 				this.neighbours[index].draw();
@@ -283,16 +340,19 @@ Map.prototype = {
 	
 	getNeighboursOccupation: function() {
 		var map = [];
-		for(var y = -1; y <= 1; y++) {
+		for(var y = this.minEdgeNeighbour.y; y <= this.maxEdgeNeighbour.y; y++) {
 			var tmpMap = [];
-			for(var x = -1; x <= 1; x++) {
+			for(var x = this.minEdgeNeighbour.x; x <= this.maxEdgeNeighbour.x; x++) {
 				var mapID = "map_"+(this.position.x+x)*1+"_"+(this.position.y+y)*1+"_0";
+				var mapToAdd;
 				if(typeof this.neighbours[mapID] === 'undefined') {
-					console.log(mapID+" undefined");
+					console.log(mapID+" undefined, fill with unaccessible map");
+					mapToAdd = generate2DArray(this.size.width, this.size.height, STATIC_OCCUPATION_ENUM.UNAVAILABLE);
 				} else {
 					console.log(mapID+" defined");
-					concat2DArray(tmpMap, this.neighbours[mapID].getOccupation(), "X");
+					mapToAdd = this.neighbours[mapID].getOccupation();
 				}
+				concat2DArray(tmpMap, mapToAdd, "X");
 			}
 			if(tmpMap.length > 0) {
 				map = concat2DArray(map, tmpMap, "Y");
@@ -300,28 +360,5 @@ Map.prototype = {
 		}
 		
 		return map;
-	},
-	
-	updateOffset: function(){
-		var offsetY = 0;
-		for(var y = -1; y <= 1; y++) {
-			var offsetX = 0;
-			for(var x = -1; x <= 1; x++) {
-				var mapID = "map_"+(this.position.x+x)*1+"_"+(this.position.y+y)*1+"_0";
-				if(typeof this.neighbours[mapID] === 'undefined') {
-					console.log(mapID+" undefined");
-				} else {
-					console.log(mapID+" defined");
-					this.neighbours[mapID].setXOffset(this.neighbours[mapID].getSize().width*offsetX);
-					this.neighbours[mapID].setYOffset(this.neighbours[mapID].getSize().height*offsetY);
-					console.log("OFFSET X "+this.neighbours[mapID].getXOffset());
-					console.log("OFFSET Y "+this.neighbours[mapID].getYOffset());
-					offsetX++;
-				}
-			}
-			if(offsetX > 0) {
-				offsetY++;
-			}
-		}
 	},
 };

@@ -61,14 +61,12 @@ var STATIC_OCCUPATION_ENUM = {
 	GRASS:1
 };
 
-
 var MOVE_FINISHED = -1;
 var MOVE_ON = 0;
 var MOVE_WAIT = 1;
 
 var FOOT_STEP_DURATION = 100;
 var CHECK_DURATION = 200;
-
 
 function generateUnitMoveEnum() {
 	var unit = UNIT;

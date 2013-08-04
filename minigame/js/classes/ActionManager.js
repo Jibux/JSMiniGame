@@ -132,11 +132,16 @@ Move.prototype.moveTo = function() {
 	var start = graph.nodes[position.x+offsetX][position.y+offsetY];
 	var end = graph.nodes[this.target.x+offsetMapX][this.target.y+offsetMapY];
 	
+	console.log(start);
+	console.log(end);
+	console.log(map);
+	
 	var result = astar.search(graph.nodes, start, end, true);
 	
 	if(typeof result == "undefined" || result.length == 0) {
 		this.getSubject().stopSubject();
 		this.stopAction();
+		console.log("CANNOT FIND PATH");
 		return MOVE_FINISHED;
 	}
 	
@@ -295,6 +300,7 @@ Move.prototype.getDirection = function(from, to) {
 var Actions = {
 	actionList:null,
 	subjectList:null,
+	mainCharacter:null
 };
 
 
@@ -315,6 +321,9 @@ var ActionManager = {
 	addSubject: function(subject) {
 		var subjectID = subject.getID();
 		Actions.subjectList[subjectID] = subject;
+		if(subject.isMainCharacter()) {
+			Actions.mainCharacter = subject;
+		}
 	},
 	
 	addAction: function(type, mapID, subject, target) {
@@ -354,8 +363,35 @@ var ActionManager = {
 		
 		Actions.actionList.push(action);
 	},
+
+	handleClicks: function() {
+		var character = Actions.mainCharacter;
+		$(".tile").click(function(e) {
+			var ID = $(this).parent().attr('id');
+			var position = ActionManager.getMouseMapPosition(ID, e);
+			console.log("CHARACTER POSITION: ", character.getPersoPosition());
+			console.log("CHARACTER POSITION 2D: ", character.getPersoPosition2D());
+			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
+		});
+		$(".perso").click(function(e) {
+			var ID = $(this).parent().parent().attr('id');
+			var position = ActionManager.getMouseMapPosition(ID, e);
+			var mapDirection = character.getCurrentMap().getMapDirection(position.scaleToCss());
+			// TODO (IF WE CAN) BETTER CODE DIRECTION MAP ETC.
+			if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
+				ID = character.getCurrentMap().getMapIDFromDirection(mapDirection);
+				position.convertFromSize(character.getCurrentMap().getNeighbour(ID).getSize());
+				console.log("CLICKED POSITION2:", position);
+			}
+			
+			console.log("CHARACTER POSITION: ", character.getPersoPosition());
+			console.log("CHARACTER POSITION 2D: ", character.getPersoPosition2D());
+			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
+		});
+	},
 	
 	start: function() {
+		ActionManager.handleClicks();
 		var intId = setInterval(function() {
 			var action = Actions.actionList.pop();
 			
@@ -402,13 +438,19 @@ var ActionManager = {
 	},
 	
 	loadMap: function(mapID) {
+		if(typeof(mapContent[mapID]) === 'undefined') {
+			return null;
+		}
 		var map = new Map(mapContent[mapID]);
 		
-		if(map.getPosition().x == mapContentBorders.right) {
+		var mapIDBottom = "map_"+(map.getPosition().x)*1+"_"+(map.getPosition().y+1)*1+"_"+map.getPosition().z;
+		var mapIDRight = "map_"+(map.getPosition().x+1)*1+"_"+(map.getPosition().y)*1+"_"+map.getPosition().z;
+				
+		if(!mapContent[mapIDRight]) {
 			map.setEdgeType(EDGE_TYPE_ENUM.RIGHT, true);
 		}
 		
-		if(map.getPosition().y == mapContentBorders.bottom) {
+		if(!mapContent[mapIDBottom]) {
 			map.setEdgeType(EDGE_TYPE_ENUM.BOTTOM, true);
 		}
 		
