@@ -10,14 +10,12 @@ $("document").ready(function() {
 
 	var character = init();
 	
-	var map = character.getCurrentMap();
-	
 	ActionManager.start();
 	
-	clock();
+	/*clock();
 	setInterval(function() {
 		clock();
-	},60000);
+	},60000);*/
 });
 
 function clock() {
@@ -46,7 +44,7 @@ function init() {
 	var character2 = new Character("TEST", map);
 	ActionManager.addSubject(character2);
 	
-	character.drawPerso();
+	character.draw();
 	
 	return character;
 }

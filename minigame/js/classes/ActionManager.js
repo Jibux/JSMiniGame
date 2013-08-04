@@ -108,10 +108,12 @@ Move.prototype.moveTo = function() {
 		return MOVE_FINISHED;
 	}
 	
-	if(!this.start()) {
+	/*if(!this.start()) {
 		this.stopAction();
 		return MOVE_FINISHED;
-	}
+	}*/
+	
+	this.start();
 	
 	var offsetX = 0;
 	var offsetY = 0;
@@ -131,10 +133,6 @@ Move.prototype.moveTo = function() {
 	
 	var start = graph.nodes[position.x+offsetX][position.y+offsetY];
 	var end = graph.nodes[this.target.x+offsetMapX][this.target.y+offsetMapY];
-	
-	console.log(start);
-	console.log(end);
-	console.log(map);
 	
 	var result = astar.search(graph.nodes, start, end, true);
 	
@@ -185,11 +183,13 @@ Move.prototype.move = function(mapArray, nodes) {
 			if(i != nodes.length) {
 				destination = new Point(nodes[i].x*UNIT, nodes[i].y*UNIT);
 			}
-			
-			if(action.state == ACTION_STATE_ENUM.TOFINISH) {
-				moveResult = MOVE_FINISHED;
-			}
 		}
+		
+		if(action.state == ACTION_STATE_ENUM.TOFINISH) {
+			console.log("HAVE TO FINISH");
+			moveResult = MOVE_FINISHED;
+		}
+		
 	}, FOOT_STEP_DURATION);
 }
 
@@ -230,7 +230,7 @@ Move.prototype.moveCss = function(destination) {
 
 	//console.log("DIRECTION "+direction);
 	
-	this.subject.direction(direction);
+	this.subject.setDirection(direction);
 	
 	var mapDirection = this.subject.getCurrentMap().getMapDirection(this.subject.getPersoPosition());
 	
@@ -352,6 +352,7 @@ var ActionManager = {
 		console.log("NEW ACTION ",map);
 		
 		if(occupation[target.x][target.y] == STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
+			console.log("OCCUPATION["+target.x+"]["+target.y+"] UNAVAILABLE");
 			return null;
 		}
 		
@@ -363,7 +364,57 @@ var ActionManager = {
 		
 		Actions.actionList.push(action);
 	},
-
+	
+	start: function() {
+		ActionManager.handleClicks();
+		var intId = setInterval(function() {
+			var action = Actions.actionList.pop();
+			
+			if(action) {
+				var type = action.getType();
+				var subject = action.getSubject();
+				var target = action.getTarget();
+				var currentAction = subject.getCurrentAction();
+				var nextAction = subject.getNextAction();
+				
+				if(nextAction) {
+					console.log("NEW NEXT ACTION lenght ",Actions.actionList);
+					Actions.actionList.unset(nextAction);
+				}
+				subject.setNextAction(action);
+				
+				//if(action.isBlocking() && currentAction && currentAction.getState() != ACTION_STATE_ENUM.FINISHED && currentAction.getState() != ACTION_STATE_ENUM.TOSTOP) {
+				//if(action.isBlocking() && currentAction && currentAction.getState() != ACTION_STATE_ENUM.TOSTART && currentAction.getState() != ACTION_STATE_ENUM.FINISHED) {
+				if(action.isBlocking() && currentAction) {
+					console.log("CURRENT ACTION NOT FINISHED: subject ",currentAction.getState()," action ",action.getState());
+					/*if(currentAction.getState() == ACTION_STATE_ENUM.TOSTART) {
+						currentAction.setState(ACTION_STATE_ENUM.TOSTOP);
+					}
+					if(currentAction.getState() != ACTION_STATE_ENUM.FINISHED && currentAction.getState() != ACTION_STATE_ENUM.TOFINISH && currentAction.getState() != ACTION_STATE_ENUM.TOSTOP) {
+						currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
+					}*/
+					
+					currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
+					//setTimeout(function(){
+					//Actions.actionList.push(action);
+					//}, FOOT_STEP_DURATION);
+				}// else {
+					if(action.isBlocking()) {
+						console.log("DELETE ACTION");
+						subject.setNextAction(null);
+						subject.setCurrentAction(action);
+					}
+					
+					var result;
+					switch(type) {
+						case ACTION_ENUM.MOVE: result = action.moveTo(); break;
+						default: console.log("Unknown action!"); break;
+					}
+				//}
+			}
+		}, CHECK_DURATION);
+	},
+	
 	handleClicks: function() {
 		var character = Actions.mainCharacter;
 		$(".tile").click(function(e) {
@@ -390,53 +441,6 @@ var ActionManager = {
 		});
 	},
 	
-	start: function() {
-		ActionManager.handleClicks();
-		var intId = setInterval(function() {
-			var action = Actions.actionList.pop();
-			
-			if(action) {
-				var type = action.getType();
-				var subject = action.getSubject();
-				var target = action.getTarget();
-				var currentAction = subject.getCurrentAction();
-				var nextAction = subject.getNextAction();
-				
-				if(nextAction) {
-					console.log("NEW NEXT ACTION lenght ",Actions.actionList);
-					Actions.actionList.unset(nextAction);
-				}
-				subject.setNextAction(action);
-				
-				//if(action.isBlocking() && currentAction && currentAction.getState() != ACTION_STATE_ENUM.FINISHED && currentAction.getState() != ACTION_STATE_ENUM.TOSTOP) {
-				if(action.isBlocking() && currentAction && currentAction.getState() != ACTION_STATE_ENUM.FINISHED) {
-					console.log("CURRENT ACTION NOT FINISHED: subject ",currentAction.getState()," action ",action.getState());
-					/*if(currentAction.getState() == ACTION_STATE_ENUM.TOSTART) {
-						currentAction.setState(ACTION_STATE_ENUM.TOSTOP);
-					}
-					if(currentAction.getState() != ACTION_STATE_ENUM.FINISHED && currentAction.getState() != ACTION_STATE_ENUM.TOFINISH && currentAction.getState() != ACTION_STATE_ENUM.TOSTOP) {
-						currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
-					}*/
-					
-					currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
-					//setTimeout(function(){
-					Actions.actionList.push(action);
-					//}, FOOT_STEP_DURATION);
-				} else {
-					if(action.isBlocking()) {
-						console.log("DELETE ACTION");
-						subject.setNextAction(null);
-						subject.setCurrentAction(action);
-					}
-					switch(type) {
-						case ACTION_ENUM.MOVE: action.moveTo(); break;
-						default: console.log("Unknown action!"); break;
-					}
-				}
-			}
-		}, CHECK_DURATION);
-	},
-	
 	loadMap: function(mapID) {
 		if(typeof(mapContent[mapID]) === 'undefined') {
 			return null;
@@ -453,40 +457,6 @@ var ActionManager = {
 		if(!mapContent[mapIDBottom]) {
 			map.setEdgeType(EDGE_TYPE_ENUM.BOTTOM, true);
 		}
-		
-		return map;
-	},
-	
-	loadMaps: function(initialPosition, fromPosition, toPosition) {
-		var initialMapID = "map_"+initialPosition.x+"_"+initialPosition.y+"_"+initialPosition.z;
-		var map = ActionManager.loadMap(initialMapID);
-		
-		var fromZ = min(fromPosition.z, toPosition.z);
-		var toZ = max(fromPosition.z, toPosition.z);
-		var fromY = min(fromPosition.y, toPosition.y);
-		var toY = max(fromPosition.y, toPosition.y);
-		var fromX = min(fromPosition.x, toPosition.x);
-		var toX = max(fromPosition.x, toPosition.x);
-		
-		map.addNeighbour(map);
-		
-		for(var z = fromZ; z <= toZ; z++) {
-			for(var y = fromY; y <= toY; y++) {
-				for(var x = fromX; x <= toX; x++) {
-					mapID = "map_"+x+"_"+y+"_"+z;
-					if(mapID != initialMapID) {
-						if(mapContent[mapID]) {
-							var tmpMap = ActionManager.loadMap(mapID);
-							map.addNeighbour(tmpMap);
-						} else {
-							console.log("mapContent["+mapID+"] undefined");
-						}
-					}
-				}
-			}
-		}
-		
-		map.updateNeighbours();
 		
 		return map;
 	},

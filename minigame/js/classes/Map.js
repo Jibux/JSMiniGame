@@ -16,10 +16,10 @@ var Map = function(hash) {
 	this.ID = hash.UID;
 	this.size = { "width": hash.size.width*1, "height": hash.size.height*1 };
 	this.position = new Point(hash.position.x, hash.position.y, hash.position.z);
+	this.cssPosition = new Point();
 	this.tile = hash.tile;
 	this.occupation = hash.occupation;
 	this.neighbours = new Array();
-	this.drawOffset = new Point(-225, 45);
 	this.offset = new Point(0, 0);
 	this.edgeType = [];
 	this.edgeType[EDGE_TYPE_ENUM.RIGHT] = false;
@@ -27,6 +27,9 @@ var Map = function(hash) {
 	this.minEdgeNeighbour = new Point(hash.position.x, hash.position.y, hash.position.z);
 	this.maxEdgeNeighbour = new Point(hash.position.x, hash.position.y, hash.position.z);
 };
+
+// Static variable shared between all Map objects
+Map.drawOffset = new Point(-225, 45);
 
 Map.prototype = {
 	getID: function() {
@@ -96,6 +99,15 @@ Map.prototype = {
 		this.edgeType[type] = value;
 	},
 	
+	updateCssPosition: function() {
+		if(!$("#"+this.ID).length) {
+			console.log("Cannot find map "+this.ID);
+			return null;
+		}
+		this.cssPosition.x = $("#"+this.ID).css("left").substring(0,$("#"+this.ID).css("left").length - 2)*1;
+		this.cssPosition.y = $("#"+this.ID).css("top").substring(0, $("#"+this.ID).css("top").length - 2)*1;
+	},
+	
 	getNeighbours: function() {
 		return this.neighbours;
 	},
@@ -119,7 +131,7 @@ Map.prototype = {
 		delete this.neighbours[map.getID()];
 	},
 	
-	updateNeighbours: function() {
+	updateNeighbours: function(oldNeigbours) {
 		var xMin = 2;
 		var xMax = -1;
 		var yMin = 2;
@@ -129,14 +141,21 @@ Map.prototype = {
 				var mapID = "map_"+(this.position.x+x)*1+"_"+(this.position.y+y)*1+"_0";
 				var map;
 				if(this.ID != mapID) {
-					map = ActionManager.loadMap(mapID);
+					if(typeof(oldNeigbours) != 'undefined' && typeof(oldNeigbours[mapID]) != 'undefined') {
+						map = oldNeigbours[mapID];
+					} else {
+						map = ActionManager.loadMap(mapID);
+					}
 				} else {
 					map = this;
 				}
 				if(map === null) {
-					console.log(mapID+" undefined");
+					//console.log(mapID+" undefined");
 				} else {
-					console.log(mapID+" defined");
+					if(typeof(oldNeigbours) != 'undefined' && typeof(oldNeigbours[mapID]) != 'undefined') {
+						oldNeigbours[mapID] = null;
+					}
+					//console.log(mapID+" defined");
 					this.neighbours[mapID] = map;
 					xMin = min(x, xMin);
 					xMax = max(x, xMax);
@@ -164,8 +183,8 @@ Map.prototype = {
 				if(map != null) {
 					map.setXOffset(map.getSize().width*offsetX);
 					map.setYOffset(map.getSize().height*offsetY);
-					console.log(mapID+" OFFSET X "+this.neighbours[mapID].getXOffset());
-					console.log(mapID+" OFFSET Y "+this.neighbours[mapID].getYOffset());
+					//console.log(mapID+" OFFSET X "+this.neighbours[mapID].getXOffset());
+					//console.log(mapID+" OFFSET Y "+this.neighbours[mapID].getYOffset());
 				}
 				offsetX++;
 			}
@@ -258,59 +277,85 @@ Map.prototype = {
 		return mapID;
 	},
 	
-	direction: function(direction) {
+	setDirection: function(direction, mainMapID) {
 		if(!$("#"+this.ID).length) {
 			console.log(this.ID+" NOT AVAILABLE ON SCREEN");
 			return null;
 		}
-		var mapLeft = $("#"+this.ID).css("left").substring(0,$("#"+this.ID).css("left").length - 2);
-		var mapTop = $("#"+this.ID).css("top").substring(0, $("#"+this.ID).css("top").length - 2);
+		
+		var unitMoveX = null;
+		var unitMoveY = null;
+		
+		var mapLeft = this.cssPosition.x*1;
+		var mapTop = this.cssPosition.y*1;
 		
 		switch(direction) {
 			case DIRECTION_ENUM.RIGHT:
-				$("#"+this.ID).css("top",(mapTop*1 - UNIT_ENUM.UNIT_MOVE_MAP2) + "px");
-				$("#"+this.ID).css("left",(mapLeft*1 - UNIT_ENUM.UNIT_MOVE_MAP) + "px");
+				unitMoveY = -UNIT_ENUM.UNIT_MOVE_MAP2;
+				unitMoveX = -UNIT_ENUM.UNIT_MOVE_MAP;
 				break;
 			case DIRECTION_ENUM.LEFT:
-				$("#"+this.ID).css("top",(mapTop*1 + UNIT_ENUM.UNIT_MOVE_MAP2) + "px");
-				$("#"+this.ID).css("left",(mapLeft*1 + UNIT_ENUM.UNIT_MOVE_MAP) + "px");
+				unitMoveY = UNIT_ENUM.UNIT_MOVE_MAP2;
+				unitMoveX = UNIT_ENUM.UNIT_MOVE_MAP;
 				break;
 			case DIRECTION_ENUM.UP:
-				$("#"+this.ID).css("top",(mapTop*1 + UNIT_ENUM.UNIT_MOVE_MAP2) + "px");
-				$("#"+this.ID).css("left",(mapLeft*1 - UNIT_ENUM.UNIT_MOVE_MAP) + "px");
+				unitMoveY = UNIT_ENUM.UNIT_MOVE_MAP2;
+				unitMoveX = -UNIT_ENUM.UNIT_MOVE_MAP;
 				break;
 			case DIRECTION_ENUM.DOWN:
-				$("#"+this.ID).css("top",(mapTop*1 - UNIT_ENUM.UNIT_MOVE_MAP2) + "px");
-				$("#"+this.ID).css("left",(mapLeft*1 + UNIT_ENUM.UNIT_MOVE_MAP) + "px");
+				unitMoveY = -UNIT_ENUM.UNIT_MOVE_MAP2;
+				unitMoveX = UNIT_ENUM.UNIT_MOVE_MAP;
 				break;
 			case DIRECTION_ENUM.DIAGONAL_UP_RIGHT:
-				$("#"+this.ID).css("left",(mapLeft*1 - UNIT_ENUM.UNIT_MOVE_DIAGONAL2) + "px");
+				unitMoveX = -UNIT_ENUM.UNIT_MOVE_DIAGONAL2;
 				break;
 			case DIRECTION_ENUM.DIAGONAL_UP_LEFT:
-				$("#"+this.ID).css("top",(mapTop*1 + UNIT_ENUM.UNIT_MOVE_DIAGONAL2) + "px");
+				unitMoveY = UNIT_ENUM.UNIT_MOVE_DIAGONAL2;
 				break;
 			case DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT:
-				$("#"+this.ID).css("top",(mapTop*1 - UNIT_ENUM.UNIT_MOVE_DIAGONAL2) + "px");
+				unitMoveY = -UNIT_ENUM.UNIT_MOVE_DIAGONAL2;
 				break;
 			case DIRECTION_ENUM.DIAGONAL_DOWN_LEFT:
-				$("#"+this.ID).css("left",(mapLeft*1 + UNIT_ENUM.UNIT_MOVE_DIAGONAL2) + "px");
+				unitMoveX = UNIT_ENUM.UNIT_MOVE_DIAGONAL2;
 				break;
 			default: break;
 		}
+		
+		if(unitMoveY != null) {
+			$("#"+this.ID).css("top",(mapTop*1 + unitMoveY*1) + "px");
+			this.cssPosition.y+= unitMoveY*1;
+			if(mainMapID == this.ID) {
+				Map.drawOffset.y+= unitMoveY*1;
+			}
+		}
+		if(unitMoveX != null) {
+			$("#"+this.ID).css("left",(mapLeft*1 + unitMoveX*1) + "px");
+			this.cssPosition.x+= unitMoveX*1;
+			if(mainMapID == this.ID) {
+				Map.drawOffset.x+= unitMoveX*1;
+			}
+		}
+		
+		// This function makes A LOT OF LAGS that is why we are updating the cssPosition like above
+		//this.updateCssPosition();
 	},
 	
-	directionNeighbours: function(direction) {
+	setDirectionNeighbours: function(direction) {
 		for(var index in this.neighbours) {
-			if(typeof this.neighbours[index].direction === 'function') {
-				this.neighbours[index].direction(direction);
+			if(typeof this.neighbours[index].setDirection === 'function') {
+				this.neighbours[index].setDirection(direction, this.ID);
 			}
 		}
 	},
 	
 	draw: function() {
+		if($("#"+this.ID).length) {
+			//console.log(this.ID+" ALREADY DRAWN");
+			return null;
+		}
 		var newPosition = this.position.scaleToCss().changeFrame(true).scaleToCss();
-		newPosition.x = newPosition.x + this.drawOffset.x;
-		newPosition.y = newPosition.y + this.drawOffset.y;
+		newPosition.x = newPosition.x + Map.drawOffset.x;
+		newPosition.y = newPosition.y + Map.drawOffset.y;
 		
 		$("#screen").append('<div id="'+this.ID+'" class="map" style="left:'+newPosition.x+'px;top:'+newPosition.y+'px;"></div>');
 
@@ -327,13 +372,32 @@ Map.prototype = {
 		if(this.edgeType[EDGE_TYPE_ENUM.BOTTOM]) {
 			$("#"+this.ID).addClass("border_bottom");
 		}
+		
+		this.updateCssPosition();
 	},
 	
 	drawNeighbours: function() {
-		$("#screen").empty();
 		for(var index in this.neighbours) {
 			if(typeof this.neighbours[index].draw === 'function') {
 				this.neighbours[index].draw();
+			}
+		}
+	},
+	
+	erase: function() {
+		if(!$("#"+this.ID).length) {
+			//console.log(this.ID+" ALREADY ERASED");
+			return null;
+		}
+		
+		//console.log(this.ID+" ERASED");
+		$("#"+this.ID).remove();
+	},
+	
+	eraseNeighbours: function() {
+		for(var index in this.neighbours) {
+			if(this.neighbours[index] != null && typeof this.neighbours[index].erase === 'function') {
+				this.neighbours[index].erase();
 			}
 		}
 	},
@@ -349,7 +413,6 @@ Map.prototype = {
 					console.log(mapID+" undefined, fill with unaccessible map");
 					mapToAdd = generate2DArray(this.size.width, this.size.height, STATIC_OCCUPATION_ENUM.UNAVAILABLE);
 				} else {
-					console.log(mapID+" defined");
 					mapToAdd = this.neighbours[mapID].getOccupation();
 				}
 				concat2DArray(tmpMap, mapToAdd, "X");

@@ -87,4 +87,3 @@ function generateUnitMoveEnum() {
 		UNIT_MOVE_DIAGONAL2:unitMoveDiagonal2,
 	};
 }
-

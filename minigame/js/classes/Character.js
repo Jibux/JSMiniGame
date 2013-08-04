@@ -12,6 +12,7 @@ var Character = function(idCharacter, map, mainCharacter) {
 	
 	this.mainCharacter = mainCharacter || false;
 	
+	this.direction = null;
 	this.currentMap = map;
 	
 	this.position = new Point(0, 0);
@@ -64,13 +65,12 @@ Character.prototype = {
 	},
 	
 	setCurrentMap: function(map, left, top) {
-		//map.setNeighbours(this.currentMap.getNeighbours());
 		var oldMap = this.currentMap;
 		this.currentMap = map;
-		map.updateNeighbours();
+		map.updateNeighbours(oldMap.getNeighbours());
 		map.drawNeighbours();
-		this.drawPerso();
-		this.move();
+		oldMap.eraseNeighbours();
+		
 		ActionManager.handleClicks();
 		
 		$("#"+this.ID).appendTo("#"+this.currentMap.getID());
@@ -78,9 +78,9 @@ Character.prototype = {
 		$("#"+this.ID).css("left", left);
 		$("#"+this.ID).css("top", top);
 		
-		console.log("Position 1 ",this.getPersoPosition());
-		this.updatePosition();		
-		console.log("Position 2 ",this.getPersoPosition());
+		//console.log("Position 1 ",this.getPersoPosition());
+		this.updatePosition();
+		//console.log("Position 2 ",this.getPersoPosition());
 	},
 
 	isMoving: function() {
@@ -156,72 +156,101 @@ Character.prototype = {
 		this.offset.y = y*1;
 	},
 
-	direction: function(direction) {
-		var perso = $("#"+this.ID).find(".perso");
+	setDirection: function(direction) {
 		var left = this.position.x;
 		var top = this.position.y;
 		
+		var perso;
+		if(this.direction != direction) {
+			perso = $("#"+this.ID).find(".perso");
+			//console.log("CHANGE DIR");
+		}
+		
+		var unitMoveX = null;
+		var unitMoveY = null;
+		
 		switch(direction) {
 			case DIRECTION_ENUM.RIGHT:
-				$("#"+this.ID).css("left",(left*1 + UNIT_ENUM.UNIT_MOVE) + "px");
-			
-				perso.removeClass("left");
-				perso.removeClass("up");
-				perso.addClass("right");
-				perso.addClass("down");
+				unitMoveX = UNIT_ENUM.UNIT_MOVE;
+				
+				if(this.direction != direction) {
+					console
+					perso.removeClass("left");
+					perso.removeClass("up");
+					perso.addClass("right");
+					perso.addClass("down");
+				}
 				break;
 			case DIRECTION_ENUM.LEFT:
-				$("#"+this.ID).css("left",(left*1 - UNIT_ENUM.UNIT_MOVE) + "px");
+				unitMoveX = -UNIT_ENUM.UNIT_MOVE;
 				
-				perso.removeClass("right");
-				perso.removeClass("down");
-				perso.addClass("left");
-				perso.addClass("up");
+				if(this.direction != direction) {
+					perso.removeClass("right");
+					perso.removeClass("down");
+					perso.addClass("left");
+					perso.addClass("up");
+				}
 				break;
 			case DIRECTION_ENUM.UP:
-				$("#"+this.ID).css("top",(top*1 - UNIT_ENUM.UNIT_MOVE) + "px");
+				unitMoveY = -UNIT_ENUM.UNIT_MOVE;
 				
-				perso.removeClass("down");
-				perso.removeClass("left");
-				perso.addClass("up");
-				perso.addClass("right");
+				if(this.direction != direction) {
+					perso.removeClass("down");
+					perso.removeClass("left");
+					perso.addClass("up");
+					perso.addClass("right");
+				}
 				break;
 			case DIRECTION_ENUM.DOWN:
-				$("#"+this.ID).css("top",(top*1 + UNIT_ENUM.UNIT_MOVE) + "px");
+				unitMoveY = UNIT_ENUM.UNIT_MOVE;
 				
-				perso.removeClass("up");
-				perso.removeClass("right");
-				perso.addClass("down");
-				perso.addClass("left");
+				if(this.direction != direction) {
+					perso.removeClass("up");
+					perso.removeClass("right");
+					perso.addClass("down");
+					perso.addClass("left");
+				}
 				break;
 			case DIRECTION_ENUM.DIAGONAL_UP_RIGHT:
-				$("#"+this.ID).css("left",(left*1 + UNIT_ENUM.UNIT_MOVE2) + "px");
-				$("#"+this.ID).css("top",(top*1 - UNIT_ENUM.UNIT_MOVE2) + "px");
+				unitMoveX = UNIT_ENUM.UNIT_MOVE2;
+				unitMoveY = -UNIT_ENUM.UNIT_MOVE2;
 				
+				if(this.direction != direction) {
+					// WAITING FOR NEW PERSO DRAWING
+				}
 				break;
 			case DIRECTION_ENUM.DIAGONAL_UP_LEFT:
-				$("#"+this.ID).css("left",(left*1 - UNIT_ENUM.UNIT_MOVE) + "px");
-				$("#"+this.ID).css("top",(top*1 - UNIT_ENUM.UNIT_MOVE) + "px");
+				unitMoveX = -UNIT_ENUM.UNIT_MOVE;
+				unitMoveY = -UNIT_ENUM.UNIT_MOVE;
 				
 				break;
 			case DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT:
-				$("#"+this.ID).css("left",(left*1 + UNIT_ENUM.UNIT_MOVE) + "px");
-				$("#"+this.ID).css("top",(top*1 + UNIT_ENUM.UNIT_MOVE) + "px");
+				unitMoveX = UNIT_ENUM.UNIT_MOVE;
+				unitMoveY = UNIT_ENUM.UNIT_MOVE;
 				
 				break;
 			case DIRECTION_ENUM.DIAGONAL_DOWN_LEFT:
-				$("#"+this.ID).css("left",(left*1 - UNIT_ENUM.UNIT_MOVE2) + "px");
-				$("#"+this.ID).css("top",(top*1 + UNIT_ENUM.UNIT_MOVE2) + "px");
+				unitMoveX = -UNIT_ENUM.UNIT_MOVE2;
+				unitMoveY = UNIT_ENUM.UNIT_MOVE2;
 			
 				break;
 			default: break;
 		}
 		
-		if(this.mainCharacter) {
-			this.currentMap.directionNeighbours(direction);
+		this.direction = direction;
+		
+		if(unitMoveY != null) {
+			$("#"+this.ID).css("top",(top*1 + unitMoveY*1) + "px");
+			this.position.y+= unitMoveY*1;
+		}
+		if(unitMoveX != null) {
+			$("#"+this.ID).css("left",(left*1 + unitMoveX*1) + "px");
+			this.position.x+= unitMoveX*1;
 		}
 		
-		this.updatePosition();
+		if(this.mainCharacter) {
+			this.currentMap.setDirectionNeighbours(direction);
+		}
 	},
 
 	changeMap: function(direction) {
@@ -288,9 +317,13 @@ Character.prototype = {
 		this.setYOffset(offsetY);
 	},
 
-	drawPerso: function() {
+	draw: function() {
 		$("#"+this.currentMap.getID()).append('<div class="occupation" style="top:'+this.position.y+'px;left:'+this.position.x+'px;" id="'+this.ID+'"></div>');
 		$("#"+this.ID).append('<div class="perso stand down right"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
+	},
+	
+	erase: function() {
+		$("#"+this.ID).remove();
 	},
 
 	userSpeak: function() {
