@@ -165,6 +165,8 @@ Map.prototype = {
 			}
 		}
 		
+		$(oldNeigbours).remove();
+		
 		this.minEdgeNeighbour.x = xMin;
 		this.minEdgeNeighbour.y = yMin;
 		this.maxEdgeNeighbour.x = xMax;
@@ -342,7 +344,7 @@ Map.prototype = {
 	
 	setDirectionNeighbours: function(direction) {
 		for(var index in this.neighbours) {
-			if(typeof this.neighbours[index].setDirection === 'function') {
+			if(typeof(this.neighbours[index].setDirection) === 'function') {
 				this.neighbours[index].setDirection(direction, this.ID);
 			}
 		}
@@ -378,7 +380,7 @@ Map.prototype = {
 	
 	drawNeighbours: function() {
 		for(var index in this.neighbours) {
-			if(typeof this.neighbours[index].draw === 'function') {
+			if(typeof(this.neighbours[index].draw) === 'function') {
 				this.neighbours[index].draw();
 			}
 		}
@@ -396,8 +398,9 @@ Map.prototype = {
 	
 	eraseNeighbours: function() {
 		for(var index in this.neighbours) {
-			if(this.neighbours[index] != null && typeof this.neighbours[index].erase === 'function') {
+			if(this.neighbours[index] != null && typeof(this.neighbours[index].erase) === 'function') {
 				this.neighbours[index].erase();
+				delete this.neighbours[index];
 			}
 		}
 	},

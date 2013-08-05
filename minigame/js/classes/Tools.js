@@ -144,28 +144,30 @@ function max(a, b) {
 /**
 *	Cette fonction ne copie pas réellement les objets
 *	TODO A REFAIRE
+*	PAS BESOIN POUR LE MOMENT
 */
-Array.prototype.copy = function() {
+/*Array.prototype.copy = function() {
 	var array = new Array();
 	for (key in this) {
-		if(typeof this[key] != "function") {
+		if(typeof(this[key]) != "function") {
 			array[key] = this[key];
 		}
 	}
 	
 	return array;
-}
+}*/
 
 /**
-*	TEST CLONE OBJET - MARCHE PAS POUR LE MOMMENT
+*	TEST CLONE OBJET - MARCHE PAS POUR LE MOMENT
+*	PAS BESOIN POUR LE MOMENT
 */
-function cloneObject(source) {
+/*function cloneObject(source) {
 	for (i in source) {
-		if (typeof source[i] == 'source' && typeof source[i] != "function") {
+		if (typeof(source[i]) === 'source' && typeof(source[i]) != "function") {
 			this[i] = new cloneObject(source[i]);
 		}
 		else {
 				this[i] = source[i];
 		}
 	}
-}
+}*/

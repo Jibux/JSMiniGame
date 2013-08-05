@@ -79,7 +79,7 @@ function Move(map, subject, target) {
 
 Move.prototype = Object.create(Action.prototype);
 
-Move.prototype.start = function() {
+Move.prototype.initStart = function() {
 	if(this.state == ACTION_STATE_ENUM.TOSTART) {
 		this.state = ACTION_STATE_ENUM.STARTED;
 		this.moveState = MOVE_STATE_ENUM.MOVING;
@@ -99,6 +99,10 @@ Move.prototype.getMoveState = function() {
 	return this.moveState;
 }
 
+Move.prototype.start = function() {
+	this.moveTo();
+}
+
 Move.prototype.moveTo = function() {
 	var subjectID = this.subject.getID();
 	var position = this.subject.getPersoPosition2D();
@@ -108,12 +112,12 @@ Move.prototype.moveTo = function() {
 		return MOVE_FINISHED;
 	}
 	
-	/*if(!this.start()) {
+	/*if(!this.initStart()) {
 		this.stopAction();
 		return MOVE_FINISHED;
 	}*/
 	
-	this.start();
+	this.initStart();
 	
 	var offsetX = 0;
 	var offsetY = 0;
@@ -136,7 +140,7 @@ Move.prototype.moveTo = function() {
 	
 	var result = astar.search(graph.nodes, start, end, true);
 	
-	if(typeof result == "undefined" || result.length == 0) {
+	if(typeof(result) === "undefined" || result.length == 0) {
 		this.getSubject().stopSubject();
 		this.stopAction();
 		console.log("CANNOT FIND PATH");
@@ -227,7 +231,9 @@ Move.prototype.moveCss = function(destination) {
 	var moveResult = MOVE_ON;
 	var realPosition = this.subject.getOffsetedPosition();
 	var direction = this.getDirection(realPosition, destination);
-
+	
+	$(realPosition).remove();
+	
 	//console.log("DIRECTION "+direction);
 	
 	this.subject.setDirection(direction);
@@ -246,6 +252,8 @@ Move.prototype.moveCss = function(destination) {
 	if(realPosition2.equals(destination)) {
 		moveResult = MOVE_WAIT;
 	}
+	
+	$(realPosition2).remove();
 	
 	return moveResult;
 }
@@ -349,8 +357,6 @@ var ActionManager = {
 			return null;
 		}
 		
-		console.log("NEW ACTION ",map);
-		
 		if(occupation[target.x][target.y] == STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
 			console.log("OCCUPATION["+target.x+"]["+target.y+"] UNAVAILABLE");
 			return null;
@@ -362,10 +368,57 @@ var ActionManager = {
 			default: action = new Action(type, map, subject, target); break;
 		}
 		
-		Actions.actionList.push(action);
+		if(action.isBlocking()) {
+			var oldNextAction = subject.getNextAction();
+			if(oldNextAction != null) {
+				$(oldNextAction).remove();
+			}
+			subject.setNextAction(action);
+		}
+		
+		console.log("NEW ACTION ",action);
+		
+		//Actions.actionList.push(action);
 	},
 	
 	start: function() {
+		ActionManager.handleClicks();
+		var intId = setInterval(function() {
+			for(var subjectID in Actions.subjectList) {
+				var subject = Actions.subjectList[subjectID];
+				if(typeof(subject.getCurrentAction) === 'function') {
+					var currentAction = subject.getCurrentAction();
+					var nextAction = subject.getNextAction();
+					var startAction = false;
+					
+					if(currentAction === null) {
+						startAction = true;
+					} else if(currentAction.getState() == ACTION_STATE_ENUM.FINISHED) {
+						$(currentAction).remove();
+						startAction = true;
+					} else if(nextAction != null) {
+						if(currentAction.getState() != ACTION_STATE_ENUM.TOFINISH) {
+							currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
+						}
+						console.log("NOT FINISHED: ",currentAction);
+					} else {
+					}
+					
+					if(startAction) {
+						if(nextAction != null && nextAction.getState() == ACTION_STATE_ENUM.TOSTART) {
+							subject.setNextAction(null);
+							subject.setCurrentAction(nextAction);
+							nextAction.start();
+						}
+					}
+				} else {
+					//console.log('NOT A SUBJECT: ',subject);
+				}
+			}
+		}, CHECK_DURATION);
+	},
+	
+	startOld: function() {
 		ActionManager.handleClicks();
 		var intId = setInterval(function() {
 			var action = Actions.actionList.pop();
