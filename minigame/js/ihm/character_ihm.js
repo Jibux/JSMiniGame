@@ -25,7 +25,7 @@ var character_ihm=[
 		child:[{
 			name : "div",
 			attr:[
-				{name:"class",	value:"perso stand up left"},
+				{name:"class",	value:"perso stand down right"},
 			],
 			child:[
 				{

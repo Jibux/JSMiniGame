@@ -1,12 +1,13 @@
 $("document").ready(function() {
 	$("#screen").addClass(configuration.mode).addClass(configuration.quality+"_quality");
 	
-	window.onkeypress=function(e) {
-		var e=window.event || e;
-		if(e.charCode==13) {
-			character.userSpeak();
-		}
-	}
+	// Test Lang
+	/*console.log("0 "+Lang.getString("deguerre"));
+	Lang.setLanguage("fr_FR");
+	console.log("1 "+Lang.getString("deguerre"));
+	Lang.setLanguage("en_GB");
+	console.log("2 "+Lang.getString("deguerre"));*/
+	//console.log("3 "+Lang.getString("test"));
 	
 	// Load maps and characters
 	init();

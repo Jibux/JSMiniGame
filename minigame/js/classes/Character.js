@@ -87,7 +87,7 @@ Character.prototype = {
 		if(this.mainCharacter) {
 			// Update neighbours for the new map.
 			map.updateNeighbours(oldMap.getNeighbours());
-			// Draw them
+			// Draw them.
 			map.drawNeighbours();
 			// Erase the remaining, no more used.
 			oldMap.eraseNeighbours();
@@ -176,6 +176,31 @@ Character.prototype = {
 	
 	getOffsetedPosition: function() {
 		return new Point(this.position.x*1+this.offset.x*UNIT, this.position.y*1+this.offset.y*UNIT);
+	},
+	
+	getPositionFromDirection: function(direction) {
+		var position = this.getArrayPosition();
+		var x = position.x;
+		var y = position.y;
+		var z = position.z;
+		
+		switch(direction) {
+			case DIRECTION_ENUM.RIGHT:
+				x++;
+				break;
+			case DIRECTION_ENUM.LEFT:
+				x--;
+				break;
+			case DIRECTION_ENUM.UP:
+				y--;
+				break;
+			case DIRECTION_ENUM.DOWN:
+				y++;
+				break;
+			default: break;
+		}
+		
+		return new Point(x, y, z);
 	},
 	
 	getXOffset: function() {

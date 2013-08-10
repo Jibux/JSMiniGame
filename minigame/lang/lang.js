@@ -3,22 +3,22 @@ var Lang = {
 	selectedLanguage : DEFAULT_LANGUAGE,
 	
 	getString : function (key) {
-		if(Lang[this.selectedLanguage] !== undefined && Lang[this.selectedLanguage][key] !== undefined){
+		if(typeof(Lang[this.selectedLanguage]) !== 'undefined' && typeof(Lang[this.selectedLanguage][key]) !== 'undefined'){
 			return Lang[this.selectedLanguage][key];
-		}else if(Lang[DEFAULT_LANGUAGE] !== undefined && Lang[DEFAULT_LANGUAGE][key] !== undefined){
-			console.warn("WARNING : Enable to retrieve traduction for key '"+key+"' in "+this.selectedLanguage);
+		}else if(typeof(Lang[DEFAULT_LANGUAGE]) !== 'undefined' && typeof(Lang[DEFAULT_LANGUAGE][key]) !== 'undefined'){
+			console.warn("WARNING : Enable to retrieve translation for key '"+key+"' in "+this.selectedLanguage);
 			return Lang[DEFAULT_LANGUAGE][key];
 		}else{
-			console.error("ERROR : Enable to retrieve traduction for key '"+key+"' in "+DEFAULT_LANGUAGE);
+			console.error("ERROR : Enable to retrieve translation for key '"+key+"' in "+DEFAULT_LANGUAGE);
 			return key;
 		}
 	},
 	
-	getTraduction : function (key,langCode) {
-		if(Lang[langCode][key] !== undefined){
+	getTranslation : function (key,langCode) {
+		if(typeof(Lang[langCode][key]) !== 'undefined'){
 			return Lang[langCode][key];
 		}else{
-			console.error("ERROR : Enable to retrieve traduction for key '"+key+"' in "+ langCode);
+			console.error("ERROR : Enable to retrieve translation for key '"+key+"' in "+ langCode);
 			return key;
 		}
 	},
@@ -29,7 +29,7 @@ var Lang = {
 	},
 	
 	setLanguage : function (value) {
-		if(value !== undefined && value !== null){
+		if(typeof(value) !== 'undefined' && value != null){
 			this.selectedLanguage = value;
 			
 			var langBalise = $("script[name='lang']");

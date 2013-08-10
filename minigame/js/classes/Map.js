@@ -185,7 +185,7 @@ Map.prototype = {
 				var mapID = "map_"+(this.position.x+x)*1+"_"+(this.position.y+y)*1+"_0";
 				var map;
 				if(this.ID != mapID) {
-					if(typeof(oldNeigbours) != 'undefined' && typeof(oldNeigbours[mapID]) != 'undefined') {
+					if(typeof(oldNeigbours) !== 'undefined' && typeof(oldNeigbours[mapID]) !== 'undefined') {
 						map = oldNeigbours[mapID];
 					} else {
 						map = ActionManager.loadMap(mapID);
@@ -196,7 +196,7 @@ Map.prototype = {
 				if(map === null) {
 					//console.log(mapID+" undefined");
 				} else {
-					if(typeof(oldNeigbours) != 'undefined' && typeof(oldNeigbours[mapID]) != 'undefined') {
+					if(typeof(oldNeigbours) !== 'undefined' && typeof(oldNeigbours[mapID]) !== 'undefined') {
 						oldNeigbours[mapID] = null;
 					}
 					//console.log(mapID+" defined");

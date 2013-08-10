@@ -149,7 +149,7 @@ function max(a, b) {
 /*Array.prototype.copy = function() {
 	var array = new Array();
 	for (key in this) {
-		if(typeof(this[key]) != "function") {
+		if(typeof(this[key]) !== "function") {
 			array[key] = this[key];
 		}
 	}
@@ -163,7 +163,7 @@ function max(a, b) {
 */
 /*function cloneObject(source) {
 	for (i in source) {
-		if (typeof(source[i]) === 'source' && typeof(source[i]) != "function") {
+		if (typeof(source[i]) === 'source' && typeof(source[i]) !== "function") {
 			this[i] = new cloneObject(source[i]);
 		}
 		else {

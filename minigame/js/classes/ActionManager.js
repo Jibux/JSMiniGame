@@ -1,9 +1,10 @@
 /**
  *	Action: Defines an action.
- *		type: type of action (move, jump, cook, reboot, eat, sleep...)
+ *		type: Type of action (move, jump, cook, reboot, eat, sleep...)
+ *		currentMap: Map where is located the target
  *		subject: Subject can be human, monster etc.
  *		target: Target point of the action.
- *		state: state of the action. It can be "to start", "starting", "to finish", "finished", etc.
+ *		state: State of the action. It can be "to start", "starting", "to finish", "finished", etc.
  *		blocking: If the action is blocking. All of these kind of actions have to be done one after another, but never simultaneously.
  *			Ex :
  *				Action.type = MOVE
@@ -72,7 +73,7 @@ Action.prototype = {
 /**
  *	Action: Defines the "move" action.
  */
-function Move(map, subject, target) {
+var Move = function(map, subject, target) {
 	this.type = ACTION_ENUM.MOVE;
 	this.currentMap = map;
 	this.subject = subject;
@@ -82,6 +83,9 @@ function Move(map, subject, target) {
 	this.blocking = true;
 };
 
+/*
+*	Inherit Action's methods.
+*/
 Move.prototype = Object.create(Action.prototype);
 
 /*
@@ -121,6 +125,7 @@ Move.prototype.moveTo = function() {
 	// Bad target.
 	if(position.equals(this.target) || this.currentMap.getOccupation()[this.target.x][this.target.y] == STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
 		this.getSubject().stopSubject();
+		this.getSubject().setCurrentAction(null);
 		return MOVE_FINISHED;
 	}
 	
@@ -153,6 +158,7 @@ Move.prototype.moveTo = function() {
 	if(typeof(result) === "undefined" || result.length == 0) {
 		this.getSubject().stopSubject();
 		this.stopAction();
+		this.getSubject().setCurrentAction(null);
 		console.log("CANNOT FIND PATH");
 		return MOVE_FINISHED;
 	}
@@ -182,11 +188,8 @@ Move.prototype.move = function(mapArray, nodes) {
 			}
 			clearInterval(intId);
 			action.stopAction();
-			// If the subject has no more moves in the stack (subject current action == this action)
-			if(action.getSubject().getCurrentAction().getState() == ACTION_STATE_ENUM.FINISHED) {
-				action.getSubject().stopSubject();
-				action.getSubject().setCurrentAction(null);
-			}
+			action.getSubject().stopSubject();
+			action.getSubject().setCurrentAction(null);
 			var position = action.getSubject().getArrayPosition();
 			console.log("Actual ("+position.x +", "+position.y+")");
 			console.log("Target ("+nodes[i].x+", "+nodes[i].y+")");
@@ -334,9 +337,9 @@ Move.prototype.getDirection = function(from, to) {
  *	Actions: Contains a list of characters, a list of actions and a main character.
  */
 var Actions = {
-	actionList:null,
-	subjectList:null,
-	mainCharacter:null
+	actionList:null,	// List of non blocking actions.
+	subjectList:null,	// List of the subjects in the field.
+	mainCharacter:null	// Main character of the game.
 };
 
 /**
@@ -410,15 +413,27 @@ var ActionManager = {
 			}
 			subject.setNextAction(action);
 		} else {
-			//Actions.actionList.push(action);
+			Actions.actionList.push(action);
 		}
 		
 		console.log("NEW ACTION ",action);
 	},
 	
-	// Main function of the action manager. Every CHECK_DURATION, it check if there are actions to do for the subjects in the subject list.
+	/*
+	*	Start the game!
+	*/
 	start: function() {
 		ActionManager.handleClicks();
+		ActionManager.handleKeyPress();
+		ActionManager.handleBlockingActions();
+		ActionManager.handleNonBlockingActions();
+	},
+	
+	/*
+	*	Check blocking actions.
+	*	Every CHECK_DURATION, it check if there are actions to do for the subjects in the subject list.
+	*/
+	handleBlockingActions: function() {
 		var intId = setInterval(function() {
 			for(var subjectID in Actions.subjectList) {
 				var subject = Actions.subjectList[subjectID];
@@ -438,6 +453,7 @@ var ActionManager = {
 						}
 						console.log("NOT FINISHED: ",currentAction);
 					} else {
+						//console.log("NOT FINISHED: ",currentAction);
 					}
 					
 					// Start action (set it to subject's current action).
@@ -451,6 +467,20 @@ var ActionManager = {
 					}
 				} else {
 					//console.log('NOT A SUBJECT: ',subject);
+				}
+			}
+		}, CHECK_DURATION);
+	},
+	
+	/*
+	*	Check non blocking actions.
+	*/
+	handleNonBlockingActions: function() {
+		var intId = setInterval(function() {
+			var action = Actions.actionList.pop();
+			if(action) {
+				if(typeof(action.start) === "function") {
+					action.start();
 				}
 			}
 		}, CHECK_DURATION);
@@ -510,10 +540,14 @@ var ActionManager = {
 	},
 	
 	/*
-	*	Handle interactions with user.
+	*	Handle interactions with user (CLICKS).
 	*/
 	handleClicks: function() {
 		var character = Actions.mainCharacter;
+		if(character === null) {
+			console.error("Main character not defined!");
+			return null;
+		}
 		$(".tile").click(function(e) {
 			var ID = $(this).parent().attr('id');
 			var position = ActionManager.getMouseMapPosition(ID, e);
@@ -526,6 +560,7 @@ var ActionManager = {
 			var position = ActionManager.getMouseMapPosition(ID, e);
 			var mapDirection = character.getCurrentMap().getMapDirection(position.scaleToCss());
 			// TODO (IF WE CAN) BETTER CODE DIRECTION MAP ETC.
+			// We have clicked under an other map than the character's current one.
 			if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
 				ID = character.getCurrentMap().getMapIDFromDirection(mapDirection);
 				position.convertFromSize(character.getCurrentMap().getNeighbour(ID).getSize());
@@ -536,6 +571,48 @@ var ActionManager = {
 			console.log("CHARACTER POSITION 2D: ", character.getArrayPosition());
 			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
 		});
+	},
+	
+	/*
+	*	Handle interactions with user (KEYS).
+	*/
+	handleKeyPress: function() {
+		/*var character = Actions.mainCharacter;
+		window.onkeypress=function(e) {
+			var e = window.event || e;
+			if(e.charCode == 13) {
+				character.userSpeak();
+			}
+		}*/
+		KeyManager();
+	},
+	
+	moveMainCharacter: function() {
+		var params = JSON.stringify(arguments[0],"");
+		var direction = arguments[0].direction;
+		var character = Actions.mainCharacter;
+		
+		if(character.getNextAction() != null) {
+			console.log("CHARACTER IS MOVING!");
+			//console.log("CURRENT ",character.getCurrentAction());
+			//console.log("NEXT ",character.getNextAction());
+			return null;
+		}
+		
+		var ID = character.getCurrentMap().getID();
+		console.log("MOVE TO "+direction);
+		var position = character.getPositionFromDirection(direction);
+		var mapDirection = character.getCurrentMap().getMapDirection(position.scaleToCss());
+		// We have to move to an other map than the character's current one.
+		if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
+			ID = character.getCurrentMap().getMapIDFromDirection(mapDirection);
+			position.convertFromSize(character.getCurrentMap().getNeighbour(ID).getSize());
+		}
+		
+		console.log("GO POSITION:", position);
+		
+		// TODO: do not calculate here JUST MODIFY PATH !!!
+		ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
 	},
 	
 	/*
