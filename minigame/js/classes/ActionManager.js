@@ -1,13 +1,15 @@
 /**
-*	Action : classe définissant une action
-*		type : type d'action (move, jump, cook, reboot, eat, sleep...)
-*		subject : sujet. Les sujets peuvent être des this.subjects, des shadoks, des pommes, des poires et même des tartes à la banane
-*		target : la plus part du temps le point sur lequel s'applique l'action que le sujet soit effectuer
-*			Ex :
-*				Action.type = MOVE
-*				Action.sujet = "user"
-*				Action.target = Point(x, y, z) de destination
-*/
+ *	Action: Defines an action.
+ *		type: type of action (move, jump, cook, reboot, eat, sleep...)
+ *		subject: Subject can be human, monster etc.
+ *		target: Target point of the action.
+ *		state: state of the action. It can be "to start", "starting", "to finish", "finished", etc.
+ *		blocking: If the action is blocking. All of these kind of actions have to be done one after another, but never simultaneously.
+ *			Ex :
+ *				Action.type = MOVE
+ *				Action.sujet = "user"
+ *				Action.target = Point(x, y, z): destination point
+ */
 var Action = function(typeOfAction, map, subject, target) {
 	this.type = typeOfAction || ACTION_ENUM.MOVE;
 	this.currentMap = map;
@@ -67,6 +69,9 @@ Action.prototype = {
 	},
 };
 
+/**
+ *	Action: Defines the "move" action.
+ */
 function Move(map, subject, target) {
 	this.type = ACTION_ENUM.MOVE;
 	this.currentMap = map;
@@ -79,17 +84,17 @@ function Move(map, subject, target) {
 
 Move.prototype = Object.create(Action.prototype);
 
+/*
+*	We have started, we are moving.
+*/
 Move.prototype.initStart = function() {
-	if(this.state == ACTION_STATE_ENUM.TOSTART) {
-		this.state = ACTION_STATE_ENUM.STARTED;
-		this.moveState = MOVE_STATE_ENUM.MOVING;
-		return true;
-	} else {
-		console.log("CACAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-		return false;
-	}
+	this.state = ACTION_STATE_ENUM.STARTED;
+	this.moveState = MOVE_STATE_ENUM.MOVING;
 }
 
+/*
+*	We have finished, we have stopped.
+*/
 Move.prototype.stopAction = function() {
 	this.state = ACTION_STATE_ENUM.FINISHED;
 	this.moveState = MOVE_STATE_ENUM.STOPPED;
@@ -99,23 +104,25 @@ Move.prototype.getMoveState = function() {
 	return this.moveState;
 }
 
+/*
+*	Just launch moveTo().
+*/
 Move.prototype.start = function() {
 	this.moveTo();
 }
 
+/*
+*	Initiate move.
+*/
 Move.prototype.moveTo = function() {
 	var subjectID = this.subject.getID();
-	var position = this.subject.getPersoPosition2D();
+	var position = this.subject.getArrayPosition();
 
+	// Bad target.
 	if(position.equals(this.target) || this.currentMap.getOccupation()[this.target.x][this.target.y] == STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
 		this.getSubject().stopSubject();
 		return MOVE_FINISHED;
 	}
-	
-	/*if(!this.initStart()) {
-		this.stopAction();
-		return MOVE_FINISHED;
-	}*/
 	
 	this.initStart();
 	
@@ -135,9 +142,12 @@ Move.prototype.moveTo = function() {
 	this.subject.setXOffset(offsetX);
 	this.subject.setYOffset(offsetY);
 	
+	// Start at the offset position of the subject.
 	var start = graph.nodes[position.x+offsetX][position.y+offsetY];
+	// End at the offset position of the click.
 	var end = graph.nodes[this.target.x+offsetMapX][this.target.y+offsetMapY];
 	
+	// Find path.
 	var result = astar.search(graph.nodes, start, end, true);
 	
 	if(typeof(result) === "undefined" || result.length == 0) {
@@ -150,6 +160,9 @@ Move.prototype.moveTo = function() {
 	return this.move(map, result);
 }
 
+/*
+*	Move.
+*/
 Move.prototype.move = function(mapArray, nodes) {
 	var timeout = 0;
 	var i = 0;
@@ -162,7 +175,7 @@ Move.prototype.move = function(mapArray, nodes) {
 	this.subject.move();
 	moveResult = action.moveByStep(mapArray, nodes, i, destination);
 	var intId = setInterval(function() {
-		var position = action.getSubject().getPersoPosition();
+		var position = action.getSubject().getPosition();
 		if(i == nodes.length || moveResult == MOVE_FINISHED || action.state == ACTION_STATE_ENUM.TOSTOP) {
 			if(i == nodes.length) {
 				i--;
@@ -174,7 +187,7 @@ Move.prototype.move = function(mapArray, nodes) {
 				action.getSubject().stopSubject();
 				action.getSubject().setCurrentAction(null);
 			}
-			var position = action.getSubject().getPersoPosition2D();
+			var position = action.getSubject().getArrayPosition();
 			console.log("Actual ("+position.x +", "+position.y+")");
 			console.log("Target ("+nodes[i].x+", "+nodes[i].y+")");
 			return MOVE_FINISHED;
@@ -183,20 +196,25 @@ Move.prototype.move = function(mapArray, nodes) {
 		
 		if(moveResult == MOVE_WAIT) {
 			//console.log("ARRIVED ("+position.x / UNIT +", "+position.y / UNIT+") => ("+nodes[i].x+", "+nodes[i].y+")");
+			// We have reached a step in the node list. Increment "i".
 			i++;
 			if(i != nodes.length) {
 				destination = new Point(nodes[i].x*UNIT, nodes[i].y*UNIT);
 			}
-		}
-		
-		if(action.state == ACTION_STATE_ENUM.TOFINISH) {
-			console.log("HAVE TO FINISH");
-			moveResult = MOVE_FINISHED;
+			
+			// We have been told to stop moves.
+			if(action.state == ACTION_STATE_ENUM.TOFINISH) {
+				console.log("HAVE TO FINISH");
+				moveResult = MOVE_FINISHED;
+			}
 		}
 		
 	}, FOOT_STEP_DURATION);
 }
 
+/*
+*	Move by step: see if the next step is not occupied. And do some stuff with it.
+*/
 Move.prototype.moveByStep = function(mapArray, nodes, i, destination) {	
 	if(nodes[i] == undefined || nodes.length == 0) {
 		if(nodes[i] == undefined) {
@@ -227,18 +245,24 @@ Move.prototype.moveByStep = function(mapArray, nodes, i, destination) {
 	}
 }
 
+/*
+*	Really move subject.
+*/
 Move.prototype.moveCss = function(destination) {
 	var moveResult = MOVE_ON;
 	var realPosition = this.subject.getOffsetedPosition();
+	// Where do we have to go?
 	var direction = this.getDirection(realPosition, destination);
 	
 	$(realPosition).remove();
 	
 	//console.log("DIRECTION "+direction);
 	
+	// Move subject.
 	this.subject.setDirection(direction);
 	
-	var mapDirection = this.subject.getCurrentMap().getMapDirection(this.subject.getPersoPosition());
+	// Check if we have to change map.
+	var mapDirection = this.subject.getCurrentMap().getMapDirection(this.subject.getPosition());
 	
 	// We have to change map
 	if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
@@ -248,7 +272,7 @@ Move.prototype.moveCss = function(destination) {
 	
 	var realPosition2 = this.subject.getOffsetedPosition();
 
-	// We have reached the end of the step because there was only one unitMove step left
+	// We have reached the end of the step.
 	if(realPosition2.equals(destination)) {
 		moveResult = MOVE_WAIT;
 	}
@@ -258,6 +282,10 @@ Move.prototype.moveCss = function(destination) {
 	return moveResult;
 }
 
+
+/*
+*	Compare the 2 positions given in parameters and return the direction to take.
+*/
 Move.prototype.getDirection = function(from, to) {
 	var directionX = DIRECTION_ENUM.NOCHANGE;
 	var directionY = DIRECTION_ENUM.NOCHANGE;
@@ -303,15 +331,17 @@ Move.prototype.getDirection = function(from, to) {
 
 
 /**
-*	Classe Actions : contient une liste d'action (actionList) et une liste d'ID de sujets (subjectList)
-*/
+ *	Actions: Contains a list of characters, a list of actions and a main character.
+ */
 var Actions = {
 	actionList:null,
 	subjectList:null,
 	mainCharacter:null
 };
 
-
+/**
+ *	ActionsManager: Main class. It manages all the actions and subject in the field.
+ */
 var ActionManager = {	
 	init: function() {
 		Actions.actionList = new Array();
@@ -334,6 +364,9 @@ var ActionManager = {
 		}
 	},
 	
+	/*
+	*	Add an action for the given subject.
+	*/
 	addAction: function(type, mapID, subject, target) {
 		var map = subject.getCurrentMap().getNeighbour(mapID);
 		if(map === null) {
@@ -363,24 +396,27 @@ var ActionManager = {
 		}
 		
 		var action;
+		// Switch in order to create the good action.
 		switch(type) {
 			case ACTION_ENUM.MOVE: action = new Move(map, subject, target); break;
 			default: action = new Action(type, map, subject, target); break;
 		}
 		
+		// The action is blocking, so we set it directly to the subject's next action to do.
 		if(action.isBlocking()) {
 			var oldNextAction = subject.getNextAction();
 			if(oldNextAction != null) {
 				$(oldNextAction).remove();
 			}
 			subject.setNextAction(action);
+		} else {
+			//Actions.actionList.push(action);
 		}
 		
 		console.log("NEW ACTION ",action);
-		
-		//Actions.actionList.push(action);
 	},
 	
+	// Main function of the action manager. Every CHECK_DURATION, it check if there are actions to do for the subjects in the subject list.
 	start: function() {
 		ActionManager.handleClicks();
 		var intId = setInterval(function() {
@@ -391,12 +427,12 @@ var ActionManager = {
 					var nextAction = subject.getNextAction();
 					var startAction = false;
 					
-					if(currentAction === null) {
+					if(currentAction === null) { // The subject is doing nothing.
 						startAction = true;
-					} else if(currentAction.getState() == ACTION_STATE_ENUM.FINISHED) {
+					} else if(currentAction.getState() == ACTION_STATE_ENUM.FINISHED) { // The subject current action has finished.
 						$(currentAction).remove();
 						startAction = true;
-					} else if(nextAction != null) {
+					} else if(nextAction != null) { // Tells the currentAction to finish ASAP.
 						if(currentAction.getState() != ACTION_STATE_ENUM.TOFINISH) {
 							currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
 						}
@@ -404,10 +440,12 @@ var ActionManager = {
 					} else {
 					}
 					
+					// Start action (set it to subject's current action).
 					if(startAction) {
 						if(nextAction != null && nextAction.getState() == ACTION_STATE_ENUM.TOSTART) {
 							subject.setNextAction(null);
 							subject.setCurrentAction(nextAction);
+							// Call the start method, common to all actions.
 							nextAction.start();
 						}
 					}
@@ -418,6 +456,9 @@ var ActionManager = {
 		}, CHECK_DURATION);
 	},
 	
+	/*
+	*	NOT USED ANYMORE
+	*/
 	startOld: function() {
 		ActionManager.handleClicks();
 		var intId = setInterval(function() {
@@ -468,13 +509,16 @@ var ActionManager = {
 		}, CHECK_DURATION);
 	},
 	
+	/*
+	*	Handle interactions with user.
+	*/
 	handleClicks: function() {
 		var character = Actions.mainCharacter;
 		$(".tile").click(function(e) {
 			var ID = $(this).parent().attr('id');
 			var position = ActionManager.getMouseMapPosition(ID, e);
-			console.log("CHARACTER POSITION: ", character.getPersoPosition());
-			console.log("CHARACTER POSITION 2D: ", character.getPersoPosition2D());
+			console.log("CHARACTER POSITION: ", character.getPosition());
+			console.log("CHARACTER POSITION 2D: ", character.getArrayPosition());
 			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
 		});
 		$(".perso").click(function(e) {
@@ -488,12 +532,15 @@ var ActionManager = {
 				console.log("CLICKED POSITION2:", position);
 			}
 			
-			console.log("CHARACTER POSITION: ", character.getPersoPosition());
-			console.log("CHARACTER POSITION 2D: ", character.getPersoPosition2D());
+			console.log("CHARACTER POSITION: ", character.getPosition());
+			console.log("CHARACTER POSITION 2D: ", character.getArrayPosition());
 			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
 		});
 	},
 	
+	/*
+	*	Load a map from data "mapContent[mapID]"
+	*/
 	loadMap: function(mapID) {
 		if(typeof(mapContent[mapID]) === 'undefined') {
 			return null;
@@ -502,11 +549,13 @@ var ActionManager = {
 		
 		var mapIDBottom = "map_"+(map.getPosition().x)*1+"_"+(map.getPosition().y+1)*1+"_"+map.getPosition().z;
 		var mapIDRight = "map_"+(map.getPosition().x+1)*1+"_"+(map.getPosition().y)*1+"_"+map.getPosition().z;
-				
+		
+		// Nothing more at extreme right.
 		if(!mapContent[mapIDRight]) {
 			map.setEdgeType(EDGE_TYPE_ENUM.RIGHT, true);
 		}
 		
+		// Nothing more at extreme bottom.
 		if(!mapContent[mapIDBottom]) {
 			map.setEdgeType(EDGE_TYPE_ENUM.BOTTOM, true);
 		}
@@ -514,6 +563,9 @@ var ActionManager = {
 		return map;
 	},
 	
+	/*
+	*	Retrieve the real mouse position in the given map.
+	*/
 	getMouseMapPosition: function(mapID, event) {
 		var offsetLeft = $("#screen").offset().left+$("#"+mapID).position().left;
 		var offsetTop = $("#screen").offset().top+$("#"+mapID).position().top;
@@ -524,8 +576,8 @@ var ActionManager = {
 		var posX = x - offsetLeft;
 		var posY = y - offsetTop;
 		
-		//position de la souris par rapport à la carte 2D
 		var position = new Point(posX/UNIT, posY/UNIT);
+		// Mouse position in the real 2D map.
 		var returnedPosition = position.changeFrame(false);
 		console.log("CLICKED POSITION:", returnedPosition);
 		return returnedPosition;

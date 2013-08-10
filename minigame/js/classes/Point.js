@@ -1,5 +1,5 @@
 /**
- * This class describes a Point in a 3D space. We are running a 2D game but, well why not?
+ *	This class describes a Point in a 3D space. We are running a 2D game but, well why not?
  */
 var Point = function(x, y, z) {
 	this.x = x*1;
@@ -8,7 +8,7 @@ var Point = function(x, y, z) {
 };
 
 Point.prototype = {
-	getCoordonate: function() {
+	getCoordinates: function() {
 		return { "x":this.x, "y":this.y, "z":this.z };
 	},
 
@@ -28,6 +28,10 @@ Point.prototype = {
 		return new Point(this.x*UNIT, this.y*UNIT);
 	},
 	
+	/*
+	*	Convert coordinates that are exceeding map size to good ones in the neighbour one
+	*	If x||y < 0 or x||y >=size, set it to || size - ||x|| or ||y|| ||
+	*/
 	convertFromSize: function(size) {
 		if(this.x < 0 || this.x >= size.width) {
 			this.x = Math.abs(size.width - Math.abs(this.x));
@@ -36,13 +40,12 @@ Point.prototype = {
 			this.y = Math.abs(size.height - Math.abs(this.y));
 		}
 	},
-
-	/**
-	* Change les coordonées passées en paramétre dans le repère ISOmétrique ou 2D
-	*
-	* toISO : boolean {0=>ISO to 2D, 1=>2D to ISO}
-	* TODO Laisser le choix d'utiliser floor, round ou ceil
-	**/
+	
+	/*
+	*	Change coordinates to iso or to 2D landmark.
+	*	toISO: boolean (0=>ISO to 2D, 1=>2D to ISO)
+	*	TODO Let the choice of floor, round or ceil
+	*/
 	changeFrame: function(toISO) {
 		var posX = this.x;
 		var posY = this.y;

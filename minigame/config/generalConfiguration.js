@@ -35,6 +35,9 @@ configuration.load={
 			"ActionManager",
 			"HTMLGenerator",
 		],
+		ihm:[
+			"character_ihm",
+		],
 		main:[
 			"main"
 		],
@@ -79,6 +82,9 @@ configuration.autoload=function(){
 	}
 	for(var i in configuration.load.js.classes){
 		document.write("<script src='js/classes/"+configuration.load.js.classes[i]+".js'></script>" );
+	}
+	for(var i in configuration.load.js.ihm){
+		document.write("<script src='js/ihm/"+configuration.load.js.ihm[i]+".js'></script>" );
 	}
 	for(var i in configuration.load.js.main){
 		document.write("<script src='"+configuration.load.js.main[i]+".js'></script>" );

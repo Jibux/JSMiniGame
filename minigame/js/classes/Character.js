@@ -1,6 +1,16 @@
 /**
  *	This class describes a Character. It can run, sing, eat, and whatever you want if you have created the method to do so!
  */
+
+/**
+ *	mainCharacter: Are we the main character?
+ *	direction: Current direction of the character
+ *	position: Position of the character (css view)
+ *	offset: See Map's offset. In order to locate the character in the whole neighbours occupation's 2D array. 
+ *	currentAction: What are we doing now?
+ *	nextAction: What is the next action to do?
+ */
+
 var Character = function(idCharacter, map, mainCharacter) {
 	
 	// TODO THROW EXCEPTION HERE
@@ -17,6 +27,8 @@ var Character = function(idCharacter, map, mainCharacter) {
 	
 	this.position = new Point(0, 0);
 	this.offset = new Point(0, 0);
+	
+	this.name = "Name";
 	
 	this.currentLife = 100;// %
 	this.maxLife = 100;
@@ -64,23 +76,40 @@ Character.prototype = {
 		return this.currentMap;
 	},
 	
+	/*
+	*	Set the current map and update character position with given (left, top) parameters.
+	*/
 	setCurrentMap: function(map, left, top) {
 		var oldMap = this.currentMap;
 		this.currentMap = map;
-		map.updateNeighbours(oldMap.getNeighbours());
-		map.drawNeighbours();
-		oldMap.eraseNeighbours();
 		
-		ActionManager.handleClicks();
+		// We are the main character, so we have to reload map.
+		if(this.mainCharacter) {
+			// Update neighbours for the new map.
+			map.updateNeighbours(oldMap.getNeighbours());
+			// Draw them
+			map.drawNeighbours();
+			// Erase the remaining, no more used.
+			oldMap.eraseNeighbours();
+		} else {
+			// A normal subject's current map keeps the same neighbours as the old one.
+			// TODO: THINK ABOUT MANAGE MULTIPLE SUBJECTS MOVING WITH THE MAIN CHARACTER
+			map.setNeighbours(oldMap.getNeighbours());
+			map.setMaxEdgeNeighbour(oldMap.getMaxEdgeNeighbour());
+			map.setMinEdgeNeighbour(oldMap.getMinEdgeNeighbour());
+			map.updateNeighboursOffset();
+		}
 		
+		// Move the character to the new map.
 		$("#"+this.ID).appendTo("#"+this.currentMap.getID());
-		
+		// Set its new position.
 		$("#"+this.ID).css("left", left);
 		$("#"+this.ID).css("top", top);
 		
-		//console.log("Position 1 ",this.getPersoPosition());
+		//console.log("Position 1 ",this.getPosition());
+		// Update position.
 		this.updatePosition();
-		//console.log("Position 2 ",this.getPersoPosition());
+		//console.log("Position 2 ",this.getPosition());
 	},
 
 	isMoving: function() {
@@ -119,6 +148,9 @@ Character.prototype = {
 		this.moving = true;
 	},
 	
+	/*
+	*	Update character css' position from its real values in the html page.
+	*/
 	updatePosition: function() {
 		if(!$("#"+this.ID).length) {
 			console.log("Cannot find character "+this.ID);
@@ -128,11 +160,17 @@ Character.prototype = {
 		this.position.y = $("#"+this.ID).css("top").substring(0, $("#"+this.ID).css("top").length - 2)*1;
 	},
 
-	getPersoPosition2D: function() {
+	/*
+	*	Get position in the array.
+	*/
+	getArrayPosition: function() {
 		return new Point(Math.floor(this.position.x/UNIT), Math.floor(this.position.y/UNIT));
 	},
 
-	getPersoPosition: function() {
+	/*
+	*	Get css' position.
+	*/
+	getPosition: function() {
 		return this.position;
 	},
 	
@@ -156,11 +194,15 @@ Character.prototype = {
 		this.offset.y = y*1;
 	},
 
+	/*
+	*	Move character to the given direction.
+	*/
 	setDirection: function(direction) {
 		var left = this.position.x;
 		var top = this.position.y;
 		
 		var perso;
+		// The direction has changed.
 		if(this.direction != direction) {
 			perso = $("#"+this.ID).find(".perso");
 			//console.log("CHANGE DIR");
@@ -248,11 +290,15 @@ Character.prototype = {
 			this.position.x+= unitMoveX*1;
 		}
 		
+		// If we are the main character, move the neighbours attached to our current map.
 		if(this.mainCharacter) {
 			this.currentMap.setDirectionNeighbours(direction);
 		}
 	},
 
+	/*
+	*	Change current map to its neighbour of a given direction.
+	*/
 	changeMap: function(direction) {
 		var left = Math.abs(this.currentMap.getSize().width*UNIT - Math.abs(this.position.x*1));
 		var top = Math.abs(this.currentMap.getSize().height*UNIT - Math.abs(this.position.y*1));
@@ -317,15 +363,31 @@ Character.prototype = {
 		this.setYOffset(offsetY);
 	},
 
+	/*
+	*	Draw character.
+	*/
 	draw: function() {
-		$("#"+this.currentMap.getID()).append('<div class="occupation" style="top:'+this.position.y+'px;left:'+this.position.x+'px;" id="'+this.ID+'"></div>');
-		$("#"+this.ID).append('<div class="perso stand down right"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
+		//$("#"+this.currentMap.getID()).append('<div class="occupation" style="top:'+this.position.y+'px;left:'+this.position.x+'px;" id="'+this.ID+'"></div>');
+		//$("#"+this.ID).append('<div class="perso stand down right"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
+		var parameters = [];
+		parameters["ID"] = this.ID;
+		parameters["name"] = this.name;
+		parameters["top"] = this.position.y;
+		parameters["left"] = this.position.x;
+		parameters["life"] = this.currentLife;
+		HTMLGenerator.append("#"+this.currentMap.getID(), character_ihm, parameters);
 	},
 	
+	/*
+	*	Get rid of myself.
+	*/
 	erase: function() {
 		$("#"+this.ID).remove();
 	},
-
+	
+	/*
+	*	Bla bla bla...
+	*/
 	userSpeak: function() {
 		if(!this.speaking) {
 			$("#"+this.ID+" .perso").append("<div class='buble'><input type='text' id='userSpeak'/></div>");

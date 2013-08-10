@@ -7,9 +7,10 @@ $("document").ready(function() {
 			character.userSpeak();
 		}
 	}
-
-	var character = init();
 	
+	// Load maps and characters
+	init();
+	// Start the action manager
 	ActionManager.start();
 	
 	/*clock();
@@ -29,22 +30,24 @@ function init() {
 	var currentDate = new Date();
 	currentDate.getHours();
 	
+	// Initialize ActionManager
 	ActionManager.init();
 	
+	// Load map map_0_0_0 and set it's neighbours
 	var mapID = "map_0_0_0";
 	var map = ActionManager.loadMap(mapID);
-	
 	map.updateNeighbours();
-	
+	// Draw all of these
 	map.drawNeighbours();
 	
+	// Main character (3rd parameter set to 'true')
 	var character = new Character("user", map, true);
-	
+	// Make him managed by ActionManager
 	ActionManager.addSubject(character);
-	var character2 = new Character("TEST", map);
-	ActionManager.addSubject(character2);
-	
+	// Draw it
 	character.draw();
 	
-	return character;
+	// TEST
+	//var character2 = new Character("TEST", map);
+	//ActionManager.addSubject(character2);
 }
