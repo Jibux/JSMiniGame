@@ -81,6 +81,8 @@ var Move = function(map, subject, target) {
 	this.state = ACTION_STATE_ENUM.TOSTART;
 	this.moveState = MOVE_STATE_ENUM.STOPPED;
 	this.blocking = true;
+	this.path = null;
+	this.indexInPath = 0;
 };
 
 /*
@@ -163,28 +165,29 @@ Move.prototype.moveTo = function() {
 		return MOVE_FINISHED;
 	}
 	
-	return this.move(map, result);
+	this.path = result;
+	
+	return this.move(map);
 }
 
 /*
 *	Move.
 */
-Move.prototype.move = function(mapArray, nodes) {
+Move.prototype.move = function(mapArray) {
 	var timeout = 0;
-	var i = 0;
 	var moveResult = MOVE_ON;
 	var subjectID = this.subject.getID();
-	var destination = new Point(nodes[i].x*UNIT, nodes[i].y*UNIT);
+	var destination = new Point(this.path[this.indexInPath].x*UNIT, this.path[this.indexInPath].y*UNIT);
 	
 	var action = this;
 	
 	this.subject.move();
-	moveResult = action.moveByStep(mapArray, nodes, i, destination);
+	moveResult = action.moveByStep(mapArray, destination);
 	var intId = setInterval(function() {
 		var position = action.getSubject().getPosition();
-		if(i == nodes.length || moveResult == MOVE_FINISHED || action.state == ACTION_STATE_ENUM.TOSTOP) {
-			if(i == nodes.length) {
-				i--;
+		if(action.indexInPath == action.path.length || moveResult == MOVE_FINISHED || action.state == ACTION_STATE_ENUM.TOSTOP) {
+			if(action.indexInPath == action.path.length) {
+				action.indexInPath--;
 			}
 			clearInterval(intId);
 			action.stopAction();
@@ -192,17 +195,17 @@ Move.prototype.move = function(mapArray, nodes) {
 			action.getSubject().setCurrentAction(null);
 			var position = action.getSubject().getArrayPosition();
 			console.log("Actual ("+position.x +", "+position.y+")");
-			console.log("Target ("+nodes[i].x+", "+nodes[i].y+")");
+			console.log("Target ("+action.path[action.indexInPath].x+", "+action.path[action.indexInPath].y+")");
 			return MOVE_FINISHED;
 		}
-		moveResult = action.moveByStep(mapArray, nodes, i, destination);
+		moveResult = action.moveByStep(mapArray, destination);
 		
 		if(moveResult == MOVE_WAIT) {
-			//console.log("ARRIVED ("+position.x / UNIT +", "+position.y / UNIT+") => ("+nodes[i].x+", "+nodes[i].y+")");
-			// We have reached a step in the node list. Increment "i".
-			i++;
-			if(i != nodes.length) {
-				destination = new Point(nodes[i].x*UNIT, nodes[i].y*UNIT);
+			//console.log("ARRIVED ("+position.x / UNIT +", "+position.y / UNIT+") => ("+nodes[action.indexInPath].x+", "+nodes[action.indexInPath].y+")");
+			// We have reached a step in the node list. Increment "action.indexInPath".
+			action.indexInPath++;
+			if(action.indexInPath != action.path.length) {
+				destination = new Point(action.path[action.indexInPath].x*UNIT, action.path[action.indexInPath].y*UNIT);
 			}
 			
 			// We have been told to stop moves.
@@ -218,22 +221,22 @@ Move.prototype.move = function(mapArray, nodes) {
 /*
 *	Move by step: see if the next step is not occupied. And do some stuff with it.
 */
-Move.prototype.moveByStep = function(mapArray, nodes, i, destination) {	
-	if(nodes[i] == undefined || nodes.length == 0) {
-		if(nodes[i] == undefined) {
-			console.log("nodes["+i+"] undefined");
+Move.prototype.moveByStep = function(mapArray, destination) {	
+	if(typeof(this.path[this.indexInPath]) === 'undefined' || this.path.length == 0) {
+		if(typeof(this.path[this.indexInPath]) === 'undefined') {
+			console.log("path["+this.indexInPath+"] undefined");
 		}
 		return MOVE_FINISHED;
 	}
-	if(mapArray[nodes[i].x][nodes[i].y] != STATIC_OCCUPATION_ENUM.CHARACTER) {
+	if(mapArray[this.path[this.indexInPath].x][this.path[this.indexInPath].y] != STATIC_OCCUPATION_ENUM.CHARACTER) {
 		// Pas d'ennemi
-		//mapArray[nodes[i].x][nodes[i].y]=4;
+		//mapArray[this.path[this.indexInPath].x][this.path[this.indexInPath].y]=4;
 		var moveResult = this.moveCss(destination);
 		
 		return moveResult;
 	} else {
 		// Ennemi en vue
-		console.log("Ennemi at ("+nodes[i].x+", "+nodes[i].y+")");
+		console.log("Ennemi at ("+this.path[this.indexInPath].x+", "+this.path[this.indexInPath].y+")");
 		
 		/*mapArray = copy2DArray(this.currentMap.getOccupation());
 		mapArray[nodes[i].x][nodes[i].y] = 0;
@@ -591,6 +594,7 @@ var ActionManager = {
 		var params = JSON.stringify(arguments[0],"");
 		var direction = arguments[0].direction;
 		var character = Actions.mainCharacter;
+		var currentAction = character.getCurrentAction();
 		
 		if(character.getNextAction() != null) {
 			console.log("CHARACTER IS MOVING!");
@@ -612,7 +616,12 @@ var ActionManager = {
 		console.log("GO POSITION:", position);
 		
 		// TODO: do not calculate here JUST MODIFY PATH !!!
-		ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
+		// TODO: modify path for move
+		if(currentAction != null && currentAction.getType() == ACTION_ENUM.MOVE && currentAction.getState() == ACTION_STATE_ENUM.STARTED) {
+			console.log("MODIFY PATH");
+		} else {
+			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
+		}
 	},
 	
 	/*
