@@ -49,7 +49,9 @@ var MOVE_STATE_ENUM = {
 
 var EDGE_TYPE_ENUM = {
 	RIGHT:"right",
+	LEFT:"left",
 	BOTTOM:"bottom",
+	TOP:"top",
 };
 
 var STATIC_OCCUPATION_ENUM = {

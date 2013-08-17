@@ -32,12 +32,20 @@ var Map = function(hash) {
 	this.edgeType = [];
 	this.edgeType[EDGE_TYPE_ENUM.RIGHT] = false;
 	this.edgeType[EDGE_TYPE_ENUM.BOTTOM] = false;
+	this.edgeType[EDGE_TYPE_ENUM.LEFT] = false;
+	this.edgeType[EDGE_TYPE_ENUM.TOP] = false;
 	this.minEdgeNeighbour = new Point(hash.position.x, hash.position.y, hash.position.z);
 	this.maxEdgeNeighbour = new Point(hash.position.x, hash.position.y, hash.position.z);
 };
 
-// Static variable shared between all Map objects. We use it in order to draw maps in the correct location we adding/drawing new neighbours.
+/*
+*	Static variable shared between all Map objects.
+*/
+
+// We use this in order to draw maps in the correct location we adding/drawing new neighbours.
 Map.drawOffset = new Point(-225, 45);
+// Global 2D array which concatenate all neighbours occupations.
+Map.neighboursOccupation = [];
 
 Map.prototype = {
 	getID: function() {
@@ -77,6 +85,14 @@ Map.prototype = {
 	
 	getOccupation: function() {
 		return this.occupation;
+	},
+	
+	getOccupationFromPoint: function(point) {
+		return this.occupation[point.x][point.y];
+	},
+	
+	getNeighboursOccupationFromPoint: function(point) {
+		return Map.neighboursOccupation[point.x][point.y];
 	},
 	
 	setOccupation: function(occupation) {
@@ -410,6 +426,38 @@ Map.prototype = {
 	},
 	
 	/*
+	*	Tells if a point is of range
+	*/
+	// TODO HANDLE OFFSET POSITION
+	isPointOutOfRange: function(point, offseted) {
+		var xMax = this.size.width;
+		var yMax = this.size.height;
+		
+		if(offseted) {
+			xMax+= this.offset.x;
+			yMax+= this.offset.y;
+		}
+		
+		if(this.edgeType[EDGE_TYPE_ENUM.RIGHT] && point.x >= xMax) {
+			return true;
+		}
+		
+		if(this.edgeType[EDGE_TYPE_ENUM.LEFT] && point.x < 0) {
+			return true;
+		}
+		
+		if(this.edgeType[EDGE_TYPE_ENUM.BOTTOM] && point.y >= yMax) {
+			return true;
+		}
+		
+		if(this.edgeType[EDGE_TYPE_ENUM.TOP] && point.y < 0) {
+			return true;
+		}
+		
+		return false;
+	},
+	
+	/*
 	*	Draw the map.
 	*/
 	draw: function() {
@@ -439,6 +487,8 @@ Map.prototype = {
 		}
 		
 		this.updateCssPosition();
+		
+		ActionManager.drawSubjectsOfMap(this.ID);
 	},
 	
 	/*
@@ -460,7 +510,7 @@ Map.prototype = {
 			//console.log(this.ID+" ALREADY ERASED");
 			return null;
 		}
-		
+		ActionManager.eraseSubjectsOfMap(this.ID);
 		//console.log(this.ID+" ERASED");
 		$("#"+this.ID).remove();
 	},
@@ -478,9 +528,9 @@ Map.prototype = {
 	},
 	
 	/*
-	*	Get a 2D array of all the neighbours occupations.
+	*	Reload the 2D array of all the neighbours occupations.
 	*/
-	getNeighboursOccupation: function() {
+	reloadNeighboursOccupation: function() {
 		var map = [];
 		for(var y = this.minEdgeNeighbour.y; y <= this.maxEdgeNeighbour.y; y++) {
 			var tmpMap = [];
@@ -500,6 +550,18 @@ Map.prototype = {
 			}
 		}
 		
+		Map.neighboursOccupation = map;
+		
 		return map;
+	},
+	
+	/*
+	*	Get the 2D array of all the neighbours occupations.
+	*/
+	getNeighboursOccupation: function(reloadOccupation) {
+		if(Map.neighboursOccupation.length == 0 || reloadOccupation) {
+			this.reloadNeighboursOccupation();
+		}
+		return Map.neighboursOccupation;
 	},
 };

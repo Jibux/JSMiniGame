@@ -38,17 +38,23 @@ function init() {
 	var mapID = "map_0_0_0";
 	var map = ActionManager.loadMap(mapID);
 	map.updateNeighbours();
-	// Draw all of these
-	map.drawNeighbours();
 	
 	// Main character (3rd parameter set to 'true')
 	var character = new Character("user", map, true);
 	// Make him managed by ActionManager
 	ActionManager.addSubject(character);
-	// Draw it
-	character.draw();
 	
-	// TEST
-	//var character2 = new Character("TEST", map);
-	//ActionManager.addSubject(character2);
+	var mapID2 = "map_0_-1_0";
+	var map2 = map.getNeighbour(mapID2);
+	//map2.setNeighbours(mapID2);
+	
+	var character2 = new Character("TEST", map2, false);
+	character2.setPosition(new Point(200,200));
+	ActionManager.addSubject(character2);
+	
+	ActionManager.updateSubjectsOffset();
+	ActionManager.printSubjectsOffset();
+	
+	// Draw all of these
+	map.drawNeighbours();
 }

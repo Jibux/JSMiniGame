@@ -4,7 +4,7 @@
  *		currentMap: Map where is located the target
  *		subject: Subject can be human, monster etc.
  *		target: Target point of the action.
- *		state: State of the action. It can be "to start", "starting", "to finish", "finished", etc.
+ *		state: State of the action. It can be "to start", "started", "to finish", "finished", etc.
  *		blocking: If the action is blocking. All of these kind of actions have to be done one after another, but never simultaneously.
  *			Ex :
  *				Action.type = MOVE
@@ -82,8 +82,17 @@ var Move = function(map, subject, target) {
 	this.moveState = MOVE_STATE_ENUM.STOPPED;
 	this.blocking = true;
 	this.path = null;
+	this.overridePath = null;
 	this.indexInPath = 0;
+	this.overrideDirection = DIRECTION_ENUM.NOCHANGE;
+	this.reloadDestination = false;
+	/*
+	*	If we change map, the neighboursOccupation' will be updated, and so all the characters' offset.
+	*	So, to keep using the path calculated for the initial map, we have to set this offset to access to the correct points in the path.
+	*/
+	this.pathOffset = new Point(0, 0);
 };
+
 
 /*
 *	Inherit Action's methods.
@@ -110,6 +119,19 @@ Move.prototype.getMoveState = function() {
 	return this.moveState;
 }
 
+Move.prototype.setOverrideDirection = function(direction) {
+	this.overrideDirection = direction;
+}
+
+Move.prototype.setReloadDestination = function(reload) {
+	this.reloadDestination = reload;
+}
+
+Move.prototype.setPathOffset = function(offset) {
+	this.pathOffset.x+= offset.x;
+	this.pathOffset.y+= offset.y;
+}
+
 /*
 *	Just launch moveTo().
 */
@@ -122,6 +144,8 @@ Move.prototype.start = function() {
 */
 Move.prototype.moveTo = function() {
 	var subjectID = this.subject.getID();
+	//this.subject.updatePosition();
+	this.subject.updateOffset();
 	var position = this.subject.getArrayPosition();
 
 	// Bad target.
@@ -133,21 +157,25 @@ Move.prototype.moveTo = function() {
 	
 	this.initStart();
 	
+	/*if(this.subject.isMainCharacter()) {
+		this.pathOffset.x = 0;
+		this.pathOffset.y = 0;
+	}*/
+	
 	var offsetX = 0;
 	var offsetY = 0;
 		
-	var map = this.subject.getCurrentMap().getNeighboursOccupation();
+	var map = ActionManager.getMainMap().getNeighboursOccupation();
 	
-	offsetX = this.subject.getCurrentMap().getXOffset();
-	offsetY = this.subject.getCurrentMap().getYOffset();
+	offsetX = this.subject.getXOffset();
+	offsetY = this.subject.getYOffset();
 	
 	offsetMapX = this.currentMap.getXOffset();
 	offsetMapY = this.currentMap.getYOffset();
 	
 	var graph = new Graph(map);
 	
-	this.subject.setXOffset(offsetX);
-	this.subject.setYOffset(offsetY);
+	//this.subject.updateOffset();
 	
 	// Start at the offset position of the subject.
 	var start = graph.nodes[position.x+offsetX][position.y+offsetY];
@@ -160,12 +188,16 @@ Move.prototype.moveTo = function() {
 	if(typeof(result) === "undefined" || result.length == 0) {
 		this.getSubject().stopSubject();
 		this.stopAction();
-		this.getSubject().setCurrentAction(null);
+		this.subject.setCurrentAction(null);
 		console.log("CANNOT FIND PATH");
 		return MOVE_FINISHED;
 	}
 	
 	this.path = result;
+	
+	console.log(subjectID+" start:", start);
+	console.log(subjectID+" end:", end);
+	console.log(subjectID+" path:", this.path);
 	
 	return this.move(map);
 }
@@ -177,8 +209,8 @@ Move.prototype.move = function(mapArray) {
 	var timeout = 0;
 	var moveResult = MOVE_ON;
 	var subjectID = this.subject.getID();
-	var destination = new Point(this.path[this.indexInPath].x*UNIT, this.path[this.indexInPath].y*UNIT);
-	
+	//var destination = new Point(this.path[this.indexInPath].x*UNIT, this.path[this.indexInPath].y*UNIT);
+	var destination = new Point((this.path[this.indexInPath].x + this.pathOffset.x)*UNIT, (this.path[this.indexInPath].y + this.pathOffset.y)*UNIT);
 	var action = this;
 	
 	this.subject.move();
@@ -189,13 +221,15 @@ Move.prototype.move = function(mapArray) {
 			if(action.indexInPath == action.path.length) {
 				action.indexInPath--;
 			}
+			
 			clearInterval(intId);
 			action.stopAction();
 			action.getSubject().stopSubject();
 			action.getSubject().setCurrentAction(null);
 			var position = action.getSubject().getArrayPosition();
 			console.log("Actual ("+position.x +", "+position.y+")");
-			console.log("Target ("+action.path[action.indexInPath].x+", "+action.path[action.indexInPath].y+")");
+			
+			//console.log("Target ("+action.path[action.indexInPath].x+", "+action.path[action.indexInPath].y+")");
 			return MOVE_FINISHED;
 		}
 		moveResult = action.moveByStep(mapArray, destination);
@@ -204,15 +238,50 @@ Move.prototype.move = function(mapArray) {
 			//console.log("ARRIVED ("+position.x / UNIT +", "+position.y / UNIT+") => ("+nodes[action.indexInPath].x+", "+nodes[action.indexInPath].y+")");
 			// We have reached a step in the node list. Increment "action.indexInPath".
 			action.indexInPath++;
-			if(action.indexInPath != action.path.length) {
-				destination = new Point(action.path[action.indexInPath].x*UNIT, action.path[action.indexInPath].y*UNIT);
+			
+			if(action.overrideDirection != DIRECTION_ENUM.NOCHANGE) {
+				/*action.path = action.overridePath;
+				action.indexInPath = 0;
+				action.overridePath = null;*/
+				
+				action.pathOffset.x = 0;
+				action.pathOffset.y = 0;
+				
+				var position = action.subject.getPositionFromDirection(action.overrideDirection, true);
+				console.log("CURRENT POS:", action.subject.getOffsetedArrayPosition());
+				console.log("GO POSITION:", position);
+				// Here update offset
+				var outOf = action.subject.getCurrentMap().isPointOutOfRange(position, true);
+				
+				// Get next position.
+				if(!outOf && ActionManager.getMainMap().getNeighboursOccupationFromPoint(position) != STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
+					action.modifyPath(position);
+					action.overrideDirection = DIRECTION_ENUM.NOCHANGE;
+					console.log(action.path);
+				} else {
+					moveResult = MOVE_FINISHED;
+					console.log("POSITION OUT OF RANGE: "+outOf, action.subject.getCurrentMap());
+				}
 			}
+			
+			action.reloadDestination = true;
 			
 			// We have been told to stop moves.
 			if(action.state == ACTION_STATE_ENUM.TOFINISH) {
 				console.log("HAVE TO FINISH");
 				moveResult = MOVE_FINISHED;
 			}
+		}
+		
+		if(action.reloadDestination && action.indexInPath != action.path.length) {
+			
+			destination = new Point((action.path[action.indexInPath].x + action.pathOffset.x)*UNIT, (action.path[action.indexInPath].y + action.pathOffset.y)*UNIT);
+			
+			action.reloadDestination = false;
+			
+			console.log(subjectID+" DEST Y:", action.path[action.indexInPath].y);
+			console.log(subjectID+" Move.pathOffset.y:", action.pathOffset.y);
+			console.log(subjectID+" NEW DESTINATION:", destination);
 		}
 		
 	}, FOOT_STEP_DURATION);
@@ -228,7 +297,8 @@ Move.prototype.moveByStep = function(mapArray, destination) {
 		}
 		return MOVE_FINISHED;
 	}
-	if(mapArray[this.path[this.indexInPath].x][this.path[this.indexInPath].y] != STATIC_OCCUPATION_ENUM.CHARACTER) {
+	//if(mapArray[this.path[this.indexInPath].x][this.path[this.indexInPath].y] != STATIC_OCCUPATION_ENUM.CHARACTER) {
+	if(true) {
 		// Pas d'ennemi
 		//mapArray[this.path[this.indexInPath].x][this.path[this.indexInPath].y]=4;
 		var moveResult = this.moveCss(destination);
@@ -270,10 +340,22 @@ Move.prototype.moveCss = function(destination) {
 	// Check if we have to change map.
 	var mapDirection = this.subject.getCurrentMap().getMapDirection(this.subject.getPosition());
 	
-	// We have to change map
+	// We have to change map.
 	if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
 		console.log("CHANGE MAP: "+mapDirection);
-		this.subject.changeMap(mapDirection);
+		var offset = this.subject.changeMap(mapDirection);
+		if(this.subject.isMainCharacter()) {
+			console.log("RET OFFSET: ",offset);
+			this.pathOffset.x+= offset.x;
+			this.pathOffset.y+= offset.y;
+			destination.x+= offset.x*UNIT;
+			destination.y+= offset.y*UNIT;
+			console.log("NEW OFFSET: ",this.pathOffset);
+			console.log("NEW DEST: ",destination);
+			ActionManager.updatedMovingSubjectsPathOffset(offset);
+			ActionManager.reloadMovingSubjectsDestination();
+		}
+		$(offset).remove();
 	}
 	
 	var realPosition2 = this.subject.getOffsetedPosition();
@@ -288,6 +370,12 @@ Move.prototype.moveCss = function(destination) {
 	return moveResult;
 }
 
+Move.prototype.modifyPath = function(position) {
+	var path = new Array();
+	path[0] = position;
+	this.path = path;
+	this.indexInPath = 0;
+}
 
 /*
 *	Compare the 2 positions given in parameters and return the direction to take.
@@ -342,7 +430,8 @@ Move.prototype.getDirection = function(from, to) {
 var Actions = {
 	actionList:null,	// List of non blocking actions.
 	subjectList:null,	// List of the subjects in the field.
-	mainCharacter:null	// Main character of the game.
+	mainCharacter:null,	// Main character of the game.
+	mainMap:null,	// Main map of the game.
 };
 
 /**
@@ -362,11 +451,24 @@ var ActionManager = {
 		return Actions.subjectList;
 	},
 	
+	/*
+	*	Set the main map of the game.
+	*/
+	setMainMap: function(map) {
+		Actions.mainMap = map;
+	},
+	
+	getMainMap: function() {
+		return Actions.mainMap;
+	},
+	
 	addSubject: function(subject) {
 		var subjectID = subject.getID();
 		Actions.subjectList[subjectID] = subject;
 		if(subject.isMainCharacter()) {
+			console.log('MAIN CHARACTER '+subjectID);
 			Actions.mainCharacter = subject;
+			Actions.mainMap = subject.getCurrentMap();
 		}
 	},
 	
@@ -374,13 +476,13 @@ var ActionManager = {
 	*	Add an action for the given subject.
 	*/
 	addAction: function(type, mapID, subject, target) {
-		var map = subject.getCurrentMap().getNeighbour(mapID);
+		var map = ActionManager.getMainMap().getNeighbour(mapID);
 		if(map === null) {
 			console.log("MAP "+mapID+" UNDEFINED");
 			return null;
 		}
 		
-		if(target.x <0 || target.y < 0) {
+		if(target.x < 0 || target.y < 0) {
 			console.log("BAD TARGET: ",target);
 			return null;
 		}
@@ -492,6 +594,7 @@ var ActionManager = {
 	/*
 	*	NOT USED ANYMORE
 	*/
+	/**
 	startOld: function() {
 		ActionManager.handleClicks();
 		var intId = setInterval(function() {
@@ -505,7 +608,7 @@ var ActionManager = {
 				var nextAction = subject.getNextAction();
 				
 				if(nextAction) {
-					console.log("NEW NEXT ACTION lenght ",Actions.actionList);
+					console.log("NEW NEXT ACTION length ",Actions.actionList);
 					Actions.actionList.unset(nextAction);
 				}
 				subject.setNextAction(action);
@@ -514,12 +617,12 @@ var ActionManager = {
 				//if(action.isBlocking() && currentAction && currentAction.getState() != ACTION_STATE_ENUM.TOSTART && currentAction.getState() != ACTION_STATE_ENUM.FINISHED) {
 				if(action.isBlocking() && currentAction) {
 					console.log("CURRENT ACTION NOT FINISHED: subject ",currentAction.getState()," action ",action.getState());
-					/*if(currentAction.getState() == ACTION_STATE_ENUM.TOSTART) {
+					if(currentAction.getState() == ACTION_STATE_ENUM.TOSTART) {
 						currentAction.setState(ACTION_STATE_ENUM.TOSTOP);
 					}
 					if(currentAction.getState() != ACTION_STATE_ENUM.FINISHED && currentAction.getState() != ACTION_STATE_ENUM.TOFINISH && currentAction.getState() != ACTION_STATE_ENUM.TOSTOP) {
 						currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
-					}*/
+					}
 					
 					currentAction.setState(ACTION_STATE_ENUM.TOFINISH);
 					//setTimeout(function(){
@@ -540,13 +643,15 @@ var ActionManager = {
 				//}
 			}
 		}, CHECK_DURATION);
-	},
+	},**/
 	
 	/*
 	*	Handle interactions with user (CLICKS).
 	*/
 	handleClicks: function() {
+		var characterTest = Actions.subjectList["TEST"];
 		var character = Actions.mainCharacter;
+		
 		if(character === null) {
 			console.error("Main character not defined!");
 			return null;
@@ -557,6 +662,7 @@ var ActionManager = {
 			console.log("CHARACTER POSITION: ", character.getPosition());
 			console.log("CHARACTER POSITION 2D: ", character.getArrayPosition());
 			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
+			ActionManager.addAction(ACTION_ENUM.MOVE, ID, characterTest, position);
 		});
 		$(".perso").click(function(e) {
 			var ID = $(this).parent().parent().attr('id');
@@ -566,13 +672,14 @@ var ActionManager = {
 			// We have clicked under an other map than the character's current one.
 			if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
 				ID = character.getCurrentMap().getMapIDFromDirection(mapDirection);
-				position.convertFromSize(character.getCurrentMap().getNeighbour(ID).getSize());
+				position.convertFromSize(ActionManager.getMainMap().getNeighbour(ID).getSize());
 				console.log("CLICKED POSITION2:", position);
 			}
 			
 			console.log("CHARACTER POSITION: ", character.getPosition());
 			console.log("CHARACTER POSITION 2D: ", character.getArrayPosition());
 			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
+			ActionManager.addAction(ACTION_ENUM.MOVE, ID, characterTest, position);
 		});
 	},
 	
@@ -603,23 +710,26 @@ var ActionManager = {
 			return null;
 		}
 		
-		var ID = character.getCurrentMap().getID();
-		console.log("MOVE TO "+direction);
-		var position = character.getPositionFromDirection(direction);
-		var mapDirection = character.getCurrentMap().getMapDirection(position.scaleToCss());
-		// We have to move to an other map than the character's current one.
-		if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
-			ID = character.getCurrentMap().getMapIDFromDirection(mapDirection);
-			position.convertFromSize(character.getCurrentMap().getNeighbour(ID).getSize());
-		}
+		//console.log("MOVE TO "+direction);
 		
-		console.log("GO POSITION:", position);
-		
-		// TODO: do not calculate here JUST MODIFY PATH !!!
-		// TODO: modify path for move
 		if(currentAction != null && currentAction.getType() == ACTION_ENUM.MOVE && currentAction.getState() == ACTION_STATE_ENUM.STARTED) {
-			console.log("MODIFY PATH");
+			//console.log("MODIFY PATH");
+			currentAction.setOverrideDirection(direction);
 		} else {
+			//console.log("FIRST PUSH");
+			var position = character.getPositionFromDirection(direction, false);
+			// Check if the position is out of the map
+			if(character.getCurrentMap().isPointOutOfRange(position)) {
+				console.log("OUT OF RANGE");
+				return null;
+			}
+			var ID = character.getCurrentMap().getID();
+			var mapDirection = character.getCurrentMap().getMapDirection(position.scaleToCss());
+			// We have to move to an other map than the character's current one.
+			if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
+				ID = character.getCurrentMap().getMapIDFromDirection(mapDirection);
+				position.convertFromSize(ActionManager.getMainMap().getNeighbour(ID).getSize());
+			}
 			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
 		}
 	},
@@ -634,11 +744,18 @@ var ActionManager = {
 		var map = new Map(mapContent[mapID]);
 		
 		var mapIDBottom = "map_"+(map.getPosition().x)*1+"_"+(map.getPosition().y+1)*1+"_"+map.getPosition().z;
+		var mapIDTop = "map_"+(map.getPosition().x)*1+"_"+(map.getPosition().y-1)*1+"_"+map.getPosition().z;
 		var mapIDRight = "map_"+(map.getPosition().x+1)*1+"_"+(map.getPosition().y)*1+"_"+map.getPosition().z;
+		var mapIDLeft = "map_"+(map.getPosition().x-1)*1+"_"+(map.getPosition().y)*1+"_"+map.getPosition().z;
 		
 		// Nothing more at extreme right.
 		if(!mapContent[mapIDRight]) {
 			map.setEdgeType(EDGE_TYPE_ENUM.RIGHT, true);
+		}
+		
+		// Nothing more at extreme left.
+		if(!mapContent[mapIDLeft]) {
+			map.setEdgeType(EDGE_TYPE_ENUM.LEFT, true);
 		}
 		
 		// Nothing more at extreme bottom.
@@ -646,8 +763,110 @@ var ActionManager = {
 			map.setEdgeType(EDGE_TYPE_ENUM.BOTTOM, true);
 		}
 		
+		// Nothing more at extreme Top.
+		if(!mapContent[mapIDTop]) {
+			map.setEdgeType(EDGE_TYPE_ENUM.TOP, true);
+		}
+		
 		return map;
 	},
+	
+	/*
+	*	Draw all subjects in active maps.
+	*/
+	drawSubjects: function() {
+		for(var subjectID in Actions.subjectList) {
+			var subject = Actions.subjectList[subjectID];
+			if(typeof(subject.draw) === 'function') {
+				subject.draw();
+			}
+		}
+	},
+	
+	/*
+	*	Draw all subjects in the map (mapID).
+	*/
+	drawSubjectsOfMap: function(mapID) {
+		for(var subjectID in Actions.subjectList) {
+			var subject = Actions.subjectList[subjectID];
+			if(typeof(subject.draw) === 'function') {
+				if(subject.getCurrentMap().getID() == mapID) {
+					subject.draw();
+					subject.setActive(true);
+				}
+			}
+		}
+	},
+	
+	/*
+	*	Erase the subject in the map (mapID).
+	*/
+	eraseSubjectsOfMap: function(mapID) {
+		for(var subjectID in Actions.subjectList) {
+			var subject = Actions.subjectList[subjectID];
+			if(typeof(subject.erase) === 'function') {
+				if(subject.getCurrentMap().getID() == mapID) {
+					subject.setActive(false);
+					subject.erase();
+				}
+			}
+		}
+	},
+	
+	/*
+	*	Update offset for all subjects in active maps.
+	*/
+	updateSubjectsOffset: function() {
+		for(var subjectID in Actions.subjectList) {
+			var subject = Actions.subjectList[subjectID];
+			if(typeof(subject.updateOffset) === 'function') {
+				subject.updateOffset();
+			}
+		}
+	},
+	
+	printSubjectsOffset: function() {
+		for(var subjectID in Actions.subjectList) {
+			var subject = Actions.subjectList[subjectID];
+			if(typeof(subject.getOffset) === 'function') {
+				console.log("OFFSET FOR "+subjectID, subject.getOffset());
+			}
+		}
+	},
+	
+	
+	/*
+	*	Reload the destination of the moving subjects.
+	*/
+	reloadMovingSubjectsDestination: function() {
+		for(var subjectID in Actions.subjectList) {
+			var subject = Actions.subjectList[subjectID];
+			if(typeof(subject.getCurrentAction) === 'function' && !subject.isMainCharacter()) {
+				var action = subject.getCurrentAction();
+				console.log(action);
+				if(action != null && action.getType() == ACTION_ENUM.MOVE && action.getState() == ACTION_STATE_ENUM.STARTED) {
+					action.setReloadDestination(true);
+				}
+			}
+		}
+	},
+	
+	/*
+	*	Update the path offset for all the moving subjects.
+	*/
+	updatedMovingSubjectsPathOffset: function(offset) {
+		for(var subjectID in Actions.subjectList) {
+			var subject = Actions.subjectList[subjectID];
+			if(typeof(subject.getCurrentAction) === 'function' && !subject.isMainCharacter()) {
+				var action = subject.getCurrentAction();
+				console.log(action);
+				if(action != null && action.getType() == ACTION_ENUM.MOVE && action.getState() == ACTION_STATE_ENUM.STARTED) {
+					action.setPathOffset(offset);
+				}
+			}
+		}
+	},
+	
 	
 	/*
 	*	Retrieve the real mouse position in the given map.

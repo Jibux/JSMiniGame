@@ -28,6 +28,8 @@ var Character = function(idCharacter, map, mainCharacter) {
 	this.position = new Point(0, 0);
 	this.offset = new Point(0, 0);
 	
+	this.active = true;
+	
 	this.name = "Name";
 	
 	this.currentLife = 100;// %
@@ -63,6 +65,14 @@ Character.prototype = {
 	setCurrentLife: function(life) {
 		this.currentLife = life;
 	},
+	
+	isActive: function() {
+		return this.ID;
+	},
+
+	setActive: function(active) {
+		this.active = active;
+	},
 
 	getID: function() {
 		return this.ID;
@@ -91,13 +101,17 @@ Character.prototype = {
 			map.drawNeighbours();
 			// Erase the remaining, no more used.
 			oldMap.eraseNeighbours();
+			
+			map.reloadNeighboursOccupation();
+			
+			ActionManager.updateSubjectsOffset();
+			
+			ActionManager.setMainMap(map);
+			ActionManager.printSubjectsOffset();
 		} else {
 			// A normal subject's current map keeps the same neighbours as the old one.
 			// TODO: THINK ABOUT MANAGE MULTIPLE SUBJECTS MOVING WITH THE MAIN CHARACTER
-			map.setNeighbours(oldMap.getNeighbours());
-			map.setMaxEdgeNeighbour(oldMap.getMaxEdgeNeighbour());
-			map.setMinEdgeNeighbour(oldMap.getMinEdgeNeighbour());
-			map.updateNeighboursOffset();
+			this.updateOffset();
 		}
 		
 		// Move the character to the new map.
@@ -166,6 +180,10 @@ Character.prototype = {
 	getArrayPosition: function() {
 		return new Point(Math.floor(this.position.x/UNIT), Math.floor(this.position.y/UNIT));
 	},
+	
+	getOffsetedArrayPosition: function() {
+		return new Point(Math.floor(this.position.x/UNIT) + this.offset.x*1, Math.floor(this.position.y/UNIT) + this.offset.y*1);
+	},
 
 	/*
 	*	Get css' position.
@@ -174,12 +192,26 @@ Character.prototype = {
 		return this.position;
 	},
 	
-	getOffsetedPosition: function() {
-		return new Point(this.position.x*1+this.offset.x*UNIT, this.position.y*1+this.offset.y*UNIT);
+	setPosition: function(position) {
+		this.position.x = position.x;
+		this.position.y = position.y;
+		this.position.z = position.z;
 	},
 	
-	getPositionFromDirection: function(direction) {
-		var position = this.getArrayPosition();
+	getOffsetedPosition: function() {
+		return new Point(this.position.x*1 + this.offset.x*UNIT, this.position.y*1 + this.offset.y*UNIT);
+	},
+	
+	/*
+	*	Get next point to a given direction.
+	*/
+	getPositionFromDirection: function(direction, offseted) {
+		var position;
+		if(offseted) {
+			position = this.getOffsetedArrayPosition();
+		} else {
+			position = this.getArrayPosition();
+		}
 		var x = position.x;
 		var y = position.y;
 		var z = position.z;
@@ -200,7 +232,13 @@ Character.prototype = {
 			default: break;
 		}
 		
-		return new Point(x, y, z);
+		var position2 = new Point(x, y, z);
+		
+		return position2;
+	},
+	
+	getOffset: function() {
+		return this.offset;
 	},
 	
 	getXOffset: function() {
@@ -217,6 +255,14 @@ Character.prototype = {
 	
 	setYOffset: function(y) {
 		this.offset.y = y*1;
+	},
+	
+	/*
+	*	Reload offset and set it same as currentMap.
+	*/
+	updateOffset: function() {
+		this.offset.x = this.currentMap.getXOffset();
+		this.offset.y = this.currentMap.getYOffset();
 	},
 
 	/*
@@ -317,7 +363,7 @@ Character.prototype = {
 		
 		// If we are the main character, move the neighbours attached to our current map.
 		if(this.mainCharacter) {
-			this.currentMap.setDirectionNeighbours(direction);
+			ActionManager.getMainMap().setDirectionNeighbours(direction);
 		}
 	},
 
@@ -330,62 +376,74 @@ Character.prototype = {
 		var x = this.currentMap.getPosition().x;
 		var y = this.currentMap.getPosition().y;
 		var z = this.currentMap.getPosition().z;
-		var offsetX = this.getXOffset();
-		var offsetY = this.getYOffset();
+		var oldXOffset = this.offset.x;
+		var oldYOffset = this.offset.y;
+		var arrayXOffsetFactor = 0;
+		var arrayYOffsetFactor = 0;
+		var arrayXOffset = 0;
+		var arrayYOffset = 0;
 
 		switch(direction) {
 			case DIRECTION_ENUM.RIGHT:
 				top = this.position.y;
 				x++;
-				offsetX+= this.currentMap.getSize().width;
+				arrayXOffsetFactor = -1;
 				break;
 			case DIRECTION_ENUM.LEFT:
 				top = this.position.y;
 				x--;
-				offsetX-= this.currentMap.getSize().width;
+				arrayXOffsetFactor = 1;
 				break;
 			case DIRECTION_ENUM.UP:
 				left = this.position.x;
 				y--;
-				offsetY-= this.currentMap.getSize().height;
+				arrayYOffsetFactor = 1;
 				break;
 			case DIRECTION_ENUM.DOWN:
 				left = this.position.x;
 				y++;
-				offsetY+= this.currentMap.getSize().height;
+				arrayYOffsetFactor = -1;
 				break;
 			case DIRECTION_ENUM.DIAGONAL_UP_RIGHT:
 				x++;
 				y--;
-				offsetX+= this.currentMap.getSize().width;
-				offsetY-= this.currentMap.getSize().height;
+				arrayXOffsetFactor = -1;
+				arrayYOffsetFactor = 1;
 				break;
 			case DIRECTION_ENUM.DIAGONAL_UP_LEFT:
 				x--;
 				y--;
-				offsetX-= this.currentMap.getSize().width;
-				offsetY-= this.currentMap.getSize().height;
+				arrayXOffsetFactor = 1;
+				arrayYOffsetFactor = 1;
 				break;
 			case DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT:
 				x++;
 				y++;
-				offsetX+= this.currentMap.getSize().width;
-				offsetY+= this.currentMap.getSize().height;
+				arrayXOffsetFactor = -1;
+				arrayYOffsetFactor = -1;
 				break;
 			case DIRECTION_ENUM.DIAGONAL_DOWN_LEFT:
 				x--;
 				y++;
-				offsetX-= this.currentMap().getSize().width;
-				offsetY+= this.currentMap().getSize().height;
+				arrayXOffsetFactor = 1;
+				arrayYOffsetFactor = -1;
 				break;
 			default: break;
 		}
 
 		var mapID = "map_"+x+"_"+y+"_"+z;
 
-		this.setCurrentMap(this.currentMap.getNeighbour(mapID), left, top);
-		this.setXOffset(offsetX);
-		this.setYOffset(offsetY);
+		this.setCurrentMap(ActionManager.getMainMap().getNeighbour(mapID), left, top);
+		
+		if(this.offset.x >= this.currentMap.getSize().width && oldXOffset >= this.currentMap.getSize().width) {
+			arrayXOffset = arrayXOffsetFactor*this.currentMap.getSize().width;
+		}
+		
+		if(this.offset.y >= this.currentMap.getSize().height && oldYOffset >= this.currentMap.getSize().height) {
+			arrayYOffset = arrayYOffsetFactor*this.currentMap.getSize().height;
+		}
+		
+		return new Point(arrayXOffset, arrayYOffset);
 	},
 
 	/*
