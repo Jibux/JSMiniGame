@@ -428,7 +428,6 @@ Map.prototype = {
 	/*
 	*	Tells if a point is of range
 	*/
-	// TODO HANDLE OFFSET POSITION
 	isPointOutOfRange: function(point, offseted) {
 		var xMax = this.size.width;
 		var yMax = this.size.height;
@@ -538,7 +537,8 @@ Map.prototype = {
 				var mapID = "map_"+(this.position.x+x)*1+"_"+(this.position.y+y)*1+"_0";
 				var mapToAdd;
 				if(typeof this.neighbours[mapID] === 'undefined') {
-					console.log(mapID+" undefined, fill with inaccessible map");
+					// Undefined, fill with inaccessible map.
+					//console.log(mapID+" undefined, fill with inaccessible map");
 					mapToAdd = generate2DArray(this.size.width, this.size.height, STATIC_OCCUPATION_ENUM.UNAVAILABLE);
 				} else {
 					mapToAdd = this.neighbours[mapID].getOccupation();

@@ -67,7 +67,7 @@ Character.prototype = {
 	},
 	
 	isActive: function() {
-		return this.ID;
+		return this.active;
 	},
 
 	setActive: function(active) {
@@ -110,7 +110,6 @@ Character.prototype = {
 			ActionManager.printSubjectsOffset();
 		} else {
 			// A normal subject's current map keeps the same neighbours as the old one.
-			// TODO: THINK ABOUT MANAGE MULTIPLE SUBJECTS MOVING WITH THE MAIN CHARACTER
 			this.updateOffset();
 		}
 		
@@ -150,7 +149,8 @@ Character.prototype = {
 		return this.mainCharacter;
 	},
 
-	stopSubject: function() {
+	stop: function() {
+		this.rectifyPosition();
 		$("#"+this.ID).find(".perso").addClass("stand");
 		$("#"+this.ID).find(".perso").removeClass("walk");
 		this.moving = false;
@@ -160,6 +160,13 @@ Character.prototype = {
 		$("#"+this.ID).find(".perso").removeClass("stand");
 		$("#"+this.ID).find(".perso").addClass("walk");
 		this.moving = true;
+	},
+	
+	rectifyPosition: function() {
+		console.debug(this.ID+": BEFORE RECTIFIED POS: "+this.position.x+" "+this.position.y);
+		this.position.x = Math.floor(this.position.x/UNIT) * UNIT;
+		this.position.y = Math.floor(this.position.y/UNIT) * UNIT;
+		console.debug(this.ID+": RECTIFIED POS: "+this.position.x+" "+this.position.y);
 	},
 	
 	/*
@@ -465,6 +472,10 @@ Character.prototype = {
 	*	Get rid of myself.
 	*/
 	erase: function() {
+		if(this.currentAction != null) {
+			this.currentAction.setState(ACTION_STATE_ENUM.TOSTOP);
+		}
+		this.active = false;
 		$("#"+this.ID).remove();
 	},
 	

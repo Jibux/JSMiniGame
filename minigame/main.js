@@ -41,6 +41,7 @@ function init() {
 	
 	// Main character (3rd parameter set to 'true')
 	var character = new Character("user", map, true);
+	character.setPosition(new Point(0,360));
 	// Make him managed by ActionManager
 	ActionManager.addSubject(character);
 	

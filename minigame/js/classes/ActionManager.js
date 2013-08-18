@@ -127,7 +127,7 @@ Move.prototype.setReloadDestination = function(reload) {
 	this.reloadDestination = reload;
 }
 
-Move.prototype.setPathOffset = function(offset) {
+Move.prototype.updatePathOffset = function(offset) {
 	this.pathOffset.x+= offset.x;
 	this.pathOffset.y+= offset.y;
 }
@@ -150,7 +150,7 @@ Move.prototype.moveTo = function() {
 
 	// Bad target.
 	if(position.equals(this.target) || this.currentMap.getOccupation()[this.target.x][this.target.y] == STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
-		this.getSubject().stopSubject();
+		this.getSubject().stop();
 		this.getSubject().setCurrentAction(null);
 		return MOVE_FINISHED;
 	}
@@ -186,7 +186,7 @@ Move.prototype.moveTo = function() {
 	var result = astar.search(graph.nodes, start, end, true);
 	
 	if(typeof(result) === "undefined" || result.length == 0) {
-		this.getSubject().stopSubject();
+		this.getSubject().stop();
 		this.stopAction();
 		this.subject.setCurrentAction(null);
 		console.log("CANNOT FIND PATH");
@@ -195,17 +195,17 @@ Move.prototype.moveTo = function() {
 	
 	this.path = result;
 	
-	console.log(subjectID+" start:", start);
+	/*console.log(subjectID+" start:", start);
 	console.log(subjectID+" end:", end);
-	console.log(subjectID+" path:", this.path);
+	console.log(subjectID+" path:", this.path);*/
 	
-	return this.move(map);
+	return this.move();
 }
 
 /*
 *	Move.
 */
-Move.prototype.move = function(mapArray) {
+Move.prototype.move = function() {
 	var timeout = 0;
 	var moveResult = MOVE_ON;
 	var subjectID = this.subject.getID();
@@ -214,7 +214,7 @@ Move.prototype.move = function(mapArray) {
 	var action = this;
 	
 	this.subject.move();
-	moveResult = action.moveByStep(mapArray, destination);
+	moveResult = action.moveByStep(destination);
 	var intId = setInterval(function() {
 		var position = action.getSubject().getPosition();
 		if(action.indexInPath == action.path.length || moveResult == MOVE_FINISHED || action.state == ACTION_STATE_ENUM.TOSTOP) {
@@ -224,15 +224,15 @@ Move.prototype.move = function(mapArray) {
 			
 			clearInterval(intId);
 			action.stopAction();
-			action.getSubject().stopSubject();
+			action.getSubject().stop();
 			action.getSubject().setCurrentAction(null);
-			var position = action.getSubject().getArrayPosition();
-			console.log("Actual ("+position.x +", "+position.y+")");
+			//var position = action.getSubject().getArrayPosition();
+			//console.log("Actual ("+position.x +", "+position.y+")");
 			
 			//console.log("Target ("+action.path[action.indexInPath].x+", "+action.path[action.indexInPath].y+")");
 			return MOVE_FINISHED;
 		}
-		moveResult = action.moveByStep(mapArray, destination);
+		moveResult = action.moveByStep(destination);
 		
 		if(moveResult == MOVE_WAIT) {
 			//console.log("ARRIVED ("+position.x / UNIT +", "+position.y / UNIT+") => ("+nodes[action.indexInPath].x+", "+nodes[action.indexInPath].y+")");
@@ -248,8 +248,8 @@ Move.prototype.move = function(mapArray) {
 				action.pathOffset.y = 0;
 				
 				var position = action.subject.getPositionFromDirection(action.overrideDirection, true);
-				console.log("CURRENT POS:", action.subject.getOffsetedArrayPosition());
-				console.log("GO POSITION:", position);
+				//console.log("CURRENT POS:", action.subject.getOffsetedArrayPosition());
+				//console.log("GO POSITION:", position);
 				// Here update offset
 				var outOf = action.subject.getCurrentMap().isPointOutOfRange(position, true);
 				
@@ -279,9 +279,9 @@ Move.prototype.move = function(mapArray) {
 			
 			action.reloadDestination = false;
 			
-			console.log(subjectID+" DEST Y:", action.path[action.indexInPath].y);
+			/*console.log(subjectID+" DEST Y:", action.path[action.indexInPath].y);
 			console.log(subjectID+" Move.pathOffset.y:", action.pathOffset.y);
-			console.log(subjectID+" NEW DESTINATION:", destination);
+			console.log(subjectID+" NEW DESTINATION:", destination);*/
 		}
 		
 	}, FOOT_STEP_DURATION);
@@ -290,7 +290,7 @@ Move.prototype.move = function(mapArray) {
 /*
 *	Move by step: see if the next step is not occupied. And do some stuff with it.
 */
-Move.prototype.moveByStep = function(mapArray, destination) {	
+Move.prototype.moveByStep = function(destination) {	
 	if(typeof(this.path[this.indexInPath]) === 'undefined' || this.path.length == 0) {
 		if(typeof(this.path[this.indexInPath]) === 'undefined') {
 			console.log("path["+this.indexInPath+"] undefined");
@@ -332,7 +332,7 @@ Move.prototype.moveCss = function(destination) {
 	
 	$(realPosition).remove();
 	
-	//console.log("DIRECTION "+direction);
+	//console.debug("DIRECTION "+direction);
 	
 	// Move subject.
 	this.subject.setDirection(direction);
@@ -342,16 +342,13 @@ Move.prototype.moveCss = function(destination) {
 	
 	// We have to change map.
 	if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
-		console.log("CHANGE MAP: "+mapDirection);
+		console.debug(this.subject.getID()+": CHANGE MAP: "+mapDirection);
 		var offset = this.subject.changeMap(mapDirection);
 		if(this.subject.isMainCharacter()) {
-			console.log("RET OFFSET: ",offset);
 			this.pathOffset.x+= offset.x;
 			this.pathOffset.y+= offset.y;
 			destination.x+= offset.x*UNIT;
 			destination.y+= offset.y*UNIT;
-			console.log("NEW OFFSET: ",this.pathOffset);
-			console.log("NEW DEST: ",destination);
 			ActionManager.updatedMovingSubjectsPathOffset(offset);
 			ActionManager.reloadMovingSubjectsDestination();
 		}
@@ -378,7 +375,7 @@ Move.prototype.modifyPath = function(position) {
 }
 
 /*
-*	Compare the 2 positions given in parameters and return the direction to take.
+*	Compare the 2 positions given in parameter and return the direction to take.
 */
 Move.prototype.getDirection = function(from, to) {
 	var directionX = DIRECTION_ENUM.NOCHANGE;
@@ -466,7 +463,7 @@ var ActionManager = {
 		var subjectID = subject.getID();
 		Actions.subjectList[subjectID] = subject;
 		if(subject.isMainCharacter()) {
-			console.log('MAIN CHARACTER '+subjectID);
+			console.debug('MAIN CHARACTER '+subjectID);
 			Actions.mainCharacter = subject;
 			Actions.mainMap = subject.getCurrentMap();
 		}
@@ -479,6 +476,11 @@ var ActionManager = {
 		var map = ActionManager.getMainMap().getNeighbour(mapID);
 		if(map === null) {
 			console.log("MAP "+mapID+" UNDEFINED");
+			return null;
+		}
+		
+		if(!subject.isActive()) {
+			console.warn("SUBJECT "+subject.getID()+" IS NOT ACTIVE FOR THE MAP "+mapID);
 			return null;
 		}
 		
@@ -521,7 +523,7 @@ var ActionManager = {
 			Actions.actionList.push(action);
 		}
 		
-		console.log("NEW ACTION ",action);
+		console.debug("NEW ACTION ",action);
 	},
 	
 	/*
@@ -659,25 +661,27 @@ var ActionManager = {
 		$(".tile").click(function(e) {
 			var ID = $(this).parent().attr('id');
 			var position = ActionManager.getMouseMapPosition(ID, e);
-			console.log("CHARACTER POSITION: ", character.getPosition());
-			console.log("CHARACTER POSITION 2D: ", character.getArrayPosition());
+			console.debug("CHARACTER POSITION: ", character.getPosition());
+			console.debug("CHARACTER POSITION 2D: ", character.getArrayPosition());
 			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
 			ActionManager.addAction(ACTION_ENUM.MOVE, ID, characterTest, position);
 		});
 		$(".perso").click(function(e) {
 			var ID = $(this).parent().parent().attr('id');
+			var subjectID = $(this).parent().attr('id');
+			var subject = Actions.subjectList[subjectID];
 			var position = ActionManager.getMouseMapPosition(ID, e);
-			var mapDirection = character.getCurrentMap().getMapDirection(position.scaleToCss());
+			var mapDirection = subject.getCurrentMap().getMapDirection(position.scaleToCss());
 			// TODO (IF WE CAN) BETTER CODE DIRECTION MAP ETC.
 			// We have clicked under an other map than the character's current one.
 			if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
-				ID = character.getCurrentMap().getMapIDFromDirection(mapDirection);
+				ID = subject.getCurrentMap().getMapIDFromDirection(mapDirection);
 				position.convertFromSize(ActionManager.getMainMap().getNeighbour(ID).getSize());
-				console.log("CLICKED POSITION2:", position);
+				console.debug("CLICKED POSITION2:", position);
 			}
 			
-			console.log("CHARACTER POSITION: ", character.getPosition());
-			console.log("CHARACTER POSITION 2D: ", character.getArrayPosition());
+			console.debug("CHARACTER POSITION: ", character.getPosition());
+			console.debug("CHARACTER POSITION 2D: ", character.getArrayPosition());
 			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
 			ActionManager.addAction(ACTION_ENUM.MOVE, ID, characterTest, position);
 		});
@@ -806,7 +810,7 @@ var ActionManager = {
 			var subject = Actions.subjectList[subjectID];
 			if(typeof(subject.erase) === 'function') {
 				if(subject.getCurrentMap().getID() == mapID) {
-					subject.setActive(false);
+					console.debug("ERASE SUBJECT "+subjectID+" FOR "+mapID);
 					subject.erase();
 				}
 			}
@@ -829,7 +833,7 @@ var ActionManager = {
 		for(var subjectID in Actions.subjectList) {
 			var subject = Actions.subjectList[subjectID];
 			if(typeof(subject.getOffset) === 'function') {
-				console.log("OFFSET FOR "+subjectID, subject.getOffset());
+				console.debug("OFFSET FOR "+subjectID, subject.getOffset());
 			}
 		}
 	},
@@ -843,7 +847,6 @@ var ActionManager = {
 			var subject = Actions.subjectList[subjectID];
 			if(typeof(subject.getCurrentAction) === 'function' && !subject.isMainCharacter()) {
 				var action = subject.getCurrentAction();
-				console.log(action);
 				if(action != null && action.getType() == ACTION_ENUM.MOVE && action.getState() == ACTION_STATE_ENUM.STARTED) {
 					action.setReloadDestination(true);
 				}
@@ -859,9 +862,8 @@ var ActionManager = {
 			var subject = Actions.subjectList[subjectID];
 			if(typeof(subject.getCurrentAction) === 'function' && !subject.isMainCharacter()) {
 				var action = subject.getCurrentAction();
-				console.log(action);
 				if(action != null && action.getType() == ACTION_ENUM.MOVE && action.getState() == ACTION_STATE_ENUM.STARTED) {
-					action.setPathOffset(offset);
+					action.updatePathOffset(offset);
 				}
 			}
 		}
@@ -884,7 +886,7 @@ var ActionManager = {
 		var position = new Point(posX/UNIT, posY/UNIT);
 		// Mouse position in the real 2D map.
 		var returnedPosition = position.changeFrame(false);
-		console.log("CLICKED POSITION:", returnedPosition);
+		console.debug("CLICKED POSITION:", returnedPosition);
 		return returnedPosition;
 	},
 };
