@@ -70,7 +70,7 @@ var Dice=function(){roll=function(a,b){Math.random()};roll2=function(a,b){Math.r
 function copy2DArray(array) {
 	var array2 = [];
 	
-	for (var i=0; i < array.length; i++) {
+	for (var i = 0; i < array.length; i++) {
 		array2[i] = [];
 		for (var j=0; j < array[i].length; j++) {
 			array2[i][j] = array[i][j];

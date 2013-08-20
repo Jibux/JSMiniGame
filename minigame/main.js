@@ -42,18 +42,20 @@ function init() {
 	// Main character (3rd parameter set to 'true')
 	var character = new Character("user", map, true);
 	character.setPosition(new Point(0,360));
+	
 	// Make him managed by ActionManager
 	ActionManager.addSubject(character);
 	
-	var mapID2 = "map_0_-1_0";
+	var mapID2 = "map_0_0_0";
 	var map2 = map.getNeighbour(mapID2);
 	//map2.setNeighbours(mapID2);
 	
 	var character2 = new Character("TEST", map2, false);
-	character2.setPosition(new Point(200,200));
+	character2.setPosition(new Point(1,200));
+	
 	ActionManager.addSubject(character2);
 	
-	ActionManager.updateSubjectsOffset();
+	ActionManager.initSubjectsInCurrentMap();
 	ActionManager.printSubjectsOffset();
 	
 	// Draw all of these

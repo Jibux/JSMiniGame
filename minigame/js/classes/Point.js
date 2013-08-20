@@ -20,8 +20,12 @@ Point.prototype = {
 		}
 	},
 	
+	copy: function() {
+		return new Point(this.x, this.y, this.z);
+	},
+	
 	scaleToArray: function() {
-		return new Point(this.x/UNIT, this.y/UNIT);
+		return new Point(Math.floor(this.x/UNIT), Math.floor(this.y/UNIT));
 	},
 	
 	scaleToCss: function() {
