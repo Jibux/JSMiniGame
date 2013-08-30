@@ -37,7 +37,7 @@ var HTMLGenerator = {
 	},
 
 	getHtmlCode : function(jsonTemplate,params) {
-		function replaceVariables(string, params,defaultValue){
+		function replaceVariables(string, params, defaultValue){
 			var regex = /\$[a-zA-Z0-9]+\$/g; 
 			if(regex.test(string)) {
 				var matches = string.match(regex);
@@ -45,10 +45,10 @@ var HTMLGenerator = {
 					//recuperation nom param
 					parameterName = matches[counter];
 					parameterName = parameterName.replace("$","").replace("$","");
-					if(params[parameterName] !== undefined){
+					if(typeof(params[parameterName]) !== "undefined"){
 						//replace si le param existe
 						string = string.replace("$"+parameterName+"$",params[parameterName]);
-					}else if(defaultValue !== undefined){
+					}else if(typeof(defaultValue) !== "undefined"){
 						//sinon replace avec valeur par defaut
 						string = string.replace("$"+parameterName+"$",defaultValue);
 					}else{
@@ -58,23 +58,35 @@ var HTMLGenerator = {
 			}
 			return string;
 		}
+		
+		// CAS MERDIQUE : dans le "for in", on parcours un tableau. Seulement il possède le prototype :
+			// Array.prototype.unset=function(a){a=this.indexOf(a);-1<a&&this.splice(a,1)};
+			// Soit : On doit checker si le node n'est pas une fonction
+			// Soit : On enlève le prototype de Tool.js qui n'a pas encore servi d'ailleurs
+		// J'ai déjà été confronté à ce problème dans mon code.
+		// Je fais : if(typeof(machin) !== "function")... etc.
 	
 		var nodeCode="";
 		for(var i in jsonTemplate) {
 			var node = jsonTemplate[i];
-			if(node.content !== undefined ) {
-				nodeCode += replaceVariables(node.content,params,node.content.defaultValue);
+			if(typeof(node.content) !== "undefined") {
+				var ret = replaceVariables(node.content,params,node.content.defaultValue);
+				nodeCode += ret;
 			}
-			if(node.name !==undefined ) {
+			if(typeof(node.name) !== "undefined" && node.name != "") { // node.name = "" parfois CAS MERDIQUE
 				nodeCode+="<"+node.name;
-				if(node.attr !== undefined) {
+				if(typeof(node.attr) !== "undefined") {
 					for(var attr in node.attr) {
-						var value = replaceVariables(node.attr[attr].value,params,node.attr[attr].defaultValue);			
-						nodeCode += " "+node.attr[attr].name+"='"+value+"'";
+						var value = replaceVariables(node.attr[attr].value,params,node.attr[attr].defaultValue);
+						if(typeof(node.attr[attr].name) !== "undefined" && typeof(value) !== "undefined") { // CAS MERDIQUE
+							nodeCode += " "+node.attr[attr].name+"='"+value+"'";
+						} else {
+							//console.log("UNDEF ",node.attr[attr]);
+						}
 					}
 				}
 				nodeCode+=">";
-				if(node.child !== undefined) {
+				if(typeof(node.child) !== "undefined") {
 					nodeCode += HTMLGenerator.getHtmlCode(node.child,params);
 				}
 				nodeCode += "</"+node.name+">";

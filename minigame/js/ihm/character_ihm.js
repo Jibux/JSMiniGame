@@ -20,39 +20,39 @@ var character_ihm=[
 		attr:[
 			{name:"id",	value:"$ID$"},
 			{name:"class",	value:"occupation"},
-			{name:"style",	value:"top: $top$ px;left: $left$ px;"},
-		]
-	},
-	{
-		name : "div",
-		attr:[
-			{name:"class",	value:"perso stand up left"},
+			{name:"style",	value:"top: $top$px;left: $left$px;"},
 		],
-		child:[
-			{
-				name : "div",
-				attr:[
-					{name:"class",	value:"name"},
-				],
-				child:[
-					{ content : "$name$" }
-				]
-			},
-			{
-				name : "div",
-				attr:[
-					{name:"class",	value:"lifebar"},
-				],
-				child:[
-					{
-						name : "div",
-						attr:[
-							{name:"class",	value:"life"},
-							{name:"style",	value:"width: $life$ %;background-position:0 $life$ %;"},
-						]
-					},
-				]
-			},
-		]
+		child:[{
+			name : "div",
+			attr:[
+				{name:"class",	value:"perso stand down right"},
+			],
+			child:[
+				{
+					name : "div",
+					attr:[
+						{name:"class",	value:"name"},
+					],
+					child:[
+						{ content : "$name$" }
+					]
+				},
+				{
+					name : "div",
+					attr:[
+						{name:"class",	value:"lifebar"},
+					],
+					child:[
+						{
+							name : "div",
+							attr:[
+								{name:"class",	value:"life"},
+								{name:"style",	value:"width: $life$%;background-position:0 $life$%;"},
+							]
+						},
+					]
+				},
+			],
+		}],
 	},
 ];

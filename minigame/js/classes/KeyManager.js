@@ -1,7 +1,7 @@
 /*
 *	Juste pour le test
 */
-var ActionManager={
+/*var ActionManager={
 	//test  action simple
 	moveUp : function(){
 		console.log("moveUp");
@@ -29,7 +29,7 @@ var ActionManager={
 		console.log("stopSpeak, params:"+JSON.stringify(arguments[0],""));
 	},
 
-};
+};*/
 
 ///////////////////////////////////////
 ///////////////////////////////////////
@@ -68,10 +68,10 @@ var ActionManager={
 */
 var KeyMaps={
 	"MAIN"	: {
-		"GO_UP_ACTION"		:{"callFunction" : {"keyDown":{"function":"moveUp"}}},
-		"GO_RIGHT_ACTION"	:{"callFunction" : {"keyDown":{"function":"startMoveRight"},"keyUp":{"function":"stopMoveRight"}}},
-		"GO_DOWN_ACTION"	:{"callFunction" :  {"keyDown":{"function":"moveDown"}},"blockBrowserAction":true},
-		"GO_LEFT_ACTION"		:{"callFunction" : {"keyDown":{"function":"moveLeft", "parameters":{"ok":"Hello world"}}}},
+		"GO_UP_ACTION"		:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.UP}}}},
+		"GO_RIGHT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.RIGHT}}}},
+		"GO_DOWN_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DOWN}}}},
+		"GO_LEFT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.LEFT}}}},
 		"SPEAK_ACTION"		:{"callFunction" : {"keyDown":{"function":"startSpeak", "parameters":{"currentKeyMAP":"MAIN","going to Map":"SPEAK"}}},"nextKeyMap" : "SPEAK"},
 	},
 	"SPEAK" : {
@@ -198,6 +198,7 @@ var KeyManager = function(){
 	var keyPressed=0;
 	//tableau des touches appuyées (pour la gestion des combos)
 	var keys=[] ;
+	
 	/**
 	* Handle Key Down strokes
 	*/
@@ -298,7 +299,4 @@ var KeyManager = function(){
 			return combo;
 		}
 	}
-
-
 };
-KeyManager();
