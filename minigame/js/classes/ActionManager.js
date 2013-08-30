@@ -146,6 +146,7 @@ Move.prototype.moveTo = function() {
 	var subjectID = this.subject.getID();
 	//this.subject.updatePosition();
 	this.subject.updateOffset();
+	this.subject.updateOffsetedArrayPosition();
 	var position = this.subject.getArrayPosition();
 
 	// Bad target.
@@ -174,8 +175,6 @@ Move.prototype.moveTo = function() {
 	offsetMapY = this.currentMap.getYOffset();
 	
 	var graph = new Graph(map);
-	
-	//this.subject.updateOffset();
 	
 	// Start at the offset position of the subject.
 	var start = graph.nodes[position.x+offsetX][position.y+offsetY];
@@ -213,6 +212,8 @@ Move.prototype.move = function() {
 	var destination = new Point((this.path[this.indexInPath].x + this.pathOffset.x)*UNIT, (this.path[this.indexInPath].y + this.pathOffset.y)*UNIT);
 	var action = this;
 	
+	//ActionManager.getMainMap().setSubjectOccupation(destination.scaleToArray());
+	
 	this.subject.move();
 	moveResult = action.moveByStep(destination);
 	var intId = setInterval(function() {
@@ -230,6 +231,8 @@ Move.prototype.move = function() {
 			//console.log("Actual ("+position.x +", "+position.y+")");
 			
 			//console.log("Target ("+action.path[action.indexInPath].x+", "+action.path[action.indexInPath].y+")");
+			
+			console.debug("SUBJECT OCCUPATION", Map.neighboursSubjectOccupation);
 			return MOVE_FINISHED;
 		}
 		moveResult = action.moveByStep(destination);
@@ -254,7 +257,7 @@ Move.prototype.move = function() {
 				var outOf = action.subject.getCurrentMap().isPointOutOfRange(position, true);
 				
 				// Get next position.
-				if(!outOf && ActionManager.getMainMap().getNeighboursOccupationFromPoint(position) != STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
+				if(!outOf && ActionManager.getMainMap().isPositionAvailable(position)) {
 					action.modifyPath(position);
 					action.overrideDirection = DIRECTION_ENUM.NOCHANGE;
 					console.log(action.path);
@@ -274,7 +277,6 @@ Move.prototype.move = function() {
 		}
 		
 		if(action.reloadDestination && action.indexInPath != action.path.length) {
-			
 			destination = new Point((action.path[action.indexInPath].x + action.pathOffset.x)*UNIT, (action.path[action.indexInPath].y + action.pathOffset.y)*UNIT);
 			
 			action.reloadDestination = false;
@@ -297,8 +299,11 @@ Move.prototype.moveByStep = function(destination) {
 		}
 		return MOVE_FINISHED;
 	}
+	
+	var destinationToArray = destination.scaleToArray();
+	
 	//if(mapArray[this.path[this.indexInPath].x][this.path[this.indexInPath].y] != STATIC_OCCUPATION_ENUM.CHARACTER) {
-	if(true) {
+	if(!this.currentMap.isPositionOccupied(destinationToArray)) {
 		// Pas d'ennemi
 		//mapArray[this.path[this.indexInPath].x][this.path[this.indexInPath].y]=4;
 		var moveResult = this.moveCss(destination);
@@ -306,7 +311,7 @@ Move.prototype.moveByStep = function(destination) {
 		return moveResult;
 	} else {
 		// Ennemi en vue
-		console.log("Ennemi at ("+this.path[this.indexInPath].x+", "+this.path[this.indexInPath].y+")");
+		console.log("Ennemi at ",destinationToArray);
 		
 		/*mapArray = copy2DArray(this.currentMap.getOccupation());
 		mapArray[nodes[i].x][nodes[i].y] = 0;
@@ -316,8 +321,8 @@ Move.prototype.moveByStep = function(destination) {
 		var end = graph.nodes[nodes[nodes.length-1].x][nodes[nodes.length-1].y];
 		var result = astar.search(graph.nodes, start, end, true);
 		
-		this.move(this.subject, mapArray, nodes);
-		return MOVE_FINISHED;*/
+		this.move(this.subject, mapArray, nodes);*/
+		return MOVE_FINISHED;
 	}
 }
 
@@ -327,10 +332,10 @@ Move.prototype.moveByStep = function(destination) {
 Move.prototype.moveCss = function(destination) {
 	var moveResult = MOVE_ON;
 	var realPosition = this.subject.getOffsetedPosition();
+	var realArrayPosition = this.subject.getOffsetedArrayPosition();
+	
 	// Where do we have to go?
 	var direction = this.getDirection(realPosition, destination);
-	
-	$(realPosition).remove();
 	
 	//console.debug("DIRECTION "+direction);
 	
@@ -344,11 +349,13 @@ Move.prototype.moveCss = function(destination) {
 	if(mapDirection != DIRECTION_ENUM.NOCHANGE) {
 		console.debug(this.subject.getID()+": CHANGE MAP: "+mapDirection);
 		var offset = this.subject.changeMap(mapDirection);
+			
 		if(this.subject.isMainCharacter()) {
 			this.pathOffset.x+= offset.x;
 			this.pathOffset.y+= offset.y;
 			destination.x+= offset.x*UNIT;
 			destination.y+= offset.y*UNIT;
+			
 			ActionManager.updatedMovingSubjectsPathOffset(offset);
 			ActionManager.reloadMovingSubjectsDestination();
 		}
@@ -359,9 +366,18 @@ Move.prototype.moveCss = function(destination) {
 
 	// We have reached the end of the step.
 	if(realPosition2.equals(destination)) {
+		if(mapDirection == DIRECTION_ENUM.NOCHANGE) {
+			this.subject.updateOffsetedArrayPosition();
+		}
+		var position1 = this.subject.getPreviousOffsetedArrayPosition();
+		var position2 = this.subject.getOffsetedArrayPosition();
+		//console.debug("OLD ",position1, "NEW ",position2);
+		
+		ActionManager.getMainMap().setSubjectOccupation(position2, position1);
 		moveResult = MOVE_WAIT;
 	}
 	
+	$(realPosition).remove();
 	$(realPosition2).remove();
 	
 	return moveResult;
@@ -662,9 +678,9 @@ var ActionManager = {
 			var ID = $(this).parent().attr('id');
 			var position = ActionManager.getMouseMapPosition(ID, e);
 			console.debug("CHARACTER POSITION: ", character.getPosition());
-			console.debug("CHARACTER POSITION 2D: ", character.getArrayPosition());
+			console.debug("CHARACTER POSITION 2D: ", character.getOffsetedArrayPosition());
 			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
-			ActionManager.addAction(ACTION_ENUM.MOVE, ID, characterTest, position);
+			//ActionManager.addAction(ACTION_ENUM.MOVE, ID, characterTest, position);
 		});
 		$(".perso").click(function(e) {
 			var ID = $(this).parent().parent().attr('id');
@@ -681,9 +697,9 @@ var ActionManager = {
 			}
 			
 			console.debug("CHARACTER POSITION: ", character.getPosition());
-			console.debug("CHARACTER POSITION 2D: ", character.getArrayPosition());
+			console.debug("CHARACTER POSITION 2D: ", character.getOffsetedArrayPosition());
 			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
-			ActionManager.addAction(ACTION_ENUM.MOVE, ID, characterTest, position);
+			//ActionManager.addAction(ACTION_ENUM.MOVE, ID, characterTest, position);
 		});
 	},
 	
@@ -796,7 +812,6 @@ var ActionManager = {
 			if(typeof(subject.draw) === 'function') {
 				if(subject.getCurrentMap().getID() == mapID) {
 					subject.draw();
-					subject.setActive(true);
 				}
 			}
 		}
@@ -813,6 +828,15 @@ var ActionManager = {
 					console.debug("ERASE SUBJECT "+subjectID+" FOR "+mapID);
 					subject.erase();
 				}
+			}
+		}
+	},
+	
+	initSubjectsInCurrentMap: function(previousOffsetUpdate) {
+		for(var subjectID in Actions.subjectList) {
+			var subject = Actions.subjectList[subjectID];
+			if(typeof(subject.initInCurrentMap) === 'function') {
+				subject.initInCurrentMap(previousOffsetUpdate);
 			}
 		}
 	},
@@ -869,6 +893,15 @@ var ActionManager = {
 		}
 	},
 	
+	reloadNeighboursSubjectOccupation: function() {
+		for(var subjectID in Actions.subjectList) {
+			var subject = Actions.subjectList[subjectID];
+			if(typeof(subject.getOffsetedArrayPosition) === 'function') {
+				var position = subject.getOffsetedArrayPosition();
+				Actions.mainMap.setSubjectOccupation(position);
+			}
+		}
+	},
 	
 	/*
 	*	Retrieve the real mouse position in the given map.

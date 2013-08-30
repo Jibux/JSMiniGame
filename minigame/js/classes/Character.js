@@ -26,6 +26,8 @@ var Character = function(idCharacter, map, mainCharacter) {
 	this.currentMap = map;
 	
 	this.position = new Point(0, 0);
+	this.offsetedArrayPosition = new Point(0, 0);
+	this.previousOffsetedArrayPosition = null;
 	this.offset = new Point(0, 0);
 	
 	this.active = true;
@@ -54,10 +56,11 @@ var Character = function(idCharacter, map, mainCharacter) {
 	this.currentAction = null;
 	this.nextAction = null;
 	
-	//race:RACE.HUMAN,
+	//race:RACE.HUMAN
 };
 
 Character.prototype = {
+	
 	getCurrentLife: function() {
 		return this.currentLife;
 	},
@@ -87,9 +90,17 @@ Character.prototype = {
 	},
 	
 	/*
+	*	Initialize datas for the current map.
+	*/
+	initInCurrentMap: function(previousOffsetUpdate) {
+		this.updateOffset();
+		this.updateOffsetedArrayPosition(previousOffsetUpdate);
+	},
+	
+	/*
 	*	Set the current map and update character position with given (left, top) parameters.
 	*/
-	setCurrentMap: function(map, left, top) {
+	setCurrentMap: function(map, left, top, offset) {
 		var oldMap = this.currentMap;
 		this.currentMap = map;
 		
@@ -102,12 +113,10 @@ Character.prototype = {
 			// Erase the remaining, no more used.
 			oldMap.eraseNeighbours();
 			
-			map.reloadNeighboursOccupation();
-			
 			ActionManager.updateSubjectsOffset();
 			
 			ActionManager.setMainMap(map);
-			ActionManager.printSubjectsOffset();
+			//ActionManager.printSubjectsOffset();
 		} else {
 			// A normal subject's current map keeps the same neighbours as the old one.
 			this.updateOffset();
@@ -163,10 +172,10 @@ Character.prototype = {
 	},
 	
 	rectifyPosition: function() {
-		console.debug(this.ID+": BEFORE RECTIFIED POS: "+this.position.x+" "+this.position.y);
+		//console.debug(this.ID+": BEFORE RECTIFIED POS: "+this.position.x+" "+this.position.y);
 		this.position.x = Math.floor(this.position.x/UNIT) * UNIT;
 		this.position.y = Math.floor(this.position.y/UNIT) * UNIT;
-		console.debug(this.ID+": RECTIFIED POS: "+this.position.x+" "+this.position.y);
+		//console.debug(this.ID+": RECTIFIED POS: "+this.position.x+" "+this.position.y);
 	},
 	
 	/*
@@ -180,6 +189,28 @@ Character.prototype = {
 		this.position.x = $("#"+this.ID).css("left").substring(0,$("#"+this.ID).css("left").length - 2)*1;
 		this.position.y = $("#"+this.ID).css("top").substring(0, $("#"+this.ID).css("top").length - 2)*1;
 	},
+	
+	/*
+	*	updateOffsetedArrayPosition set the new 2D Array position.
+	*	previousOffsetUpdate stands for changing map and correct old position values with it;
+	*/
+	updateOffsetedArrayPosition: function(previousOffsetUpdate) {
+		var newXPos = Math.floor(this.position.x/UNIT) + this.offset.x;
+		var newYPos = Math.floor(this.position.y/UNIT) + this.offset.y;
+		if(this.previousOffsetedArrayPosition != null) {
+			this.previousOffsetedArrayPosition.x = this.offsetedArrayPosition.x*1;
+			this.previousOffsetedArrayPosition.y = this.offsetedArrayPosition.y*1;
+			if(typeof(previousOffsetUpdate) !== 'undefined') {
+				this.previousOffsetedArrayPosition.x+= previousOffsetUpdate.x*1;
+				this.previousOffsetedArrayPosition.y+= previousOffsetUpdate.y*1;
+			}
+		} else {
+			this.previousOffsetedArrayPosition = new Point(newXPos, newYPos);
+		}
+		this.offsetedArrayPosition.x = newXPos;
+		this.offsetedArrayPosition.y = newYPos;
+		//console.debug("POSITIONS : ",this.previousOffsetedArrayPosition,this.offsetedArrayPosition);
+	},
 
 	/*
 	*	Get position in the array.
@@ -189,7 +220,11 @@ Character.prototype = {
 	},
 	
 	getOffsetedArrayPosition: function() {
-		return new Point(Math.floor(this.position.x/UNIT) + this.offset.x*1, Math.floor(this.position.y/UNIT) + this.offset.y*1);
+		return this.offsetedArrayPosition;
+	},
+	
+	getPreviousOffsetedArrayPosition: function() {
+		return this.previousOffsetedArrayPosition;
 	},
 
 	/*
@@ -439,7 +474,7 @@ Character.prototype = {
 		}
 
 		var mapID = "map_"+x+"_"+y+"_"+z;
-
+		
 		this.setCurrentMap(ActionManager.getMainMap().getNeighbour(mapID), left, top);
 		
 		if(this.offset.x >= this.currentMap.getSize().width && oldXOffset >= this.currentMap.getSize().width) {
@@ -450,7 +485,17 @@ Character.prototype = {
 			arrayYOffset = arrayYOffsetFactor*this.currentMap.getSize().height;
 		}
 		
-		return new Point(arrayXOffset, arrayYOffset);
+		var newOffset = new Point(arrayXOffset, arrayYOffset);
+		
+		if(this.mainCharacter) {
+			// 2 * setOffset !!!
+			ActionManager.initSubjectsInCurrentMap(newOffset);
+			ActionManager.getMainMap().reloadNeighboursOccupation();
+		} else {
+			this.initInCurrentMap();
+		}
+		
+		return newOffset;
 	},
 
 	/*
@@ -466,6 +511,7 @@ Character.prototype = {
 		parameters["left"] = this.position.x;
 		parameters["life"] = this.currentLife;
 		HTMLGenerator.append("#"+this.currentMap.getID(), character_ihm, parameters);
+		this.setActive(true);
 	},
 	
 	/*

@@ -46,6 +46,7 @@ var Map = function(hash) {
 Map.drawOffset = new Point(-225, 45);
 // Global 2D array which concatenate all neighbours occupations.
 Map.neighboursOccupation = [];
+Map.neighboursSubjectOccupation = [];
 
 Map.prototype = {
 	getID: function() {
@@ -93,6 +94,10 @@ Map.prototype = {
 	
 	getNeighboursOccupationFromPoint: function(point) {
 		return Map.neighboursOccupation[point.x][point.y];
+	},
+	
+	getNeighboursSubjectOccupationFromPoint: function(point) {
+		return Map.neighboursSubjectOccupation[point.x][point.y];
 	},
 	
 	setOccupation: function(occupation) {
@@ -266,13 +271,13 @@ Map.prototype = {
 
 		if(position.x >= this.size.width*UNIT) {
 			directionX = DIRECTION_ENUM.RIGHT;
-		} else if(position.x < 0) {
+		} else if(position.x <= -UNIT) {
 			directionX = DIRECTION_ENUM.LEFT;
 		}
 		
 		if(position.y >= this.size.height*UNIT) {
 			directionY = DIRECTION_ENUM.DOWN;
-		} else if(position.y < 0) {
+		} else if(position.y <= -UNIT) {
 			directionY = DIRECTION_ENUM.UP;
 		}
 		
@@ -551,8 +556,37 @@ Map.prototype = {
 		}
 		
 		Map.neighboursOccupation = map;
+		//Map.neighboursSubjectOccupation = generate2DArray(map.length, map[0].length, STATIC_OCCUPATION_ENUM.AVAILABLE);
+		Map.neighboursSubjectOccupation = copy2DArray(map);
+		
+		ActionManager.reloadNeighboursSubjectOccupation();
+		
+		//console.debug("OCCUPATION ", Map.neighboursOccupation);
 		
 		return map;
+	},
+	
+	setSubjectOccupation: function(position, oldPosition) {
+		Map.neighboursSubjectOccupation[position.x][position.y] = STATIC_OCCUPATION_ENUM.CHARACTER;
+		if(typeof(oldPosition) !== 'undefined') {
+			Map.neighboursSubjectOccupation[oldPosition.x][oldPosition.y] = Map.neighboursOccupation[oldPosition.x][oldPosition.y];
+		}
+	},
+	
+	isPositionOccupied: function(position) {
+		if(Map.neighboursSubjectOccupation[position.x][position.y] == STATIC_OCCUPATION_ENUM.CHARACTER) {
+			return true;
+		}
+		
+		return false;
+	},
+	
+	isPositionAvailable: function(position) {
+		if(Map.neighboursSubjectOccupation[position.x][position.y] == STATIC_OCCUPATION_ENUM.UNAVAILABLE) {
+			return false;
+		}
+		
+		return true;
 	},
 	
 	/*
