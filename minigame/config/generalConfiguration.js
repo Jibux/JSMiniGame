@@ -33,6 +33,7 @@ configuration.load={
 			"Character",
 			"KeyManager",
 			"ActionManager",
+			"Actions/Move",
 			"HTMLGenerator",
 		],
 		ihm:[
