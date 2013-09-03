@@ -140,6 +140,42 @@ Move.prototype.start = function() {
 }
 
 /*
+*	Search path from a given position. "withSubjects" parameter stands for taking account of subjects or not.
+*/
+Move.prototype.searchPath = function(position, withSubjects) {
+	var offsetX = 0;
+	var offsetY = 0;
+		
+	var map = (withSubjects == true ? ActionManager.getMainMap().getNeighboursSubjectOccupation() : ActionManager.getMainMap().getNeighboursOccupation());
+	
+	offsetX = this.subject.getXOffset();
+	offsetY = this.subject.getYOffset();
+	
+	offsetMapX = this.currentMap.getXOffset();
+	offsetMapY = this.currentMap.getYOffset();
+	
+	var graph = new Graph(map);
+	
+	// Start at the offset position of the subject.
+	var start = graph.nodes[position.x+offsetX][position.y+offsetY];
+	// End at the offset position of the click.
+	var end = graph.nodes[this.target.x+offsetMapX][this.target.y+offsetMapY];
+	
+	// Find path.
+	var result = astar.search(graph.nodes, start, end, true);
+	
+	if(typeof(result) === "undefined" || result.length == 0) {
+		this.getSubject().stop();
+		this.stopAction();
+		this.subject.setCurrentAction(null);
+		console.log("CANNOT FIND PATH");
+		return null;
+	}
+	
+	return result;
+}
+
+/*
 *	Initiate move.
 */
 Move.prototype.moveTo = function() {
@@ -163,40 +199,12 @@ Move.prototype.moveTo = function() {
 		this.pathOffset.y = 0;
 	}*/
 	
-	var offsetX = 0;
-	var offsetY = 0;
-		
-	var map = ActionManager.getMainMap().getNeighboursOccupation();
-	
-	offsetX = this.subject.getXOffset();
-	offsetY = this.subject.getYOffset();
-	
-	offsetMapX = this.currentMap.getXOffset();
-	offsetMapY = this.currentMap.getYOffset();
-	
-	var graph = new Graph(map);
-	
-	// Start at the offset position of the subject.
-	var start = graph.nodes[position.x+offsetX][position.y+offsetY];
-	// End at the offset position of the click.
-	var end = graph.nodes[this.target.x+offsetMapX][this.target.y+offsetMapY];
-	
-	// Find path.
-	var result = astar.search(graph.nodes, start, end, true);
-	
-	if(typeof(result) === "undefined" || result.length == 0) {
-		this.getSubject().stop();
-		this.stopAction();
-		this.subject.setCurrentAction(null);
-		console.log("CANNOT FIND PATH");
+	var path = this.searchPath(position);
+	if(path === null) {
 		return MOVE_FINISHED;
+	} else {
+		this.path = path;
 	}
-	
-	this.path = result;
-	
-	/*console.log(subjectID+" start:", start);
-	console.log(subjectID+" end:", end);
-	console.log(subjectID+" path:", this.path);*/
 	
 	return this.move();
 }
@@ -257,7 +265,7 @@ Move.prototype.move = function() {
 				var outOf = action.subject.getCurrentMap().isPointOutOfRange(position, true);
 				
 				// Get next position.
-				if(!outOf && ActionManager.getMainMap().isPositionAvailable(position)) {
+				if(!outOf && ActionManager.getMainMap().isPositionAvailable(position) && !ActionManager.getMainMap().isPositionOccupied(position)) {
 					action.modifyPath(position);
 					action.overrideDirection = DIRECTION_ENUM.NOCHANGE;
 					console.log(action.path);
@@ -313,16 +321,19 @@ Move.prototype.moveByStep = function(destination) {
 		// Ennemi en vue
 		console.log("Ennemi at ",destinationToArray);
 		
-		/*mapArray = copy2DArray(this.currentMap.getOccupation());
-		mapArray[nodes[i].x][nodes[i].y] = 0;
+		var position = this.subject.getArrayPosition();
 		
-		var graph = new Graph(mapArray);		
-		var start = graph.nodes[nodes[i-1].x][nodes[i-1].y];
-		var end = graph.nodes[nodes[nodes.length-1].x][nodes[nodes.length-1].y];
-		var result = astar.search(graph.nodes, start, end, true);
+		var path = this.searchPath(position, true);
+		if(path === null) {
+			return MOVE_FINISHED;
+		} else {
+			this.path = path;
+		}
 		
-		this.move(this.subject, mapArray, nodes);*/
-		return MOVE_FINISHED;
+		this.indexInPath = 0;
+		this.reloadDestination = true;
+		
+		//console.debug(this.path);
 	}
 }
 
@@ -679,8 +690,8 @@ var ActionManager = {
 			var position = ActionManager.getMouseMapPosition(ID, e);
 			console.debug("CHARACTER POSITION: ", character.getPosition());
 			console.debug("CHARACTER POSITION 2D: ", character.getOffsetedArrayPosition());
-			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
-			//ActionManager.addAction(ACTION_ENUM.MOVE, ID, characterTest, position);
+			//ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
+			ActionManager.addAction(ACTION_ENUM.MOVE, ID, characterTest, position);
 		});
 		$(".perso").click(function(e) {
 			var ID = $(this).parent().parent().attr('id');
@@ -698,8 +709,8 @@ var ActionManager = {
 			
 			console.debug("CHARACTER POSITION: ", character.getPosition());
 			console.debug("CHARACTER POSITION 2D: ", character.getOffsetedArrayPosition());
-			ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
-			//ActionManager.addAction(ACTION_ENUM.MOVE, ID, characterTest, position);
+			//ActionManager.addAction(ACTION_ENUM.MOVE, ID, character, position);
+			ActionManager.addAction(ACTION_ENUM.MOVE, ID, characterTest, position);
 		});
 	},
 	

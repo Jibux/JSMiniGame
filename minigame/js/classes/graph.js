@@ -7,7 +7,8 @@
 
 var GraphNodeType = { 
     OPEN: 1, 
-    WALL: 0
+    WALL: 0,
+    FOE: 2
 };
 
 // Creates a Graph class used in the astar search algorithm.
@@ -60,6 +61,9 @@ GraphNode.prototype.isWall = function() {
     return this.type == GraphNodeType.WALL;
 };
 
+GraphNode.prototype.isFoe = function() {
+    return this.type == GraphNodeType.FOE;
+};
 
 function BinaryHeap(scoreFunction){
     this.content = [];

@@ -598,4 +598,14 @@ Map.prototype = {
 		}
 		return Map.neighboursOccupation;
 	},
+	
+	/*
+	*	Get the 2D array of all the neighbours occupations.
+	*/
+	getNeighboursSubjectOccupation: function(reloadOccupation) {
+		if(Map.neighboursSubjectOccupation.length == 0 || reloadOccupation) {
+			this.reloadNeighboursOccupation();
+		}
+		return Map.neighboursSubjectOccupation;
+	},
 };
