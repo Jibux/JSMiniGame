@@ -51,6 +51,7 @@ configuration.load={
 		],
 		main:[
 			"style",
+			"character",
 			"tile"
 		],
 		debug:[
