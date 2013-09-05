@@ -1,0 +1,288 @@
+<html>
+	<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<script src="http://code.jquery.com/jquery-latest.min.js"   type="text/javascript"></script>
+		<title>Css Design</title>
+		<style>
+			html{background:#6093B2;font-family:currentfont,Arial, Helvetica, sans-serif;text-align:center;}
+		
+			p{font-size:20px;display:inline-block;}
+				p.comment{font-family:Arial;color:#315073;font-style:italic;font-size:12px;text-align:left;}
+				
+			h1{font-family:Arial, Helvetica, sans-serif;color:#315073;font-size:1.5em;margin:0;padding:0;}
+			
+			form{background:#315073;border-radius:5px;box-shadow:0px 2px 2px #000;border:1px solid #bbb;padding:5px;}
+				form label{color:#6093B2;}
+				form p{color:#6093B2;display:block;margin:0px 20px;padding:0;text-align:left;font-size:0.7em;}
+				form .container{text-align:left;}
+				form .previewImage{display:inline-block;width:100px;height:100px;border:1px solid 6093B2;margin:5px;text-align:left;background-color:#6093B2;}
+				form .comment{display:inline-block;margin:5px;text-align:left;vertical-align:top;width: calc(90% - 110px);}
+				
+			label{font-family:Arial, Helvetica, sans-serif;margin:0 10px;}
+			
+			.rangeValue{display:inline-block;width:30px;height:1em;}
+			
+			.box{display:inline-block;border:1px solid #000;overflow:hidden;float:left;margin:5px;width: calc(50% - 12px);height:25%;}
+			.clear{clear:both;}
+			
+			.html{display:block;width:100%;height: calc(100% - 2em);}
+			.preview{display:block;width:100%;height: calc(100% - 2em);overflow:hidden;}
+			.css{display:block;width:100%;height: calc(25% - 2px); border:1px solid #000;}
+			
+			.previewImageContent{width:100%;height:100%;display:block;}
+			
+		</style>
+		<style class="style"></style>
+	</head>
+	<body>
+		<div class="box">
+			<h1>Preview</h1>
+			<div class="preview"></div>
+		</div>
+		<div class="box">
+			<h1>Html</h1>
+			<textarea class="html"></textarea>
+		</div>
+		<div class="clear"></div>
+		<h1>Css</h1>
+		<textarea class="css"></textarea>
+	</body>
+	<script id="script"></script>
+	<script>
+		HTMLTextAreaElement.prototype.getCaretPosition = function () { //return the caret position of the textarea
+		    return this.selectionStart;
+		};
+		HTMLTextAreaElement.prototype.setCaretPosition = function (position) { //change the caret position of the textarea
+		    this.selectionStart = position;
+		    this.selectionEnd = position;
+		    this.focus();
+		};
+		HTMLTextAreaElement.prototype.hasSelection = function () { //if the textarea has selection then return true
+		    if (this.selectionStart == this.selectionEnd) {
+			return false;
+		    } else {
+			return true;
+		    }
+		};
+		HTMLTextAreaElement.prototype.getSelectedText = function () { //return the selection text
+		    return this.value.substring(this.selectionStart, this.selectionEnd);
+		};
+		HTMLTextAreaElement.prototype.setSelection = function (start, end) { //change the selection area of the textarea
+		    this.selectionStart = start;
+		    this.selectionEnd = end;
+		    this.focus();
+		};
+
+		$(document).ready(function() {
+			$("textarea").each(function(){
+				$(this).keydown(function(event) {
+				    var textarea=this;
+				    //support tab on textarea
+				    if (event.keyCode == 9) { //tab was pressed
+					var newCaretPosition;
+					newCaretPosition = textarea.getCaretPosition() + "    ".length;
+					textarea.value = textarea.value.substring(0, textarea.getCaretPosition()) + "    " + textarea.value.substring(textarea.getCaretPosition(), textarea.value.length);
+					textarea.setCaretPosition(newCaretPosition);
+					return false;
+				    }
+				    if(event.keyCode == 8){ //backspace
+					if (textarea.value.substring(textarea.getCaretPosition() - 4, textarea.getCaretPosition()) == "    ") { //it's a tab space
+					    var newCaretPosition;
+					    newCaretPosition = textarea.getCaretPosition() - 3;
+					    textarea.value = textarea.value.substring(0, textarea.getCaretPosition() - 3) + textarea.value.substring(textarea.getCaretPosition(), textarea.value.length);
+					    textarea.setCaretPosition(newCaretPosition);
+					}
+				    }
+				    if(event.keyCode == 37){ //left arrow
+					var newCaretPosition;
+					if (textarea.value.substring(textarea.getCaretPosition() - 4, textarea.getCaretPosition()) == "    ") { //it's a tab space
+					    newCaretPosition = textarea.getCaretPosition() - 3;
+					    textarea.setCaretPosition(newCaretPosition);
+					}    
+				    }
+				    if(event.keyCode == 39){ //right arrow
+					var newCaretPosition;
+					if (textarea.value.substring(textarea.getCaretPosition() + 4, textarea.getCaretPosition()) == "    ") { //it's a tab space
+					    newCaretPosition = textarea.getCaretPosition() + 3;
+					    textarea.setCaretPosition(newCaretPosition);
+					}
+				    } 
+				});
+			});
+		});	
+	</script>
+	<script>
+		var defaultValues={
+			grayscale:0,
+			contrast:100,
+			brightness:100,
+			hue:0,
+			saturate:0,
+			sepia:0,
+			scalex:1,
+			scaley:1,
+		};
+		var cssAdded={};
+		var counter =0;
+	
+		$(document).ready(function() {
+			// Ajout des formulaires
+			$("body").prepend(
+				"<form class='tools'>"+
+					"<label>Preview Image</label><input  type='text' name='url'/>"+
+					"<label>Grayscale</label><input  type='range' name='grayscale' min='0' max='100' step='10' value='"+defaultValues.grayscale+"'/><label class='rangeValue' id='grayscaleValue'>"+defaultValues.grayscale+"%</label>"+
+					"<label>Invert Colors</label><input type='checkbox' name='invert'/>"+
+					"<label>Contrast</label><input  type='range' name='contrast' min='0' max='500' step='10' value='"+defaultValues.contrast+"'/><label class='rangeValue' id='contrastValue'>"+defaultValues.contrast+"%</label>"+
+					"<label>Brightness</label><input  type='range' name='brightness' min='0' max='200' step='1' value='"+defaultValues.brightness+"'/><label class='rangeValue'  id='brightnessValue'>"+defaultValues.brightness+"%</label>"+
+					"<label>Hue</label><input  type='range' name='hue' min='-180' max='180' step='1' value='"+defaultValues.hue+"'/><label class='rangeValue'  id='hueValue'>"+defaultValues.hue+"°</label>"+
+					"<label>Saturate</label><input  type='range' name='saturate' min='-500' max='500' step='10' value='"+defaultValues.saturate+"'/><label class='rangeValue'  id='saturateValue'>"+defaultValues.saturate+"%</label>"+
+					"<label>Sepia</label><input  type='range' name='sepia' min='0' max='1' step='0.1' value='"+defaultValues.sepia+"'/><label class='rangeValue'  id='sepiaValue'>"+defaultValues.sepia+"</label>"+
+					"<label>ScaleX</label><input  type='range' name='scalex' min='-9' max='9' step='2' value='"+defaultValues.scalex+"'/><label class='rangeValue'  id='scaleXValue'>"+defaultValues.scalex+"</label>"+
+					"<label>ScaleY</label><input  type='range' name='scaley' min='-9' max='9' step='2' value='"+defaultValues.scaley+"'/><label class='rangeValue'  id='scaleYValue'>"+defaultValues.scaley+"</label>"+
+					"<input type='button' name='reset' value='Reset'>"+
+					"<div class='container'>"+
+					"<div class='previewImage'><div class='previewImageContent'></div></div>"+
+					"<div class='comment'></div>"+
+					"</div>"+
+				"</form>"
+			);
+			$("body").prepend(
+				"<form class='addCss'>"+
+					"<label>Include Css</label><input  type='text' name='addCssUrl'/><input type='button' name='addCss' value='Validate'>"+
+				"</form>"
+			);
+			//Ajout des listeners
+			$("form.tools input,form.tools select").change(function(){
+				modifForm();
+			});
+			$(".css").keyup(function(){
+				$(".style").html($(this).val());
+			});
+			$(".html").keyup(function(){
+				$(".preview").html($(this).val());
+			});
+			
+			$("input[name='url']").change(function() {
+				$(".previewImageContent").css("background-image","url("+$(this).val()+")");
+			});
+			$("input[name='grayscale']").change(function() {
+				$("#grayscaleValue").html($(this).val()+"%");
+			});
+			$("input[name='contrast']").change(function() {
+				$("#contrastValue").html($(this).val()+"%");
+			});
+			$("input[name='brightness']").change(function() {
+				$("#brightnessValue").html($(this).val()+"%");
+			});
+			$("input[name='hue']").change(function() {
+				$("#hueValue").html($(this).val()+"°");
+			});
+			$("input[name='saturate']").change(function() {
+				$("#saturateValue").html($(this).val()+"%");
+			});
+			$("input[name='sepia']").change(function() {
+				$("#sepiaValue").html($(this).val());
+			});
+			$("input[name='scalex']").change(function() {
+				$("#scaleXValue").html($(this).val());
+			});
+			$("input[name='scaley']").change(function() {
+				$("#scaleYValue").html($(this).val());
+			});
+			$("input[name='reset']").click(function(){
+				resetForm();
+			});
+			
+			$("form.addCss input[name='addCss']").click(function(){
+				addCss();
+			});
+			
+			
+		});
+		
+		/**
+		* Ajoute la feuille de styles si elle n'est pas déjà présente
+		*/
+		function addCss(){
+			var link = $("form.addCss input[name='addCssUrl']").val();
+			if(link !== "" && typeof(cssAdded[link]) == "undefined" || cssAdded[link]==null){
+				cssAdded[link]=link;
+				
+				var temp = new Date();
+				var dateStr = (temp.getFullYear()) +
+					  (1 + temp.getMonth()) +
+					  (temp.getDate()) +
+					  (temp.getHours()) +
+					  (temp.getMinutes()) +
+					  (temp.getSeconds());
+				$("form.addCss").append("<p id='p_"+counter+"'><input type='hidden' value='"+counter+"' /><label>"+link+"</label><input type='button' value=' - '/></p>");
+				$("head").append("<link id='link_"+counter+"' rel='stylesheet' type='text/css' href='"+link+"?"+dateStr+"'>");
+
+				$("#p_"+counter+" input[type='button']").click(function(){
+					cssAdded[$(this).parent().find("label").html()]=null;
+					$("#link_"+$(this).parent().find(" input[type='hidden']").val()).remove();
+					$(this).parent().remove();
+				});
+				counter++;
+			}
+		}
+		
+		function resetForm(){
+			$("input[name=grayscale]").val(defaultValues.grayscale);
+			$("#grayscaleValue").html(defaultValues.grayscale+"%");
+			
+			$("input[name=invert]").attr("selected","none");
+			
+			$("input[name=contrast]").val(defaultValues.contrast);
+			$("#contrastValue").html(defaultValues.contrast+"%");
+			
+			$("input[name=brightness]").val(defaultValues.brightness);
+			$("#brightnessValue").html(defaultValues.brightness+"%");
+			
+			$("input[name=hue]").val(defaultValues.hue);
+			$("#hueValue").html(defaultValues.hue+"%");	
+			
+			$("input[name=saturate]").val(defaultValues.saturate);
+			$("#saturateValue").html(defaultValues.saturate+"%");
+			
+			$("input[name=sepia]").val(defaultValues.sepia);
+			$("#sepiaValue").html(defaultValues.sepia+"%");
+			
+			
+			$(".comment").html("");
+			$(".preview").attr("style","");
+		}
+		
+		function modifForm(){
+				var filters="";
+				if(defaultValues.contrast != $("input[name=contrast]").val()){
+					filters+= "contrast("+$("input[name=contrast]").val()+"%) ";
+				}if(defaultValues.brightness != $("input[name=brightness]").val()){
+					filters+= "brightness("+$("input[name=brightness]").val()+"%) ";
+				}if(defaultValues.hue != $("input[name=hue]").val()){
+					filters+= "hue-rotate("+$("input[name=hue]").val()+"deg) ";
+				}if(defaultValues.grayscale != $("input[name=grayscale]").val()){
+					filters+= "grayscale("+$("input[name=grayscale]").val()+"%) ";
+				}if(defaultValues.saturate != $("input[name=saturate]").val()){
+					filters+= "saturate("+$("input[name=saturate]").val()+"%) ";
+				}if(defaultValues.sepia != $("input[name=sepia]").val()){
+					filters+= "sepia("+$("input[name=sepia]").val()+") ";
+				}if($("input[name=invert]").prop('checked')==true){
+					filters+="invert(1) ";
+				}
+				
+				var transform="";
+				if(defaultValues.scalex != $("input[name=scalex]").val() || defaultValues.scaley != $("input[name=scaley]").val()){
+					transform+="scale("+$("input[name=scalex]").val()+","+$("input[name=scaley]").val()+") ";
+				}
+				
+				var style= "";
+				if(filters != ""){style+="-webkit-filter: "+filters+";-moz-filter:  "+filters+";-o-filter:  "+filters+";-ms-filter:  "+filters+";filter:  "+filters+";";}
+				if(transform != ""){style+="-webkit-transform: "+transform+";-moz-transform:  "+transform+";-o-transform:  "+transform+";-ms-transform:  "+transform+";transform:  "+transform+";";}
+				$(".previewImageContent").attr("style",style);
+				$("form.tools .comment").html("<p>"+style+"</p>");
+				
+				$(".previewImageContent").css("background-image","url("+$("input[name='url']").val()+")");
+		}
+	</script>
+</html>
