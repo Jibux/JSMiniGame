@@ -20,7 +20,7 @@ var Action = function(typeOfAction, map, subject, target) {
 	this.blocking = false;
 };
 
-Action.prototype = { 
+Action.prototype = {
 	getType: function() {
 		return this.type;
 	},
