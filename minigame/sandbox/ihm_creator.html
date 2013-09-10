@@ -13,14 +13,12 @@
 		<label>Html code name</label><input type="text" name="name" /><br/><br/>
 		<label>Html code <span class="comment">les variables doivent être mises au format: $nom_variable$ ou $nom_variable:valeurParDefaut$</span></label>
 		<textarea id="htmlCode" style="width:90%;height:25%;"></textarea><br/>
+		<label style="display:inline-block;width:45%">Before Load Code</label><label style="display:inline-block;width:45%">After Load Code</label><br/>
+		<textarea id="beforeLoadCode" style="width:45%;height:25%;"></textarea>
+		<textarea id="afterLoadCode" style="width:45%;height:25%;"></textarea><br/>
 		<button id="buildCode">Build</button><br/>
 		<label>Generated code</label><br/>
 		<textarea id="ihmCode" style="width:90%;height:25%;"></textarea><br/>
-	<!--	<label style="display:inline-block;width:45%">Before Load Code</label><label style="display:inline-block;width:45%">After Load Code</label><br/>
-		<textarea id="beforeLoadCode" style="width:45%;height:25%;"></textarea>
-		<textarea id="afterLoadCode" style="width:45%;height:25%;"></textarea>
-	-->
-		<span class="comment">/!\ ne pas oublier de rajouter les fonctions : beforeLoad et afterLoad si nécéssaires /!\</span>
 	</body>
 	<script>
 		$(document).ready(function(){
@@ -47,12 +45,6 @@
 				}
 			});
 			
-			//ajout des javascript
-			/*
-			ihmGeneratedCode.beforeLoad =$("#beforeLoadCode").val();
-			ihmGeneratedCode.afterLoad =$("#afterLoadCode").val();
-			*/
-			
 			//affichage du code			
 			var htmlCodeName = $("input[name='name']").val();
 			
@@ -61,7 +53,18 @@
 			comment += $("#htmlCode").val()+"\n\n";
 			comment += addParametersList();
 			comment += "*/\n";
-			var code="var "+htmlCodeName+"="+ JSON.stringify( ihmGeneratedCode , null)+";";
+			
+			var code="var "+htmlCodeName+"="+ JSON.stringify( ihmGeneratedCode , null);
+			
+			//ajout des js
+			var code = code.substring(0,code.length-2)+",\n";
+			
+			var beforeLoad = $("#beforeLoadCode").val() !== "" ? "\n\t"+$("#beforeLoadCode").val()+"\n" : "";
+			var afterLoad = $("#afterLoadCode").val() !== "" ? "\n\t"+$("#afterLoadCode").val()+"\n" : "";
+			
+			var code = code + "beforeLoad: function(params){"+beforeLoad+"},\n";
+			var code = code + "afterLoad: function(params){"+afterLoad+"}\n";
+			var code = code + "};";
 			
 			$("#ihmCode").html(comment+code);
 			
@@ -98,16 +101,18 @@
 						child.push( temp );
 					}
 				});
-				if(child.length >0){
-					ihmHtmlCode.child=child;
-				}
 				if(  $(element).html() !== ""){
 					var content = $(element).html();
-					content = content.replace(/\n/g,"").replace(/\t/g,"").replace(/<.+>.+<\/.+>/g,"").replace(/<.+\/>/g,"");
+					content = content.replace(/\n/g,"").replace(/\t/g,"").replace(/<.+>.*<\/.+>/g,"").replace(/<.+\/>/g,"").replace(/ +/g," ");
 					extractParams(content);
-					if(content !== ""){
-						ihmHtmlCode.content = content ;
+					
+					var regex = /^ *$/g;
+					if( ! regex.test(content)){
+						child.push( { "content" : content} );
 					}
+				}
+				if(child.length >0){
+					ihmHtmlCode.child=child;
 				}
 				return ihmHtmlCode;
 			}
@@ -118,7 +123,6 @@
 					var matches = input.match(regex);
 					for(var counter=0; counter<matches.length;counter++){
 						var val = matches[counter].replace(/\$/g,"")+"";
-						console.log(val);
 						if($.inArray(val,params) === -1){
 							params.push(val);
 						}
