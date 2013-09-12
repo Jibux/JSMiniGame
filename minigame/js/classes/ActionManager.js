@@ -674,7 +674,7 @@ var ActionManager = {
 			console.error("Main character not defined!");
 			return null;
 		}
-		$(".tile").click(function(e) {
+		$("canvas").click(function(e) {
 			var ID = $(this).parent().attr('id');
 			var position = ActionManager.getMouseMapPosition(ID, e);
 			console.debug("CHARACTER POSITION: ", character.getPosition());

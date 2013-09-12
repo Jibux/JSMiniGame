@@ -473,12 +473,37 @@ Map.prototype = {
 		newPosition.x = newPosition.x + Map.drawOffset.x;
 		newPosition.y = newPosition.y + Map.drawOffset.y;
 		
-		$("#screen").append('<div id="'+this.ID+'" class="map" style="left:'+newPosition.x+'px;top:'+newPosition.y+'px;"></div>');
-
+		$("#screen").append('<div id="'+this.ID+'" class="map" style="left:'+newPosition.x+'px;top:'+newPosition.y+'px;"><canvas id="'+this.ID+'_canvas" width="'+this.size.width*UNIT+'" height="'+this.size.height*UNIT+'"></canvas></div>');
+		
+		var ctx = document.getElementById(this.ID+"_canvas").getContext('2d');
+		
 		for(var x = 0; x < this.size.width; x++) {
 			for(var y = 0; y < this.size.height; y++) {
 				var type = this.tile[x+"_"+y];
-				$("#"+this.ID).prepend("<div class='tile "+type+"' id='tile_"+x+"_"+y+"' style='left:"+x*UNIT+"px;top:"+y*UNIT+"px;"+"'></div>");
+				if(typeof(TileSet[type]) !== "undefined"){
+						if(type === "grass"){
+							ctx.fillStyle = "rgb(50, 137, 55)";//grass
+						}else if(type === "water"){
+							ctx.fillStyle = "rgb(22, 154, 206)";//water
+						}else{
+							ctx.fillStyle = "rgb(254, 204, 1)";//other
+						}
+						ctx.fillRect( x*UNIT, y*UNIT, 20, 20);
+					
+					/*var img = TileSet[type].img();
+					img.onload = function(e,x,y) {
+						 // Nine arguments: the element, source (x,y) coordinates, source width and 
+						// height (for cropping), destination (x,y) coordinates, and destination width 
+						// and height (resize).
+						ctx.drawImage(img, x * UNIT, y* UNIT);
+						console.log(x+"   "+ y);
+						ctx.drawImage(img, 20, 20, 20, 20, x*UNIT, y*UNIT,20,20);
+					};
+					*/
+				}else{
+					ctx.fillStyle = "rgb(255, 0, 0)";
+					ctx.fillRect( x*UNIT, y*UNIT, 20, 20);
+				}
 			}
 		}
 		// This is the border_right.

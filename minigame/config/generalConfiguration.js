@@ -22,7 +22,8 @@ configuration.load={
 		],
 		data:[
 			"maps",
-			"TemplateOccupation"
+			"TemplateOccupation",
+			"TileSet"
 		],
 		classes:[
 			"Tools",
