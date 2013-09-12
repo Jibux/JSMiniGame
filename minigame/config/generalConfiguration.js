@@ -23,7 +23,6 @@ configuration.load={
 		data:[
 			"maps",
 			"TemplateOccupation",
-			"TileSet"
 		],
 		classes:[
 			"Tools",
@@ -35,6 +34,7 @@ configuration.load={
 			"KeyManager",
 			"ActionManager",
 			"HTMLGenerator",
+			"ResourcesLoader",
 		],
 		ihm:[
 			"character_ihm",
