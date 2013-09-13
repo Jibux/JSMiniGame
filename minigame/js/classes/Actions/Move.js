@@ -211,9 +211,7 @@ Move.prototype.move = function() {
 		
 		if(action.reloadDestination && action.indexInPath != action.path.length) {
 			destination = new Point((action.path[action.indexInPath].x + action.pathOffset.x)*UNIT, (action.path[action.indexInPath].y + action.pathOffset.y)*UNIT);
-			
-			action.reloadDestination = false;
-			
+
 			/*console.log(subjectID+" DEST Y:", action.path[action.indexInPath].y);
 			console.log(subjectID+" Move.pathOffset.y:", action.pathOffset.y);
 			console.log(subjectID+" NEW DESTINATION:", destination);*/
@@ -232,31 +230,40 @@ Move.prototype.moveByStep = function(destination) {
 		}
 		return MOVE_FINISHED;
 	}
-	
-	var destinationToArray = destination.scaleToArray();
-	
-	if(!this.currentMap.isPositionOccupied(destinationToArray)) {
+
+	var moveSubject = true;
+
+	if(this.reloadDestination) {
+		var destinationToArray = destination.scaleToArray();
+		if(!this.currentMap.isPositionOccupied(destinationToArray)) {
+			this.reloadDestination = false;
+			// Reserve next position.
+			ActionManager.getMainMap().setSubjectOccupation(destinationToArray);
+		} else {
+			// Enemy !
+			console.log("Enemy at ",destinationToArray);
+			
+			var position = this.subject.getArrayPosition();
+			
+			var path = this.searchPath(position, true);
+			if(path === null) {
+				return MOVE_FINISHED;
+			} else {
+				this.path = path;
+			}
+			
+			this.indexInPath = 0;
+			this.reloadDestination = true;
+			moveSubject = false;
+			//console.debug(this.path);
+		}
+	}
+
+	if(moveSubject) {
 		// No enemy
 		var moveResult = this.moveCss(destination);
 		
 		return moveResult;
-	} else {
-		// Enemy !
-		console.log("Ennemi at ",destinationToArray);
-		
-		var position = this.subject.getArrayPosition();
-		
-		var path = this.searchPath(position, true);
-		if(path === null) {
-			return MOVE_FINISHED;
-		} else {
-			this.path = path;
-		}
-		
-		this.indexInPath = 0;
-		this.reloadDestination = true;
-		
-		//console.debug(this.path);
 	}
 }
 
