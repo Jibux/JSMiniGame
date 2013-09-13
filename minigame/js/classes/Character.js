@@ -160,14 +160,14 @@ Character.prototype = {
 
 	stop: function() {
 		this.rectifyPosition();
-		$("#"+this.ID).find(".perso").addClass("stand");
-		$("#"+this.ID).find(".perso").removeClass("walk");
+		$("#"+this.ID).find(".character").addClass("stand");
+		$("#"+this.ID).find(".character").removeClass("walk");
 		this.moving = false;
 	},
 
 	move: function() {
-		$("#"+this.ID).find(".perso").removeClass("stand");
-		$("#"+this.ID).find(".perso").addClass("walk");
+		$("#"+this.ID).find(".character").removeClass("stand");
+		$("#"+this.ID).find(".character").addClass("walk");
 		this.moving = true;
 	},
 	
@@ -314,10 +314,10 @@ Character.prototype = {
 		var left = this.position.x;
 		var top = this.position.y;
 		
-		var perso;
+		var character;
 		// The direction has changed.
 		if(this.direction != direction) {
-			perso = $("#"+this.ID).find(".perso");
+			character = $("#"+this.ID).find(".character");
 			//console.log("CHANGE DIR");
 		}
 		
@@ -328,51 +328,23 @@ Character.prototype = {
 			case DIRECTION_ENUM.RIGHT:
 				unitMoveX = UNIT_ENUM.UNIT_MOVE;
 				
-				if(this.direction != direction) {
-					console
-					perso.removeClass("left");
-					perso.removeClass("up");
-					perso.addClass("right");
-					perso.addClass("down");
-				}
 				break;
 			case DIRECTION_ENUM.LEFT:
 				unitMoveX = -UNIT_ENUM.UNIT_MOVE;
 				
-				if(this.direction != direction) {
-					perso.removeClass("right");
-					perso.removeClass("down");
-					perso.addClass("left");
-					perso.addClass("up");
-				}
 				break;
 			case DIRECTION_ENUM.UP:
 				unitMoveY = -UNIT_ENUM.UNIT_MOVE;
 				
-				if(this.direction != direction) {
-					perso.removeClass("down");
-					perso.removeClass("left");
-					perso.addClass("up");
-					perso.addClass("right");
-				}
 				break;
 			case DIRECTION_ENUM.DOWN:
 				unitMoveY = UNIT_ENUM.UNIT_MOVE;
 				
-				if(this.direction != direction) {
-					perso.removeClass("up");
-					perso.removeClass("right");
-					perso.addClass("down");
-					perso.addClass("left");
-				}
 				break;
 			case DIRECTION_ENUM.DIAGONAL_UP_RIGHT:
 				unitMoveX = UNIT_ENUM.UNIT_MOVE2;
 				unitMoveY = -UNIT_ENUM.UNIT_MOVE2;
 				
-				if(this.direction != direction) {
-					// WAITING FOR NEW PERSO DRAWING
-				}
 				break;
 			case DIRECTION_ENUM.DIAGONAL_UP_LEFT:
 				unitMoveX = -UNIT_ENUM.UNIT_MOVE;
@@ -392,6 +364,10 @@ Character.prototype = {
 			default: break;
 		}
 		
+		if(this.direction != direction) {
+			character.removeClass(this.direction);
+			character.addClass(direction);
+		}
 		this.direction = direction;
 		
 		if(unitMoveY != null) {
@@ -503,7 +479,7 @@ Character.prototype = {
 	*/
 	draw: function() {
 		//$("#"+this.currentMap.getID()).append('<div class="occupation" style="top:'+this.position.y+'px;left:'+this.position.x+'px;" id="'+this.ID+'"></div>');
-		//$("#"+this.ID).append('<div class="perso stand down right"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
+		//$("#"+this.ID).append('<div class="character stand down right"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
 		var parameters = [];
 		parameters["ID"] = this.ID;
 		parameters["name"] = this.name;
@@ -530,7 +506,7 @@ Character.prototype = {
 	*/
 	userSpeak: function() {
 		if(!this.speaking) {
-			$("#"+this.ID+" .perso").append("<div class='buble'><input type='text' id='userSpeak'/></div>");
+			$("#"+this.ID+" .character").append("<div class='buble'><input type='text' id='userSpeak'/></div>");
 			$("#userSpeak").focus();
 			this.speaking = true;
 		} else {
@@ -542,10 +518,10 @@ Character.prototype = {
 			speak = speak.replace(":O","<span class='smiley blue'>:O</span>");
 			speak = speak.replace(":'(","<span class='smiley blue'>:'(</span>");
 			speak = speak.replace(";)","<span class='smiley yellow'>;)</span>");
-			$("#"+this.ID+" .perso .buble").html(speak);
+			$("#"+this.ID+" .character .buble").html(speak);
 			var characterID = this.ID;
 			setTimeout(function() {
-				$("#"+characterID+" .perso .buble").fadeOut('slow');
+				$("#"+characterID+" .character .buble").fadeOut('slow');
 				this.speaking = false;
 			}, 2000);
 		}

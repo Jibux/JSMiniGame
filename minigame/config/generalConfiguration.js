@@ -22,7 +22,7 @@ configuration.load={
 		],
 		data:[
 			"maps",
-			"TemplateOccupation"
+			"TemplateOccupation",
 		],
 		classes:[
 			"Tools",
@@ -35,6 +35,7 @@ configuration.load={
 			"ActionManager",
 			"Actions/Move",
 			"HTMLGenerator",
+			"ResourcesLoader",
 		],
 		ihm:[
 			"character_ihm",
@@ -52,6 +53,7 @@ configuration.load={
 		],
 		main:[
 			"style",
+			"character",
 			"tile"
 		],
 		debug:[

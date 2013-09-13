@@ -1,7 +1,12 @@
 /**
 * Génère un code HTML à partir d'un tableau JSON
-*
-* jsonTemplate => tableau d'éléments
+*	element_ihm = {
+*		html:[
+*			... elements ...
+*		],
+*		beforeLoad:function,
+*		afterLoad:function
+*	}
 *	-------------------------------------------------------------------
 *	-------------------------------------------------------------------
 *	Eléments:
@@ -11,7 +16,7 @@
 *				name:"node"
 *				attr:[
 *					{name:"attr_name",value:"attr_value"},
-*					{name:"attr_name",value:"$variable$",defaultValue:"attr_default_value"}		=>	pour mettre des variables il faut mettre le nom de la variable entre ' $ ' et éventuellement mettre une valeur par défaut en rajoutant default
+*					{name:"attr_name",value:"$variable$",defaultValue:"attr_default_value"}		=>	pour mettre des variables il faut mettre le nom de la variable entre ' $ ' et éventuellement mettre une valeur par défaut en rajoutant default (peut être un objet)
 *					...
 *				],
 *				child[
@@ -27,30 +32,56 @@
 */
 var HTMLGenerator = {
 	append : function(parentNode, jsonTemplate,params) {
-		$(parentNode).append(HTMLGenerator.getHtmlCode(jsonTemplate,params));
+		if(typeof(jsonTemplate.beforeLoad) !== "undefined"){
+			jsonTemplate.beforeLoad(params);
+		}
+		$(parentNode).append(HTMLGenerator.getHtmlCode(jsonTemplate.html,params));
+		if(typeof(jsonTemplate.afterLoad) !== "undefined"){
+			jsonTemplate.afterLoad(params);
+		}
 	},
 	prepend : function(parentNode, jsonTemplate,params) {
-		$(parentNode).prepend(HTMLGenerator.getHtmlCode(jsonTemplate,params));
+		if(typeof(jsonTemplate.beforeLoad) !== "undefined"){
+			jsonTemplate.beforeLoad(params);
+		}
+		$(parentNode).prepend(HTMLGenerator.getHtmlCode(jsonTemplate.html,params));
+		if(typeof(jsonTemplate.afterLoad) !== "undefined"){
+			jsonTemplate.afterLoad(params);
+		}
 	},
 	html : function(parentNode, jsonTemplate,params) {
-		$(parentNode).html(HTMLGenerator.getHtmlCode(jsonTemplate,params));
+		if(typeof(jsonTemplate.beforeLoad) !== "undefined"){
+			jsonTemplate.beforeLoad(params);
+		}
+		$(parentNode).html(HTMLGenerator.getHtmlCode(jsonTemplate.html,params));
+		if(typeof(jsonTemplate.afterLoad) !== "undefined"){
+			jsonTemplate.afterLoad(params);
+		}
 	},
 
 	getHtmlCode : function(jsonTemplate,params) {
-		function replaceVariables(string, params, defaultValue){
-			var regex = /\$[a-zA-Z0-9]+\$/g; 
+		function replaceVariables(string, params){
+			var regex = /\$([^$]+)\$/g;
 			if(regex.test(string)) {
 				var matches = string.match(regex);
 				for(counter = 0; counter<matches.length; counter++){
 					//recuperation nom param
-					parameterName = matches[counter];
-					parameterName = parameterName.replace("$","").replace("$","");
+					var parameterName = matches[counter];
+					parameterName = parameterName.replace(/\$/g,"");
+					
+					var regex2=/(.+):(.*)/g;
+					var defaultValue=undefined;
+					
+					if(regex2.test(parameterName)){
+						parameterName= RegExp.$1;
+						defaultValue = RegExp.$2;
+					}
 					if(typeof(params[parameterName]) !== "undefined"){
 						//replace si le param existe
-						string = string.replace("$"+parameterName+"$",params[parameterName]);
+						string = string.replace(matches[counter],params[parameterName]);
 					}else if(typeof(defaultValue) !== "undefined"){
 						//sinon replace avec valeur par defaut
-						string = string.replace("$"+parameterName+"$",defaultValue);
+						string = string.replace(matches[counter],defaultValue);
 					}else{
 						console.error("ERROR : No parameter given for "+matches[counter]);
 					}
@@ -66,18 +97,20 @@ var HTMLGenerator = {
 		// J'ai déjà été confronté à ce problème dans mon code.
 		// Je fais : if(typeof(machin) !== "function")... etc.
 	
+		var regex=/$(.+):(.*)/g;
+	
 		var nodeCode="";
 		for(var i in jsonTemplate) {
 			var node = jsonTemplate[i];
-			if(typeof(node.content) !== "undefined") {
-				var ret = replaceVariables(node.content,params,node.content.defaultValue);
+			if(typeof(node.content) !== "undefined") {	
+				var ret = replaceVariables(node.content,params);
 				nodeCode += ret;
 			}
 			if(typeof(node.name) !== "undefined" && node.name != "") { // node.name = "" parfois CAS MERDIQUE
 				nodeCode+="<"+node.name;
 				if(typeof(node.attr) !== "undefined") {
 					for(var attr in node.attr) {
-						var value = replaceVariables(node.attr[attr].value,params,node.attr[attr].defaultValue);
+						var value = replaceVariables(node.attr[attr].value,params);
 						if(typeof(node.attr[attr].name) !== "undefined" && typeof(value) !== "undefined") { // CAS MERDIQUE
 							nodeCode += " "+node.attr[attr].name+"='"+value+"'";
 						} else {

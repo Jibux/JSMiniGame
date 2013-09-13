@@ -1,23 +1,5 @@
 $("document").ready(function() {
-	$("#screen").addClass(configuration.mode).addClass(configuration.quality+"_quality");
-	
-	// Test Lang
-	/*console.log("0 "+Lang.getString("deguerre"));
-	Lang.setLanguage("fr_FR");
-	console.log("1 "+Lang.getString("deguerre"));
-	Lang.setLanguage("en_GB");
-	console.log("2 "+Lang.getString("deguerre"));*/
-	//console.log("3 "+Lang.getString("test"));
-	
-	// Load maps and characters
-	init();
-	// Start the action manager
-	ActionManager.start();
-	
-	/*clock();
-	setInterval(function() {
-		clock();
-	},60000);*/
+	waitForCompleteLoad();
 });
 
 function clock() {
@@ -28,6 +10,8 @@ function clock() {
 
 
 function init() {
+	$("#screen").addClass(configuration.mode).addClass(configuration.quality+"_quality");
+		
 	var currentDate = new Date();
 	currentDate.getHours();
 	
@@ -60,4 +44,16 @@ function init() {
 	
 	// Draw all of these
 	map.drawNeighbours();
+	
+	// Start the action manager
+	ActionManager.start();
 }
+
+function waitForCompleteLoad(){
+	if( typeof(ResourcesLoader) !== "undefined" && ResourcesLoader.isLoaded()){
+		init();
+	}else{
+		var timeout = setTimeout("waitForCompleteLoad()", 200 ); 
+	}
+}
+

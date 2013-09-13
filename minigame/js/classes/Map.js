@@ -473,12 +473,23 @@ Map.prototype = {
 		newPosition.x = newPosition.x + Map.drawOffset.x;
 		newPosition.y = newPosition.y + Map.drawOffset.y;
 		
-		$("#screen").append('<div id="'+this.ID+'" class="map" style="left:'+newPosition.x+'px;top:'+newPosition.y+'px;"></div>');
-
+		$("#screen").append('<div id="'+this.ID+'" class="map" style="left:'+newPosition.x+'px;top:'+newPosition.y+'px;"><canvas id="'+this.ID+'_canvas" width="'+this.size.width*UNIT+'" height="'+this.size.height*UNIT+'"></canvas></div>');
+		
+		var ctx = document.getElementById(this.ID+"_canvas").getContext('2d');
+		
 		for(var x = 0; x < this.size.width; x++) {
 			for(var y = 0; y < this.size.height; y++) {
 				var type = this.tile[x+"_"+y];
-				$("#"+this.ID).prepend("<div class='tile "+type+"' id='tile_"+x+"_"+y+"' style='left:"+x*UNIT+"px;top:"+y*UNIT+"px;"+"'></div>");
+				if(typeof(ResourcesLoader.resources[type]) !== "undefined"){
+					var img = ResourcesLoader.resources[type];
+					ctx.drawImage(img, 0, 0, 20, 20, x*UNIT, y*UNIT,20,20);
+				}else{
+					ctx.fillStyle = "rgb(255, 0, 0)";
+					ctx.fillRect( x*UNIT, y*UNIT, 20, 20);
+				}
+				if(configuration.mode === MODE_ENUM.DEBUG){
+					ctx.strokeRect( x*UNIT, y*UNIT, 20, 20);
+				}
 			}
 		}
 		// This is the border_right.
