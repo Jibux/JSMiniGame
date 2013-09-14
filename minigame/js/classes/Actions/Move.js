@@ -14,6 +14,7 @@ var Move = function(map, subject, target) {
 	this.indexInPath = 0;
 	this.overrideDirection = DIRECTION_ENUM.NOCHANGE;
 	this.reloadDestination = false;
+	this.hasReloadedDestination = false;
 	/*
 	*	If we change map, the neighboursOccupation' will be updated, and so all the characters' offset.
 	*	So, to keep using the path calculated for the initial map, we have to set this offset to access to the correct points in the path.
@@ -146,30 +147,12 @@ Move.prototype.move = function() {
 	//var destination = new Point(this.path[this.indexInPath].x*UNIT, this.path[this.indexInPath].y*UNIT);
 	var destination = new Point((this.path[this.indexInPath].x + this.pathOffset.x)*UNIT, (this.path[this.indexInPath].y + this.pathOffset.y)*UNIT);
 	var action = this;
-	
+
+	this.hasReloadedDestination = true;
 	this.subject.move();
 	moveResult = action.moveByStep(destination);
 	var intId = setInterval(function() {
-		var position = action.getSubject().getPosition();
-		if(action.indexInPath == action.path.length || moveResult == MOVE_FINISHED || action.state == ACTION_STATE_ENUM.TOSTOP) {
-			if(action.indexInPath == action.path.length) {
-				action.indexInPath--;
-			}
-			
-			clearInterval(intId);
-			action.stopAction();
-			action.getSubject().stop();
-			action.getSubject().setCurrentAction(null);
-			//var position = action.getSubject().getArrayPosition();
-			//console.log("Actual ("+position.x +", "+position.y+")");
-			
-			//console.log("Target ("+action.path[action.indexInPath].x+", "+action.path[action.indexInPath].y+")");
-			
-			console.debug("SUBJECT OCCUPATION", Map.neighboursSubjectOccupation);
-			return MOVE_FINISHED;
-		}
-		moveResult = action.moveByStep(destination);
-		
+
 		if(moveResult == MOVE_WAIT) {
 			//console.log("ARRIVED ("+position.x / UNIT +", "+position.y / UNIT+") => ("+nodes[action.indexInPath].x+", "+nodes[action.indexInPath].y+")");
 			// We have reached a step in the node list. Increment "action.indexInPath".
@@ -211,11 +194,32 @@ Move.prototype.move = function() {
 		
 		if(action.reloadDestination && action.indexInPath != action.path.length) {
 			destination = new Point((action.path[action.indexInPath].x + action.pathOffset.x)*UNIT, (action.path[action.indexInPath].y + action.pathOffset.y)*UNIT);
-
+			action.reloadDestination = false;
+			action.hasReloadedDestination = true;
 			/*console.log(subjectID+" DEST Y:", action.path[action.indexInPath].y);
 			console.log(subjectID+" Move.pathOffset.y:", action.pathOffset.y);
 			console.log(subjectID+" NEW DESTINATION:", destination);*/
 		}
+
+		if(action.indexInPath == action.path.length || moveResult == MOVE_FINISHED || action.state == ACTION_STATE_ENUM.TOSTOP) {
+			if(action.indexInPath == action.path.length) {
+				action.indexInPath--;
+			}
+			
+			clearInterval(intId);
+			action.stopAction();
+			action.getSubject().stop();
+			action.getSubject().setCurrentAction(null);
+			//var position = action.getSubject().getArrayPosition();
+			//console.log("Actual ("+position.x +", "+position.y+")");
+			
+			//console.log("Target ("+action.path[action.indexInPath].x+", "+action.path[action.indexInPath].y+")");
+			
+			console.debug("SUBJECT OCCUPATION", Map.neighboursSubjectOccupation);
+			return MOVE_FINISHED;
+		}
+		
+		moveResult = action.moveByStep(destination);
 		
 	}, FOOT_STEP_DURATION);
 }
@@ -233,10 +237,10 @@ Move.prototype.moveByStep = function(destination) {
 
 	var moveSubject = true;
 
-	if(this.reloadDestination) {
+	if(this.hasReloadedDestination) {
+		this.hasReloadedDestination = false;
 		var destinationToArray = destination.scaleToArray();
 		if(!this.currentMap.isPositionOccupied(destinationToArray)) {
-			this.reloadDestination = false;
 			// Reserve next position.
 			ActionManager.getMainMap().setSubjectOccupation(destinationToArray);
 		} else {

@@ -25,7 +25,7 @@ function init() {
 	
 	// Main character (3rd parameter set to 'true')
 	var character = new Character("user", map, true);
-	character.setPosition(new Point(0,360));
+	character.setPosition(new Point(0, 0));
 	
 	// Make him managed by ActionManager
 	ActionManager.addSubject(character);
@@ -35,7 +35,7 @@ function init() {
 	//map2.setNeighbours(mapID2);
 	
 	var character2 = new Character("TEST", map2, false);
-	character2.setPosition(new Point(0,200));
+	character2.setPosition(new Point(0, 40));
 	
 	ActionManager.addSubject(character2);
 	
