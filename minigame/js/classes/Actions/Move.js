@@ -73,13 +73,13 @@ Move.prototype.start = function() {
 }
 
 /*
-*	Search path from a given position. "withSubjects" parameter stands for taking account of subjects or not.
+*	Search path from a given position. "bannedPosition" parameter stands for banning some positions.
 */
-Move.prototype.searchPath = function(position, withSubjects) {
+Move.prototype.searchPath = function(position, bannedPosition) {
 	var offsetX = 0;
 	var offsetY = 0;
 		
-	var map = (withSubjects == true ? ActionManager.getMainMap().getNeighboursSubjectOccupation() : ActionManager.getMainMap().getNeighboursOccupation());
+	var map = ActionManager.getMainMap().getNeighboursOccupation();
 	
 	offsetX = this.subject.getXOffset();
 	offsetY = this.subject.getYOffset();
@@ -93,6 +93,10 @@ Move.prototype.searchPath = function(position, withSubjects) {
 	var start = graph.nodes[position.x+offsetX][position.y+offsetY];
 	// End at the offset position of the click.
 	var end = graph.nodes[this.target.x+offsetMapX][this.target.y+offsetMapY];
+
+	if(typeof(bannedPosition) !== "undefined") {
+		graph.nodes[bannedPosition.x][bannedPosition.y].type = STATIC_OCCUPATION_ENUM.UNAVAILABLE;
+	}
 
 	// Find path.
 	var result = astar.search(graph.nodes, start, end, true);
@@ -245,7 +249,7 @@ Move.prototype.moveByStep = function(destination) {
 
 			var position = this.subject.getArrayPosition();
 			
-			var path = this.searchPath(position, true);
+			var path = this.searchPath(position, destinationToArray);
 			if(path === null) {
 				return MOVE_FINISHED;
 			} else {
