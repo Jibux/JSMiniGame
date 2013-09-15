@@ -515,7 +515,7 @@ var ActionManager = {
 	/*
 	*	Update the path offset for all the moving subjects.
 	*/
-	updatedMovingSubjectsPathOffset: function(offset) {
+	updateMovingSubjectsPathOffset: function(offset) {
 		for(var subjectID in Actions.subjectList) {
 			var subject = Actions.subjectList[subjectID];
 			if(typeof(subject.getCurrentAction) === 'function' && !subject.isMainCharacter()) {

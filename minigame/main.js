@@ -35,7 +35,7 @@ function init() {
 	//map2.setNeighbours(mapID2);
 	
 	var character2 = new Character("TEST", map2, false);
-	character2.setPosition(new Point(0, 40));
+	character2.setPosition(new Point(0, 80));
 	
 	ActionManager.addSubject(character2);
 	

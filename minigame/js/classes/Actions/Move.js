@@ -60,6 +60,11 @@ Move.prototype.updatePathOffset = function(offset) {
 	this.pathOffset.y+= offset.y;
 }
 
+Move.prototype.resetPathOffset = function(offset) {
+	this.pathOffset.x = 0;
+	this.pathOffset.y = 0;
+}
+
 /*
 *	Just launch moveTo().
 */
@@ -88,7 +93,7 @@ Move.prototype.searchPath = function(position, withSubjects) {
 	var start = graph.nodes[position.x+offsetX][position.y+offsetY];
 	// End at the offset position of the click.
 	var end = graph.nodes[this.target.x+offsetMapX][this.target.y+offsetMapY];
-	
+
 	// Find path.
 	var result = astar.search(graph.nodes, start, end, true);
 	
@@ -99,6 +104,8 @@ Move.prototype.searchPath = function(position, withSubjects) {
 		console.log("CANNOT FIND PATH");
 		return null;
 	}
+
+	this.resetPathOffset();
 	
 	return result;
 }
@@ -121,11 +128,6 @@ Move.prototype.moveTo = function() {
 	}
 	
 	this.initStart();
-	
-	/*if(this.subject.isMainCharacter()) {
-		this.pathOffset.x = 0;
-		this.pathOffset.y = 0;
-	}*/
 	
 	var path = this.searchPath(position);
 	if(path === null) {
@@ -159,16 +161,10 @@ Move.prototype.move = function() {
 			action.indexInPath++;
 			
 			if(action.overrideDirection != DIRECTION_ENUM.NOCHANGE) {
-				/*action.path = action.overridePath;
-				action.indexInPath = 0;
-				action.overridePath = null;*/
-				
-				action.pathOffset.x = 0;
-				action.pathOffset.y = 0;
+				action.resetPathOffset();
 				
 				var position = action.subject.getPositionFromDirection(action.overrideDirection, true);
-				//console.log("CURRENT POS:", action.subject.getOffsetedArrayPosition());
-				//console.log("GO POSITION:", position);
+
 				// Here update offset
 				var outOf = action.subject.getCurrentMap().isPointOutOfRange(position, true);
 				
@@ -210,12 +206,7 @@ Move.prototype.move = function() {
 			action.stopAction();
 			action.getSubject().stop();
 			action.getSubject().setCurrentAction(null);
-			//var position = action.getSubject().getArrayPosition();
-			//console.log("Actual ("+position.x +", "+position.y+")");
-			
-			//console.log("Target ("+action.path[action.indexInPath].x+", "+action.path[action.indexInPath].y+")");
-			
-			console.debug("SUBJECT OCCUPATION", Map.neighboursSubjectOccupation);
+
 			return MOVE_FINISHED;
 		}
 		
@@ -240,13 +231,18 @@ Move.prototype.moveByStep = function(destination) {
 	if(this.hasReloadedDestination) {
 		this.hasReloadedDestination = false;
 		var destinationToArray = destination.scaleToArray();
+		var positionToArray = this.subject.getOffsetedArrayPosition();
+		
+		// Book the next position if it is not occupied.
 		if(!this.currentMap.isPositionOccupied(destinationToArray)) {
-			// Reserve next position.
 			ActionManager.getMainMap().setSubjectOccupation(destinationToArray);
-		} else {
+		}
+		// NOT this:	The subject has not yet finished to reach its css' destination (ex. Point(400,400)).
+		//				The array position indicates that it has reach position (ex. Point(20,20)), but not in the css point of view (ex. Point(400,410)).
+		else if(!positionToArray.equals(destinationToArray)) {
 			// Enemy !
 			console.log("Enemy at ",destinationToArray);
-			
+
 			var position = this.subject.getArrayPosition();
 			
 			var path = this.searchPath(position, true);
@@ -259,7 +255,6 @@ Move.prototype.moveByStep = function(destination) {
 			this.indexInPath = 0;
 			this.reloadDestination = true;
 			moveSubject = false;
-			//console.debug(this.path);
 		}
 	}
 
@@ -301,7 +296,7 @@ Move.prototype.moveCss = function(destination) {
 			destination.x+= offset.x*UNIT;
 			destination.y+= offset.y*UNIT;
 			
-			ActionManager.updatedMovingSubjectsPathOffset(offset);
+			ActionManager.updateMovingSubjectsPathOffset(offset);
 			ActionManager.reloadMovingSubjectsDestination();
 		}
 		$(offset).remove();
