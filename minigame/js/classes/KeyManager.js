@@ -1,39 +1,3 @@
-/*
-*	Juste pour le test
-*/
-/*var ActionManager={
-	//test  action simple
-	moveUp : function(){
-		console.log("moveUp");
-	},
-	//test key down key up
-	startMoveRight : function(){
-		console.log("startMoveRight");
-	},
-	stopMoveRight : function(){
-		console.log("stopMoveRight");
-	},
-	//test blockBrowserAction
-	moveDown : function(){
-		console.log("moveDown");
-	},
-	//test parameters (les paramètres sont récupérés à partir de la variable arguments mais on peux aussi définir directement  les arguments  : function(params) )
-	moveLeft : function(){
-		console.log("moveLeft, params:"+JSON.stringify(arguments[0],""));
-	},
-	//test changement de map
-	startSpeak : function(){
-		console.log("startSpeak, params:"+JSON.stringify(arguments[0],""));
-	},
-	stopSpeak : function(){
-		console.log("stopSpeak, params:"+JSON.stringify(arguments[0],""));
-	},
-
-};*/
-
-///////////////////////////////////////
-///////////////////////////////////////
-
 /**
 * Gestion des événements des touches du clavier
 * @author HermineF
@@ -72,6 +36,11 @@ var KeyMaps={
 		"GO_RIGHT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.RIGHT}}}},
 		"GO_DOWN_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DOWN}}}},
 		"GO_LEFT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.LEFT}}}},
+		"GO_UP_LEFT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DIAGONAL_UP_LEFT}}}},
+		"GO_UP_RIGHT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DIAGONAL_UP_RIGHT}}}},
+		"GO_DOWN_LEFT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DIAGONAL_DOWN_LEFT}}}},
+		"GO_DOWN_RIGHT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT}}}},
+		
 		"SPEAK_ACTION"		:{"callFunction" : {"keyDown":{"function":"startSpeak", "parameters":{"currentKeyMAP":"MAIN","going to Map":"SPEAK"}}},"nextKeyMap" : "SPEAK"},
 	},
 	"SPEAK" : {
@@ -283,20 +252,22 @@ var KeyManager = function(){
 	});
 
 	var getKeyCode=function(event){
-		var sign="+";
-		//dans le cas où la touche est définie dans la map
-		if(userDefinedKeys [ currentKeyMAP ] [KeyCodes[ event.which ]]!==undefined){
+		var combo="";
+		for(var i=0;i<keys.length;i++){
+			if(i>0){
+				combo+=KEY_COMBO_SEPARATOR;
+			}
+			combo+=keys[i];
+		}
+		
+		//si la combo n'est pas définie mais que la touche l'est on renvoi la touche
+		if(typeof(userDefinedKeys [ currentKeyMAP ] [combo] ) ==="undefined" && typeof(userDefinedKeys [ currentKeyMAP ] [KeyCodes[ event.which ]] ) !=="undefined"){
+			console.log(KeyCodes[ event.which ]);
 			return KeyCodes[ event.which ];
 		}else{
-			//sinon on regarde si c'est un combo de touches
-			var combo="";
-			for(var i=0;i<keys.length;i++){
-				if(i>0){
-					combo+=sign;
-				}
-				combo+=keys[i];
-			}
+			console.log(combo);
 			return combo;
 		}
+		
 	}
 };
