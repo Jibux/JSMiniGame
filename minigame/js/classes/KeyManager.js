@@ -32,19 +32,18 @@
 */
 var KeyMaps={
 	"MAIN"	: {
-		"GO_UP_ACTION"		:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.UP}}}},
-		"GO_RIGHT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.RIGHT}}}},
-		"GO_DOWN_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DOWN}}}},
-		"GO_LEFT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.LEFT}}}},
-		"GO_UP_LEFT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DIAGONAL_UP_LEFT}}}},
-		"GO_UP_RIGHT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DIAGONAL_UP_RIGHT}}}},
-		"GO_DOWN_LEFT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DIAGONAL_DOWN_LEFT}}}},
-		"GO_DOWN_RIGHT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT}}}},
-		
-		"SPEAK_ACTION"		:{"callFunction" : {"keyDown":{"function":"startSpeak", "parameters":{"currentKeyMAP":"MAIN","going to Map":"SPEAK"}}},"nextKeyMap" : "SPEAK"},
+		"GO_UP_ACTION"			:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DIAGONAL_UP_LEFT}}}},
+		"GO_RIGHT_ACTION"		:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DIAGONAL_UP_RIGHT}}}},
+		"GO_DOWN_ACTION"		:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT}}}},
+		"GO_LEFT_ACTION"		:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DIAGONAL_DOWN_LEFT}}}},
+		"GO_DOWN_LEFT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.DOWN}}}},
+		"GO_UP_RIGHT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.UP}}}},
+		"GO_DOWN_RIGHT_ACTION"	:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.RIGHT}}}},
+		"GO_UP_LEFT_ACTION"		:{"callFunction" : {"keyDown":{"function":"moveMainCharacter", "parameters":{"direction":DIRECTION_ENUM.LEFT}}}},
+		"SPEAK_ACTION"			:{"callFunction" : {"keyDown":{"function":"startSpeak", "parameters":{"currentKeyMAP":"MAIN","going to Map":"SPEAK"}}},"nextKeyMap" : "SPEAK"},
 	},
 	"SPEAK" : {
-		"SPEAK_ACTION"		:{"callFunction" :  {"keyDown":{"function":"stopSpeak", "parameters":{"currentKeyMAP":"SPEAK","going to Map":"MAIN"}}},"nextKeyMap" : "MAIN"},
+		"SPEAK_ACTION"			:{"callFunction" :  {"keyDown":{"function":"stopSpeak", "parameters":{"currentKeyMAP":"SPEAK","going to Map":"MAIN"}}},"nextKeyMap" : "MAIN"},
 	},
 };
 

@@ -35,7 +35,7 @@ var userDefinedKeys={
 		"LEFT_ARROW+DOWN_ARROW":{code:"GO_DOWN_LEFT_ACTION"},
 		"DOWN_ARROW+RIGHT_ARROW":{code:"GO_DOWN_RIGHT_ACTION"},
 		"RIGHT_ARROW+DOWN_ARROW":{code:"GO_DOWN_RIGHT_ACTION"},
-	
+
 		"UP_ARROW":{code:"GO_UP_ACTION"},
 		"LEFT_ARROW":{code:"GO_LEFT_ACTION"},
 		"DOWN_ARROW":{code:"GO_DOWN_ACTION"},
@@ -50,10 +50,15 @@ var userDefinedKeys={
 		"S+D":{code:"GO_DOWN_RIGHT_ACTION"},
 		"D+S":{code:"GO_DOWN_RIGHT_ACTION"},
 
-		"Z":{code:"GO_UP_ACTION"},
-		"Q":{code:"GO_LEFT_ACTION"},
-		"S":{code:"GO_DOWN_ACTION"},
-		"D":{code:"GO_RIGHT_ACTION"},
+		"NUMPAD_8":{code:"GO_UP_ACTION"},
+		"NUMPAD_4":{code:"GO_LEFT_ACTION"},
+		"NUMPAD_2":{code:"GO_DOWN_ACTION"},
+		"NUMPAD_6":{code:"GO_RIGHT_ACTION"},
+		"NUMPAD_1":{code:"GO_DOWN_LEFT_ACTION"},
+		"NUMPAD_9":{code:"GO_UP_RIGHT_ACTION"},
+		"NUMPAD_3":{code:"GO_DOWN_RIGHT_ACTION"},
+		"NUMPAD_7":{code:"GO_UP_LEFT_ACTION"},
+
 		
 	},"SPEAK" : {
 		"ENTER":{code:"SPEAK_ACTION"},

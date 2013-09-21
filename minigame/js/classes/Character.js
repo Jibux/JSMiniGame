@@ -271,6 +271,22 @@ Character.prototype = {
 			case DIRECTION_ENUM.DOWN:
 				y++;
 				break;
+			case DIRECTION_ENUM.DIAGONAL_DOWN_RIGHT:
+				x++;
+				y++;
+				break;
+			case DIRECTION_ENUM.DIAGONAL_UP_LEFT:
+				x--;
+				y--;
+				break;
+			case DIRECTION_ENUM.DIAGONAL_UP_RIGHT:
+				x++;
+				y--;
+				break;
+			case DIRECTION_ENUM.DIAGONAL_DOWN_LEFT:
+				x--;
+				y++;
+				break;
 			default: break;
 		}
 		
