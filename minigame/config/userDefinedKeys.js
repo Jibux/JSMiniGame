@@ -1,7 +1,9 @@
+//separateur de touches pour les combos
+var KEY_COMBO_SEPARATOR="+";
 /**
-*	variables pour permettre à l'utilisateur de modifier les touches associées au clavier 
-*	(une touche n'a qu'une action par Map mais une action peut être appellée par plusieurs touches)
-*	pour créer des combos de touches (ex. CTRL+ALT+DELETE ) il faut rajouter un "+" entre chaque code (ne pas mettre d'espace)
+*	variables pour permettre Ã  l'utilisateur de modifier les touches associÃ©es au clavier 
+*	(une touche n'a qu'une action par Map mais une action peut Ãªtre appellÃ©e par plusieurs touches)
+*	pour crÃ©er des combos de touches (ex. CTRL+ALT+DELETE ) il faut rajouter un "+" entre chaque code (ne pas mettre d'espace)
 * Architecture :  
 *	MAP:{
 *		KEY: {
@@ -25,20 +27,28 @@ var userDefinedKeys={
 	"MAIN":{
 		"ENTER":{code:"SPEAK_ACTION"},
 		
-		"DOWN_ARROW+LEFT_ARROW":{code:"GO_DOWN_LEFT_ACTION"},
-		"UP_ARROW+RIGHT_ARROW":{code:"GO_UP_RIGHT_ACTION"},
-		"DOWN_ARROW+RIGHT_ARROW":{code:"GO_DOWN_RIGHT_ACTION"},
 		"UP_ARROW+LEFT_ARROW":{code:"GO_UP_LEFT_ACTION"},
+		"LEFT_ARROW+UP_ARROW":{code:"GO_UP_LEFT_ACTION"},
+		"UP_ARROW+RIGHT_ARROW":{code:"GO_UP_RIGHT_ACTION"},
+		"RIGHT_ARROW+UP_ARROW":{code:"GO_UP_RIGHT_ACTION"},
+		"DOWN_ARROW+LEFT_ARROW":{code:"GO_DOWN_LEFT_ACTION"},
+		"LEFT_ARROW+DOWN_ARROW":{code:"GO_DOWN_LEFT_ACTION"},
+		"DOWN_ARROW+RIGHT_ARROW":{code:"GO_DOWN_RIGHT_ACTION"},
+		"RIGHT_ARROW+DOWN_ARROW":{code:"GO_DOWN_RIGHT_ACTION"},
+
 		"UP_ARROW":{code:"GO_UP_ACTION"},
 		"LEFT_ARROW":{code:"GO_LEFT_ACTION"},
 		"DOWN_ARROW":{code:"GO_DOWN_ACTION"},
 		"RIGHT_ARROW":{code:"GO_RIGHT_ACTION"},
 
-		
-		"Z":{code:"GO_UP_ACTION"},
-		"Q":{code:"GO_LEFT_ACTION"},
-		"S":{code:"GO_DOWN_ACTION"},
-		"D":{code:"GO_RIGHT_ACTION"},
+		"Z+Q":{code:"GO_UP_LEFT_ACTION"},
+		"Q+Z":{code:"GO_UP_LEFT_ACTION"},
+		"Z+D":{code:"GO_UP_RIGHT_ACTION"},
+		"D+Z":{code:"GO_UP_RIGHT_ACTION"},
+		"S+Q":{code:"GO_DOWN_LEFT_ACTION"},
+		"Q+S":{code:"GO_DOWN_LEFT_ACTION"},
+		"S+D":{code:"GO_DOWN_RIGHT_ACTION"},
+		"D+S":{code:"GO_DOWN_RIGHT_ACTION"},
 
 		"NUMPAD_8":{code:"GO_UP_ACTION"},
 		"NUMPAD_4":{code:"GO_LEFT_ACTION"},
@@ -49,9 +59,6 @@ var userDefinedKeys={
 		"NUMPAD_3":{code:"GO_DOWN_RIGHT_ACTION"},
 		"NUMPAD_7":{code:"GO_UP_LEFT_ACTION"},
 
-		
-		"CTRL+ALT":{code:"GO_LEFT_ACTION"},
-		"CTRL+SHIFT+ALT":{code:"GO_RIGHT_ACTION"},
 		
 	},"SPEAK" : {
 		"ENTER":{code:"SPEAK_ACTION"},
