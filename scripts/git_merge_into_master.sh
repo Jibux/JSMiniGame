@@ -1,9 +1,6 @@
 #!/bin/bash
 
 
-#!/bin/bash
-
-
 branchs=`git branch | awk '{print $NF}'`
 our_branch=`git branch | grep '*' | awk '{print $NF}'`
 
