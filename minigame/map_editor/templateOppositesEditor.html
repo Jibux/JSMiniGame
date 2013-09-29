@@ -1,0 +1,115 @@
+<html>
+	<head>
+		<script src="../libraries/jquery-1.9.1.min.js"   type="text/javascript"></script>
+		<script src="../js/data/TemplateOccupation.js"   type="text/javascript"></script>
+		<style>
+			textarea{width:90%;height:10em;}
+			.tile{display:inline-block;width:20px;height:20px;margin:10px;border:4px solid #fff;cursor:pointer;padding:0px;opacity:0.8;position:relative;-webkit-transform: scale(1.5);background-image:url("resources/tileTemplate.png");}
+			.tile.selected{border:4px solid #0F0;}
+			
+			.tile.set{background-color:#5F5;}
+		</style>
+	</head>
+	<body>
+		<div id="tileset"></div>
+		<textarea>
+		</textarea>	
+	</body>
+	<script>
+		
+	$("document").ready(function(){
+		jQuery.fn.exists = function(){return this===undefined || ( this!==undefined && this.length>0);}
+	
+		populateTileSet();
+		getJson();
+		
+		$(".tile").click(function(){
+			if($(this).hasClass("set")){
+				handleTileSetClick(this);
+				return;
+			}else if($(this).hasClass("selected")){
+				$(this).removeClass("selected");
+			}else{
+				$(this).addClass("selected");
+				
+				var counter=0;
+				$("#tileset").find(".selected").each(function(){
+					counter++;
+				});
+				if(counter === 2){
+					var selectedTiles=new Object();
+					var counter = 0;
+					var color = getRandomColor();
+					$(".tile.selected").each(function(){
+						$(this).removeClass("selected").addClass("set");
+						selectedTiles[counter]=getTilePosition(this);
+						$(this).css("border","4px solid "+color);
+						
+						counter++;
+					});
+					TemplateOpposites[ selectedTiles[0] ] = selectedTiles[1] ;
+					TemplateOpposites[ selectedTiles[1] ] = selectedTiles[0] ;
+					
+					getJson();
+				}
+			}
+		});
+	});
+	
+	function handleTileSetClick(element){
+			$(element).removeClass("set").css("border","");
+			var pair = TemplateOpposites[ getTilePosition(element) ];
+			
+			$("#"+pair).removeClass("set").css("border","");
+			
+			TemplateOpposites[ getTilePosition(element) ] = undefined ;
+			TemplateOpposites[ pair ] = undefined ;
+			
+			getJson();
+	}
+	
+	function populateTileSet(){
+		var colors=new Object();
+		TemplateOpposites[0]=1;
+		TemplateOpposites[1]=0;
+		for(var y=0; y<TemplateDefinition.height;y++){
+			for(var x=0;x<TemplateDefinition.width;x++){
+				$("#tileset").append('<div id="'+(x+1)+'_'+(y+1)+'" class="tile" style="background-position: -'+x*TemplateDefinition.tileSize+'px  -'+y*TemplateDefinition.tileSize+'px"></div>');
+				
+				//si déjà défini on le set directement
+				if( typeof(TemplateOpposites[(x+1)+'_'+(y+1)]) !== "undefined"){
+					var tileBorderColor = getRandomColor();
+					
+					if( typeof(colors[(x+1)+'_'+(y+1)]) !== "undefined"){
+						tileBorderColor = colors[(x+1)+'_'+(y+1)];
+					}else{
+						colors[ TemplateOpposites[(x+1)+'_'+(y+1)] ] = tileBorderColor;
+					}
+					$("#"+(x+1)+'_'+(y+1)).addClass("set").css("border","4px solid "+tileBorderColor);
+				}
+			}
+			$("#tileset").append('<br/>');			
+		}
+	}
+	
+	function getTilePosition(tile){
+		return $(tile).attr('id');
+	}
+	
+	function getJson(){
+		var result="";
+		result += "TemplateOpposites=";
+		result += JSON.stringify(TemplateOpposites, null)+";\n";
+		$("textarea").val(result);
+	}
+	
+	function getRandomColor(){
+		var x=Math.round(0xffffff * Math.random()).toString(16);
+		var y=(6-x.length);
+		var z="000000";
+		var z1 = z.substring(0,y);
+		return "#" + z1 + x;
+		//return '#'+Math.floor(Math.random()*16777215).toString(16);
+	}
+	</script>
+</html>

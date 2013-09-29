@@ -2,16 +2,17 @@
 	<head>
 		<link rel="stylesheet" type="text/css" href="../css/tile.css" />
 		<script src="../libraries/jquery-1.9.1.min.js"   type="text/javascript"></script>
-		<script src="../js/classes/TemplateOccupation.js"   type="text/javascript"></script>
+		<script src="../js/data/TemplateOccupation.js"   type="text/javascript"></script>
 		<style>
 			textarea{width:90%;height:10em;}
-			.tile{margin:30px;cursor:pointer;padding:0px;opacity:0.8;position:relative;-webkit-transform: scale(2);}
+			.tile{margin:15px;cursor:pointer;padding:0px;opacity:1;position:relative;-webkit-transform: scale(1.5);background-image:url("resources/tileTemplate.png");}
 
-				.occupation{position:absolute;width:5px;height:5px;background:#0F0;}
-					.occupation.selected{background:#00F;}
+				.occupation{position:absolute;width:5px;height:5px;background:#DDD;}
+					.occupation.selected{background:#555;}
 
-				.tile.selected .occupation{background:#050;}
-				.tile.selected .occupation.selected{background:#005;}
+		
+				.tile.selected .occupation{background:#AAA;}
+				.tile.selected .occupation.selected{background:#222;}
 
 				.cornerTTL{top:-5px;left:0px;}
 				.topL{top:-5px;left:5px;}
@@ -43,14 +44,6 @@
 	<script>
 			/*	isObstable donne la possibilité pour le perso d'aller sur ce tile ou non	*/
 		var arrayTypes=new Array("cornerTTL","cornerTLL","topL","topR","cornerTTR","cornerTRR","rightT","rightB","cornerBBR","cornerBRR","bottomR","bottomL","cornerBBL","cornerBLL","leftB","leftT","isObstable");
-		
-		var tiles={
-			//même chose que map editor mais allégé pour ne gérer qu'un seul template
-			template:{width:19,height:4},
-			types:["grass","water"],
-			grass:{grass:"grass",water:"grass_water"},
-			water:{grass:"grass_water",water:"water"},
-		};
 
 	$("document").ready(function(){
 		jQuery.fn.exists = function(){return this===undefined || ( this!==undefined && this.length>0);}
@@ -72,35 +65,27 @@
 			}
 			getJson();
 		});
-		
 	});
 	
 	function populateTileSet(){
-		var alreadySet=new Array();
-		for(var type1 in tiles.types){
-			for(var type2 in tiles.types){
-				var tileType1=tiles.types[type1];
-				var tileType2=tiles.types[type2];
-				if(type1!=type2 && $.inArray(tiles[tileType1][tileType2],alreadySet)<0){
-					for(var y=1;y<=tiles.template.height;y++){
-						for(var x=1;x<=tiles.template.width+1;x++){
-							$("#tileset").append('<div class="tile '+tiles[ tileType1][tileType2]+'_'+x+'_'+y+'"></div>');
-							alreadySet.push(tiles[tileType1][tileType2]);
-						}
-						$("#tileset").append('<br/>');
-					}
-				}
+		for(var y=0;y<TemplateDefinition.height;y++){
+			for(var x=0;x<TemplateDefinition.width;x++){
+				var id = (x+1)+'_'+(y+1);
+				$("#tileset").append('<div id="'+id+'" class="tile"   style="background-position: -'+x*TemplateDefinition.tileSize +'px  -'+y*TemplateDefinition.tileSize+'px;" ></div>');
 			}
+			$("#tileset").append('<br/>');
 		}
-		$(".tile").each(function(){
+		
+		$("#tileset .tile").each(function(){
+			var id = $(this).attr("id");
+			//ajout de l'occupation 
 			for(var i in arrayTypes){
-				var position=$(this).attr('class').replace("tile grass_water_","").replace(" selected","");
-				var selected= TemplateOccupation[position]!=undefined  && TemplateOccupation[position][arrayTypes[i]]!=undefined  && TemplateOccupation[position][arrayTypes[i]]===1;
+				var selected=  typeof(TemplateOccupation[ id ]) !== "undefined"  && typeof(TemplateOccupation[ id ][arrayTypes[i]])  !== "undefined"  && TemplateOccupation[ id ][arrayTypes[i]] === 1;
 				if(selected){
-					$(this).append("<div class='occupation "+arrayTypes[i]+" selected'></div>");
-					$(this).addClass("selected");
+					$("#"+id).append("<div class='occupation "+arrayTypes[i]+" selected'></div>");
+					$("#"+id).addClass("selected");
 				}else{
-					$(this).append("<div class='occupation "+arrayTypes[i]+"'></div>");
+					$("#"+id).append("<div class='occupation "+arrayTypes[i]+"'></div>");
 				}
 			}
 		});
@@ -110,7 +95,7 @@
 		var result="";
 		$(".tile").each(function(){
 			var types =new Object();
-			var name = $(this).attr('class').replace("tile grass_water_","").replace(" selected","");
+			var name = $(this).attr('id');
 			result+="TemplateOccupation['"+name+"']=";
 			for(var i in arrayTypes){
 				if($(this).find(".selected."+arrayTypes[i]).exists()){

@@ -2,7 +2,12 @@
 	<head>
 		<link rel="stylesheet" type="text/css" href="../css/tile.css" />
 		<link rel="stylesheet" type="text/css" href="../libraries/jquery-ui/jquery-ui-1.10.3.min.css" />
-		<link rel="stylesheet" type="text/css" href="./map_editor.css" />
+		<link rel="stylesheet" type="text/css" href="./css/map_editor.css" />
+		<style>
+		
+		
+		
+		</style>
 	</head>
 	<body>
 		<div id="dialog"  title="Toolbar" class=" ui-widget  ui-corner-all">
@@ -11,8 +16,8 @@
 			<div id="accordion">
 				<h3>Basic Tiles</h3>
 					<div id='tileset_1' class="tileset"></div>
-				<h3>Custom Tiles</h3>
-					<div id='tileset_2'  class="tileset"></div>
+				<h3>Brushes</h3>
+					
 				<h3>Map Position</h3>
 					<div class="mapPosition">
 						<label>X</label><input type="text" name="X"/><br/>
@@ -27,7 +32,7 @@
 			</div>
 		</div>
 
-		<div id="mapContainer">
+		<div id="screen">
 			<span class="message">Waiting for Map Position...</span>
 		</div>
 
@@ -35,7 +40,8 @@
 		<script src="../libraries/jquery-ui/jquery-ui-1.10.3.min.js"   type="text/javascript"></script>
 		<script src="../config/globals.js"   type="text/javascript"></script>
 		<script src="../js/data/TemplateOccupation.js"   type="text/javascript"></script>
-		<script src="Brushes.js"   type="text/javascript"></script>
+		<script src="../js/data/TileSet.js"   type="text/javascript"></script>
+		<script src="./js/data/Brushes.js"   type="text/javascript"></script>
 		<script src="../js/data/maps.js"   type="text/javascript"></script>
 		<script src="./map_editor.js"   type="text/javascript"></script>
 	</body>

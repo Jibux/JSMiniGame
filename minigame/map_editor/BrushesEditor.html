@@ -1,0 +1,158 @@
+<html>
+	<head>
+		<script src="../libraries/jquery-1.9.1.min.js"   type="text/javascript"></script>
+		<script src="../js/data/TemplateOccupation.js"   type="text/javascript"></script>
+		<script src="./js/classes/MapEditorHelper.js"   type="text/javascript"></script>
+		<script src="./js/data/Brushes.js"   type="text/javascript"></script>
+		<style>
+			textarea{width:90%;height:10em;}
+			#tileset{background:#ddd;width:100%;}
+			#tileset .tile{display:inline-block;width:20px;height:20px;margin:5px;border:2px solid #555;cursor:pointer;padding:0px;position:relative;background-color:#fff;background-image:url("resources/tileTemplate.png");}
+			#tileset .tile.selected{border:2px solid #0F0;background-color:#0F0;}
+			
+			#brushScreen{margin:0 auto;position:relative;border:1px solid #000;}
+			#brushScreen .tile{border:1px solid #000;position:absolute;display:inline-block;width:20px;height:20px;margin:0px;cursor:pointer;padding:0px;opacity:1;background-color:#FFF;background-image:url("resources/tileTemplate.png");}
+			
+			#brushScreen .tile.invalid{background-color:#F00;border:1px solid #F00;}
+			#brushScreen .tile.valid{background-color:#0F0;}
+			
+			canvas{border:1px solid #000; margin:10px;}
+			
+			#brushSet{text-align:center;background:#ddd;margin:20px;border-radius:20px;}
+			
+		</style>
+	</head>
+	<body>
+		<div id="tileset">
+			<lable>Brush Width</label><input type="text" name="width" />
+			<label>Brush Height</label><input type="text" name="height" />
+			<button name="reset">Reset</button><br/>
+		</div>
+		<div id="brushScreen"></div>
+		<textarea>
+		</textarea>	
+		<div id="brushSet">
+			<lable>Existing Brushes</label><br/>
+		</div>
+	</body>
+	<script>
+	var selectedTile="1_1";
+	var primary="1_1";
+	var secondary="1_2";
+	var defaultTile={x:0,y:20};
+	var defaultBrushSize={x:4,y:4};
+	
+	var brush = new Object();
+	
+	$("document").ready(function(){
+		jQuery.fn.exists = function(){return this===undefined || ( this!==undefined && this.length>0);}
+	
+		populateTileSet();
+		$("#tileset #"+primary).addClass("selected");
+		
+		$("#tileset").prepend("<label>Max Size x:"+maxBrushSize.x+"; y:"+maxBrushSize.y+"</label>");
+		
+		$("input[name=width]").val(defaultBrushSize.x);
+		$("input[name=height]").val(defaultBrushSize.y);
+		populateBrushScreen();
+		
+		$("input[name=width]").change(function(){
+			if($(this).val()>0 && $(this).val()<maxBrushSize.x){
+				populateBrushScreen();
+			}else{
+				$(this).val(defaultBrushSize.x);
+			}
+		});
+		$("input[name=height]").change(function(){
+			if($(this).val()>0 && $(this).val()<maxBrushSize.y){
+				populateBrushScreen();
+			}else{
+				$(this).val(defaultBrushSize.y);
+			}
+		});
+		$("button[name=reset]").click(function(){
+			$("input[name=width]").val(defaultBrushSize.x);
+			$("input[name=height]").val(defaultBrushSize.y);
+			populateBrushScreen();
+		});
+		
+		
+		$("#tileset .tile").click(function(){
+			$("#tileset .selected").removeClass("selected");
+			$(this).addClass("selected");
+		});
+		
+		populateBrushSet();
+	});
+		
+	function populateTileSet(){
+		for(var y=0; y<TemplateDefinition.height;y++){
+			for(var x=0;x<TemplateDefinition.width;x++){
+				$("#tileset").append('<div id="'+(x+1)+'_'+(y+1)+'" class="tile" style="background-position: -'+x*TemplateDefinition.tileSize+'px  -'+y*TemplateDefinition.tileSize+'px;"></div>');
+			}
+			$("#tileset").append('<br/>');			
+		}
+	}
+	
+	function populateBrushScreen(){
+		var width = $("input[name=width]").val();
+		var height = $("input[name=height]").val();
+		
+		brush = new Object();
+		$("#brushScreen").html("");
+		
+		$("#brushScreen").css("width",(width*TemplateDefinition.tileSize)+"px");
+		$("#brushScreen").css("height",(height*TemplateDefinition.tileSize)+"px");
+		
+		brush.size=new Object();
+		brush.size.width=width;
+		brush.size.height=height;
+		
+		brush.tiles=new Object();
+		
+		for(var y=0; y<height;y++){
+			for(var x=0;x<width;x++){
+				$("#brushScreen").append('<div id="'+(x+1)+'_'+(y+1)+'" class="tile"  style="top:'+(y*TemplateDefinition.tileSize)+'px;left:'+(x*TemplateDefinition.tileSize)+'px;background-position: '+defaultTile.x+'px  -'+defaultTile.y+'px;"></div>');
+				brush.tiles[(x+1)+'_'+(y+1)]=1;
+			}
+		}
+		$("#brushScreen .tile").click(function(){
+			handleBrushScreenTileClick(this);
+		});
+		getJson();
+	}
+	
+	function handleBrushScreenTileClick(element){
+		$(element).css("background-position",$("#tileset .selected").css("background-position"));
+		var tile = $("#tileset .selected").attr("id");
+		if(tile === primary){
+			tile = 0;
+		}else if(tile === secondary){
+			tile = 1;
+		}
+		brush.tiles[$(element).attr("id")]=tile;
+		getJson();
+	}
+	
+	function populateBrushSet(){
+		for(var i=0; i<brushSet.length;i++){
+			MapEditorHelper.drawBrush("#brushSet",i+"_A",brushSet[i]);
+		}
+		
+		$("#brushSet").append("<br/>");
+		
+		for(var i=0; i<brushSet.length;i++){
+			MapEditorHelper.drawBrush("#brushSet",i+"_B", MapEditorHelper.invertBrush(brushSet[i]) );
+		}
+		
+	}
+	
+	function getJson(){
+		var result="";
+		result += "\t";
+		result += JSON.stringify(brush, null)+",\n";
+		$("textarea").val(result);
+	}
+	
+	</script>
+</html>
