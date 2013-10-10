@@ -1,48 +1,36 @@
 <html>
 	<head>
+		<meta charset="utf-8">
 		<link rel="stylesheet" type="text/css" href="../css/tile.css" />
+		<link rel="stylesheet" type="text/css" href="../css/ui.css" />
 		<link rel="stylesheet" type="text/css" href="../libraries/jquery-ui/jquery-ui-1.10.3.min.css" />
 		<link rel="stylesheet" type="text/css" href="./css/map_editor.css" />
-		<style>
-		
-		
-		
-		</style>
 	</head>
+	<script>
+		var configuration=new Object();
+		
+		configuration.view= "MAP_EDITOR";
+		configuration.language="fr_FR";
+	</script>
 	<body>
-		<div id="dialog"  title="Toolbar" class=" ui-widget  ui-corner-all">
-			<h1 class="ui-widget-header ui-dialog-title">Toolbar</h1>
-
-			<div id="accordion">
-				<h3>Basic Tiles</h3>
-					<div id='tileset_1' class="tileset"></div>
-				<h3>Brushes</h3>
-					
-				<h3>Map Position</h3>
-					<div class="mapPosition">
-						<label>X</label><input type="text" name="X"/><br/>
-						<label>Y</label><input type="text" name="Y"/><br/>
-						<label>Z</label><input type="text" name="Z"/><br/>
-						<button id="positionButton">Set position and reload</button>
-					</div>
-				<h3>Map code <button>Generate</button><div class="clearfix"></div></h3>
-					<div>
-						<textarea id="scriptMaps"></textarea>
-					</div>
-			</div>
-		</div>
-
-		<div id="screen">
-			<span class="message">Waiting for Map Position...</span>
-		</div>
-
-		<script src="../libraries/jquery-1.9.1.min.js"   type="text/javascript"></script>
-		<script src="../libraries/jquery-ui/jquery-ui-1.10.3.min.js"   type="text/javascript"></script>
-		<script src="../config/globals.js"   type="text/javascript"></script>
-		<script src="../js/data/TemplateOccupation.js"   type="text/javascript"></script>
-		<script src="../js/data/TileSet.js"   type="text/javascript"></script>
-		<script src="./js/data/Brushes.js"   type="text/javascript"></script>
-		<script src="../js/data/maps.js"   type="text/javascript"></script>
-		<script src="./map_editor.js"   type="text/javascript"></script>
+	
+	<div id="screen">
+	</div>
+	
 	</body>
+	
+	<script src="../libraries/jquery-1.9.1.min.js"   type="text/javascript"></script>
+	<script src="../libraries/jquery-ui/jquery-ui-1.10.3.min.js"   type="text/javascript"></script>
+	<script src="../config/globals.js"   type="text/javascript"></script>
+	<script src="../lang/lang.js"   type="text/javascript"></script>
+	<script src="../js/data/TemplateOccupation.js"   type="text/javascript"></script>
+	<script src="../js/data/TileSet.js"   type="text/javascript"></script>
+	<script src="./js/data/Brushes.js"   type="text/javascript"></script>
+	<script src="../js/data/maps.js"   type="text/javascript"></script>
+	<script src="../js/ihm/dialog_ihm.js"   type="text/javascript"></script>
+	<script src="./js/ihm/layer_for_layersDialog_ihm.js"   type="text/javascript"></script>
+	<script src="../js/classes/HTMLGenerator.js"   type="text/javascript"></script>
+	<script src="../js/classes/ResourcesLoader.js"   type="text/javascript"></script>
+	<script src="./js/classes/Toolbar.js"   type="text/javascript"></script>
+	<script src="./map_editor.js"   type="text/javascript"></script>
 </html>

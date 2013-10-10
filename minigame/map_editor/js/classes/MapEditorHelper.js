@@ -1,5 +1,9 @@
 var MapEditorHelper={
-	drawBrush:function(container,name,brush){
+	drawBrush:function(container,name,brush,scale){
+		if(typeof(scale) === "undefined"){
+			scale = 1;
+		}
+	
 		var img=new Image();
 		img.src="resources/tileTemplate.png";
 		
@@ -28,7 +32,7 @@ var MapEditorHelper={
 							console.log(x+"_"+y+": "+brush.tiles[ x+"_"+y ]+"\n"+JSON.stringify(brush.tiles, null));
 						}
 					}
-					ctx.drawImage(img,  (imgPosition.x), (imgPosition.y), TemplateDefinition.tileSize, TemplateDefinition.tileSize,(x-1)*TemplateDefinition.tileSize, (y-1)*TemplateDefinition.tileSize,TemplateDefinition.tileSize,TemplateDefinition.tileSize);
+					ctx.drawImage(img,  (imgPosition.x), (imgPosition.y), TemplateDefinition.tileSize, TemplateDefinition.tileSize,(x-1)*TemplateDefinition.tileSize*scale, (y-1)*TemplateDefinition.tileSize*scale,TemplateDefinition.tileSize*scale,TemplateDefinition.tileSize*scale);
 					if(typeof(configuration) !== "undefined" && typeof(configuration.mode) !== "undefined" && configuration.mode === MODE_ENUM.DEBUG){
 						ctx.strokeRect( (x-1)*TemplateDefinition.tileSize, (y-1)*TemplateDefinition.tileSize, TemplateDefinition.tileSize, TemplateDefinition.tileSize);//ajout de bordures pour le debug
 					}

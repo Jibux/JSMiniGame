@@ -4,6 +4,9 @@ var ResourcesLoader = {
 	resourcesDefinition : {
 		"grass":{src : "grass.png",type : RESOURCE_TYPE_ENUM.IMAGE},
 		"water":{src : "water.gif",type : RESOURCE_TYPE_ENUM.IMAGE},
+		"road":{src : "road.png",type : RESOURCE_TYPE_ENUM.IMAGE},
+		"dirt":{src : "dirt.png",type : RESOURCE_TYPE_ENUM.IMAGE},
+		"tile1":{src : "tile1.png",type : RESOURCE_TYPE_ENUM.IMAGE},
 	},
 	
 	isLoaded : function(){
@@ -24,7 +27,11 @@ var ResourcesLoader = {
 		var loadResource = function(resource){
 			if( resource.type === RESOURCE_TYPE_ENUM.IMAGE ){
 				var img=new Image();
-				img.src="resources/images/"+resource.src;
+				if(typeof(configuration.view) !== "undefined" && typeof(configuration.view) !== "undefined" && configuration.view === "MAP_EDITOR"){
+					img.src= "../resources/images/"+resource.src;
+				}else{
+					img.src="resources/images/"+resource.src;
+				}
 				img.onload = function(){
 					ResourcesLoader.loadedResources++;
 					if(ResourcesLoader.loadedResources === ResourcesLoader.getResourcesNumber()){
