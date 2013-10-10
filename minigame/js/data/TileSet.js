@@ -1,5 +1,12 @@
 var TileSet={
 	grass:{img:'grass.png',x:0,y:0,primary:'grass',secondary:'grass'},
+	road:{img:'road.png',x:0,y:0,primary:'road',secondary:'road'},
+	water:{img:'water.gif',x:0,y:0,primary:'water',secondary:'water'},
+	dirt:{img:'dirt.png',x:0,y:0,primary:'dirt',secondary:'dirt'},
+};
+/*
+var TileSet={
+	grass:{img:'grass.png',x:0,y:0,primary:'grass',secondary:'grass'},
 	grass1:{img:'grass.png',x:20,y:0,primary:'grass',secondary:'grass'},
 	grass2:{img:'grass.png',x:0,y:20,primary:'grass',secondary:'grass'},
 	grass3:{img:'grass.png',x:20,y:20,primary:'grass',secondary:'grass'},
@@ -505,3 +512,4 @@ var TileSet={
 	road_dirt_19_4:{img:'tile6.gif',x:360,y:60,primary:'road',secondary:'dirt'},
 	road_dirt_20_4:{img:'tile6.gif',x:380,y:60,primary:'road',secondary:'dirt'},
 };
+*/

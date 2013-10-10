@@ -1,6 +1,7 @@
 var DEFAULT_LANGUAGE = "fr_FR";
 var Lang = {
 	selectedLanguage : DEFAULT_LANGUAGE,
+	initialized:false,
 	
 	getString : function (key) {
 		if(typeof(Lang[this.selectedLanguage]) !== 'undefined' && typeof(Lang[this.selectedLanguage][key]) !== 'undefined'){
@@ -24,8 +25,11 @@ var Lang = {
 	},
 	
 	init : function () {
-		document.write("<script name='lang_default' src='lang/"+DEFAULT_LANGUAGE+".js'></script>" );
-		this.setLanguage(configuration.language);
+		if( ! Lang.initialized ){//On empeche l'appel multiple
+			document.write("<script name='lang_default' src='lang/"+DEFAULT_LANGUAGE+".js'></script>" );
+			this.setLanguage(configuration.language);
+			Lang.initialized=true;
+		}
 	},
 	
 	setLanguage : function (value) {
