@@ -21,3 +21,4 @@ Lang["en_GB"]["toolbar.layers"]="Layers";
 Lang["en_GB"]["toolbar.grid"]="Show/Hide grid";
 Lang["en_GB"]["toolbar.zoomIn"]="Zoom In";
 Lang["en_GB"]["toolbar.zoomOut"]="Zoom Out";
+Lang["en_GB"]["toolbar.brush"]="Brushes";

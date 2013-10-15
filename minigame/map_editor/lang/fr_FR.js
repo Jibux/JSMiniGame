@@ -21,3 +21,4 @@ Lang["fr_FR"]["toolbar.layers"]="Calques";
 Lang["fr_FR"]["toolbar.grid"]="Afficher/Cacher la grille";
 Lang["fr_FR"]["toolbar.zoomIn"]="Zoom Avant";
 Lang["fr_FR"]["toolbar.zoomOut"]="Zoom Arrière";
+Lang["fr_FR"]["toolbar.brush"]="Pinceaux";

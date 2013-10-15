@@ -43,8 +43,8 @@ var Toolbar={
 			var params = new Object();
 			params.ID = "code_dialog";
 			params.title=Lang.getString("toolbar.generateCode");
-			params.width=200;
-			params.height=200;
+			params.width=300;
+			params.height=100;
 			params.logoLink="./resources/application_xp_terminal.png";
 			HTMLGenerator.append("body", dialog_ihm,params);
 			var offset = $("#toolbar_dialog .body #generateCode_button").offset();
@@ -59,6 +59,9 @@ var Toolbar={
 			});
 		}
 	},
+	/**
+	* active/desactive la fonction de déplacement
+	*/
 	setMoveActive:function(){
 		if($("#toolbar_dialog #moveLayers_button").hasClass("selected")){
 			$("#toolbar_dialog .ui_button").removeClass("selected");
@@ -71,7 +74,43 @@ var Toolbar={
 			selectedButton="MOVE";
 		}
 	},
-	
+	/**
+	* affiche la dialog des pinceaux
+	*/
+	showBrushesDialog:function(){
+		if($("#brush_dialog").length===0){
+			var params = new Object();
+			params.ID = "brush_dialog";
+			params.title=Lang.getString("toolbar.brush");
+			params.logoLink="./resources/brushes.png";
+			HTMLGenerator.append("body", dialog_ihm,params);
+			var offset = $("#toolbar_dialog .body #brush_button").offset();
+			
+			for(var counter in brushSet){
+				if(counter !== selectedBrush){
+					$("#brush_dialog .body").append("<div class='brush' id='brush_"+counter+"' data='"+counter+"'></div>");
+					MapEditorHelper.drawBrush("#brush_dialog .body #brush_"+counter,"brush"+counter+"_canvas",brushSet[counter]);
+				}
+			}
+			$("#brush_dialog .body .brush").click(function(){
+				if($(this).hasClass("selected")){
+					selectedBrush=$(this).attr("data");
+					Toolbar.refreshBrush();
+					$("#brush_dialog").remove();
+				}else{
+					$(this).parent().find(".brush").removeClass("selected");
+					$(this).addClass("selected");
+				}			
+			});
+			
+			$("#brush_dialog").css("top",offset.top);
+			$("#brush_dialog").css("left",offset.left+55);
+
+		}
+	},
+	/**
+	* active/desactive la grill
+	*/
 	showGrid:function(){
 		showGrid = !showGrid;
 		if(!showGrid){
@@ -82,13 +121,15 @@ var Toolbar={
 		// on rafraichie les cartes
 		refreshMaps();
 	},
+	/**
+	* affiche la dialog des calques
+	*/
 	showLayersDialog:function(){
 		if($("#layers_dialog").length===0){
 			var params = new Object();
 			params.ID = "layers_dialog";
 			params.title=Lang.getString("layers");
-			params.width=200;
-			params.height=200;
+			params.height = 175;
 			params.resizable=false;
 			params.logoLink="./resources/layers.png";
 			HTMLGenerator.append("body", dialog_ihm,params);
@@ -112,95 +153,6 @@ var Toolbar={
 			}
 		}
 	},
-	zoomIn:function(){
-		scale.value+=scale.step;
-		if(scale.value>scale.max){
-			scale.value=scale.max;
-		}
-		$('#container').css("transform","scale("+scale.value+")");
-	},
-	zoomOut:function(){
-		scale.value-=scale.step;
-		if(scale.value<scale.min){
-			scale.value=scale.min;
-		};
-		$('#container').css("transform","scale("+scale.value+")");
-	},
-
-	/**
-	* création de la toolbar
-	*/
-	init:function(){
-		if($("#toolbar_dialog").length !== 0){
-			$("#toolbar_dialog").remove();
-		}
-		
-		var params = new Object();
-		params.ID = "toolbar_dialog";
-		params.title=Lang.getString("toolbar");
-		params.width=55;
-		params.height=290;
-		params.closable=false;
-		params.collapsable=false;
-		params.resizable=false;
-		params.logoLink="./resources/brushes.png";
-		
-		HTMLGenerator.append("body", dialog_ihm,params);
-		$("#toolbar_dialog").css("top","25%");
-		$("#toolbar_dialog").css("left",20);
-		Toolbar.refreshToolbar();
-	},
-	
-	/**
-	* remet à jour la toolbar
-	*/
-	refreshToolbar:function(){
-		$("#toolbar_dialog .body").html("");
-		if(typeof(Toolbar.mode[currentLayer]) !== "undefined"){
-			for(var button in Toolbar.mode[currentLayer]["buttons"]){
-				if(typeof(Toolbar.mode[currentLayer]["buttons"][button].separator) !== "undefined" && Toolbar.mode[currentLayer]["buttons"][button].separator ===true){
-					$("#toolbar_dialog .body").append("<hr/>");
-				}else{
-					$("#toolbar_dialog .body").append("<div id='"+button+"_button' class='ui_button'><img src='./resources/"+Toolbar.mode[currentLayer]["buttons"][button].img+"' /><div class='ui_tooltip'>"+Lang.getString("toolbar."+button)+"</div></div>");
-					if( typeof(Toolbar.mode[currentLayer]["buttons"][button].fn) !== "undefined"){
-						$("#toolbar_dialog .body #"+button+"_button").click(function(){
-							Toolbar.mode[currentLayer]["buttons"][$(this).attr("id").replace("_button","")].fn();
-						});
-					}else{
-						$("#toolbar_dialog .body #"+button+"_button").addClass("ui_inactive_state");
-					}
-				}
-			}
-			
-			$("#toolbar_dialog .body").append("<hr/><img src='./resources/2D.png' /><input type='checkbox' class='ui_switch_mini' name='changeLandMark' "+(viewLandMark === "2D" ? "checked" : "")+"/><img src='./resources/3D.png' />");
-			$("input[name=changeLandMark]").click(function(){
-				if($(this).is(":checked")){
-					$("#screen").removeClass("view_3D").addClass("view_2D");
-					viewLandMark="2D";
-				}else{
-					$("#screen").removeClass("view_2D").addClass("view_3D");
-					viewLandMark="3D";
-				}
-			});
-			$("#toolbar_dialog .body").append("<hr/>");
-			$("#toolbar_dialog .body").append("<div class='tilesSelectionContainer'></div>");
-			$("#toolbar_dialog .body .tilesSelectionContainer").append("<div style='background-image:url(../resources/images/"+TileSet[selectedTypes.secondary].img+");'  class='tile secondary'></div>");
-			$("#toolbar_dialog .body .tilesSelectionContainer").append("<div style='background-image:url(../resources/images/"+TileSet[selectedTypes.primary].img+");' class='tile primary' ></div>");
-			$("#toolbar_dialog .body .tilesSelectionContainer").append("<input type='checkbox' class='swapTiles' name='swapTiles' />");
-			
-			$("#toolbar_dialog .body .tilesSelectionContainer .tile").click(function(){
-				var tmp = $(this).hasClass("primary") ? "primary" : "secondary";
-				Toolbar.showTypesDialog( tmp );
-			});
-			$("input[name=swapTiles]").click(function(){
-				var tmp = selectedTypes.secondary;
-				selectedTypes.secondary = selectedTypes.primary;
-				selectedTypes.primary = tmp;
-				Toolbar.refreshSelectedTypes();
-			});
-		}
-	},
-	
 	/**
 	* affiche la dialog des types de terrain
 	* @param primary / secondary : le type à modifier
@@ -235,7 +187,122 @@ var Toolbar={
 			}
 		}
 	},
+	/**
+	* zoom avant
+	*/
+	zoomIn:function(){
+		scale.value+=scale.step;
+		if(scale.value>scale.max){
+			scale.value=scale.max;
+		}
+		$('#container').css("transform","scale("+(scale.value/100)+")");
+	},
+	/**
+	* zoom arriere
+	*/
+	zoomOut:function(){
+		scale.value-=scale.step;
+		if(scale.value<scale.min){
+			scale.value=scale.min;
+		};
+		$('#container').css("transform","scale("+(scale.value/100)+")");
+	},
+
+	/**
+	* création de la toolbar
+	*/
+	init:function(){
+		if($("#toolbar_dialog").length !== 0){
+			$("#toolbar_dialog").remove();
+		}
+		
+		var params = new Object();
+		params.ID = "toolbar_dialog";
+		params.title=Lang.getString("toolbar");
+		params.width=58;
+		params.height=340;
+		params.closable=false;
+		params.collapsable=false;
+		params.resizable=false;
+		params.logoLink="./resources/brushes.png";
+		
+		HTMLGenerator.append("body", dialog_ihm,params);
+		$("#toolbar_dialog").css("top","25%");
+		$("#toolbar_dialog").css("left",20);
+		$("#toolbar_dialog").css("z-index",2);
+		Toolbar.refreshToolbar();
+	},
 	
+	/**
+	* remet à jour la toolbar
+	*/
+	refreshToolbar:function(){
+		$("#toolbar_dialog .body").html("");
+		if(typeof(Toolbar.mode[currentLayer]) !== "undefined"){
+			for(var button in Toolbar.mode[currentLayer]["buttons"]){
+				if(typeof(Toolbar.mode[currentLayer]["buttons"][button].separator) !== "undefined" && Toolbar.mode[currentLayer]["buttons"][button].separator ===true){
+					$("#toolbar_dialog .body").append("<hr/>");
+				}else{
+					$("#toolbar_dialog .body").append("<div id='"+button+"_button' class='ui_button'><img src='./resources/"+Toolbar.mode[currentLayer]["buttons"][button].img+"' /><div class='ui_tooltip'>"+Lang.getString("toolbar."+button)+"</div></div>");
+					if( typeof(Toolbar.mode[currentLayer]["buttons"][button].fn) !== "undefined"){
+						$("#toolbar_dialog .body #"+button+"_button").click(function(){
+							Toolbar.mode[currentLayer]["buttons"][$(this).attr("id").replace("_button","")].fn();
+						});
+					}else{
+						$("#toolbar_dialog .body #"+button+"_button").addClass("ui_inactive_state");
+					}
+				}
+			}
+			
+			$("#toolbar_dialog .body").append("<hr/>");
+			$("#toolbar_dialog .body").append("<div id='brush_button'></div>");
+			Toolbar.refreshBrush();
+			$("#brush_button").click(function(){
+				Toolbar.showBrushesDialog();
+			});
+			
+			$("#toolbar_dialog .body").append("<hr/><img src='./resources/2D.png' /><input type='checkbox' class='ui_switch_mini' name='changeLandMark' "+(viewLandMark === "2D" ? "checked" : "")+"/><img src='./resources/3D.png' />");
+			$("input[name=changeLandMark]").click(function(){
+				if($(this).is(":checked")){
+					$("#screen").removeClass("view_3D").addClass("view_2D");
+					viewLandMark="2D";
+				}else{
+					$("#screen").removeClass("view_2D").addClass("view_3D");
+					viewLandMark="3D";
+				}
+			});
+			$("#toolbar_dialog .body").append("<hr/>");
+			$("#toolbar_dialog .body").append("<div class='tilesSelectionContainer'></div>");
+			$("#toolbar_dialog .body .tilesSelectionContainer").append("<div style='background-image:url(../resources/images/"+TileSet[selectedTypes.secondary].img+");'  class='tile secondary'></div>");
+			$("#toolbar_dialog .body .tilesSelectionContainer").append("<div style='background-image:url(../resources/images/"+TileSet[selectedTypes.primary].img+");' class='tile primary' ></div>");
+			$("#toolbar_dialog .body .tilesSelectionContainer").append("<input type='checkbox' class='swapTiles' name='swapTiles' />");
+			
+			$("#toolbar_dialog .body .tilesSelectionContainer .tile").click(function(){
+				var tmp = $(this).hasClass("primary") ? "primary" : "secondary";
+				Toolbar.showTypesDialog( tmp );
+			});
+			$("input[name=swapTiles]").click(function(){
+				var tmp = selectedTypes.secondary;
+				selectedTypes.secondary = selectedTypes.primary;
+				selectedTypes.primary = tmp;
+				Toolbar.refreshSelectedTypes();
+			});
+		}
+	},
+	/**
+	* raffraichi le pinceau selectionne
+	*/
+	refreshBrush:function(){
+		$("#toolbar_dialog .body #brush_button").html("");
+		var scale = 1;
+		if(brushSet[selectedBrush].size.width > brushSet[selectedBrush].size.height){
+			scale = (maxBrushSize.x - brushSet[selectedBrush].size.width) / 10;
+		}else{
+			scale = (maxBrushSize.y - brushSet[selectedBrush].size.height) / 10;
+		}
+		console.log(scale);
+		MapEditorHelper.drawBrush("#toolbar_dialog .body #brush_button","brush_canvas",brushSet[selectedBrush] , scale);
+	},
 	/**
 	* raffraichi les types sélectionnés
 	*/

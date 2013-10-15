@@ -1,7 +1,7 @@
 /**
 * dialog_ihm
 
-<div id="$ID$" class="ui_dialog" style="width:$width:100$px;height:$height:100$px;">
+<div id="$ID$" class="ui_dialog" style="width:$width:200$px;height:$height:200$px;">
 	<div class="header">
 		<div class="title">
 			<img src="$logoLink:$" style="width:16px;height:16px;"/>
@@ -22,8 +22,8 @@
 
 
 * @param	ID
-* @param	width	:	100
-* @param	height	:	100
+* @param	width	:	200
+* @param	height	:	200
 * @param	draggable	:	true
 * @param	resizable	:	true
 * @param	collapsable	:	true
@@ -33,7 +33,7 @@
 * @param	body	:	[valeur par défaut vide]
 * @param	footer	:	[valeur par défaut vide]
 */
-var dialog_ihm={"html":[{"name":"DIV","attr":[{"name":"id","value":"$ID$"},{"name":"class","value":"ui_dialog"},{"name":"style","value":"width:$width:100$px;height:$height:100$px;"}],"child":[{"name":"DIV","attr":[{"name":"class","value":"header"}],"child":[{"name":"DIV","attr":[{"name":"class","value":"title"}],"child":[{"name":"IMG","attr":[{"name":"src","value":"$logoLink:$"},{"name":"style","value":"width:16px;height:16px;"}]},{"content":"$title:$"}]},{"name":"DIV","attr":[{"name":"class","value":"buttons"}],"child":[{"name":"DIV","attr":[{"name":"class","value":"button collapse"}]},{"name":"DIV","attr":[{"name":"class","value":"button close"}]}]}]},{"name":"DIV","attr":[{"name":"class","value":"body"}],"child":[{"content":"$body:$"}]},{"name":"DIV","attr":[{"name":"class","value":"footer"}],"child":[{"content":"$footer:$"}]}]}],
+var dialog_ihm={"html":[{"name":"DIV","attr":[{"name":"id","value":"$ID$"},{"name":"class","value":"ui_dialog"},{"name":"style","value":"width:$width:200$px;height:$height:200$px;"}],"child":[{"name":"DIV","attr":[{"name":"class","value":"header"}],"child":[{"name":"DIV","attr":[{"name":"class","value":"title"}],"child":[{"name":"IMG","attr":[{"name":"src","value":"$logoLink:$"},{"name":"style","value":"width:16px;height:16px;"}]},{"content":"$title:$"}]},{"name":"DIV","attr":[{"name":"class","value":"buttons"}],"child":[{"name":"DIV","attr":[{"name":"class","value":"button collapse"}]},{"name":"DIV","attr":[{"name":"class","value":"button close"}]}]}]},{"name":"DIV","attr":[{"name":"class","value":"body"}],"child":[{"content":"$body:$"}]},{"name":"DIV","attr":[{"name":"class","value":"footer"}],"child":[{"content":"$footer:$"}]}]}],
 beforeLoad: function(params){},
 afterLoad: function(params){
 	if(typeof(params.ID) !== "undefined"){
