@@ -16,7 +16,7 @@ var Toolbar={
 				"selectEllipses":{img:"select_ellipse.png"},
 				"selectContinuous":{img:"select_continuous_area.png"},
 				"selectLasso":{img:"select_lasso.png"},
-				"paint":{img:"paintbrush.png"},
+				"paint":{img:"paintbrush.png",fn:function(){Toolbar.setPaintActive();}},
 				"fill":{img:"paintcan.png"},
 				
 				"separator_1":{separator:true},
@@ -54,6 +54,7 @@ var Toolbar={
 			
 			$("#code_dialog .body").append("<div id='refreshCode_button' class='ui_button' style='position:absolute;right:2px;'><img src='./resources/arrow_refresh.png' /><div class='ui_tooltip'>"+Lang.getString("refresh")+"</div></div>");
 			$("#code_dialog .body").append("<textarea id='codeResult' style='resize:none;width:100%;height:100%;'></textarea>");
+			
 			$("#refreshCode_button").click(function(){
 				$("#code_dialog .body #codeResult").val(getJson() );
 			});
@@ -71,7 +72,25 @@ var Toolbar={
 			$("#toolbar_dialog .ui_button").removeClass("selected");
 			$("#toolbar_dialog #moveLayers_button").addClass("selected");
 			$("#screen").removeClass(selectedButton).addClass("move");
+			$("#screen .mouse_layer").remove();
 			selectedButton="MOVE";
+		}
+	},
+	
+	/**
+	* active le pinceau
+	*/
+	setPaintActive:function(){
+		if($("#toolbar_dialog #paint_button").hasClass("selected")){
+			$("#toolbar_dialog .ui_button").removeClass("selected");
+			$("#screen .mouse_layer").remove();
+			selectedButton="";
+		}else{
+			$("#screen").removeClass("move");
+			$("#toolbar_dialog .ui_button").removeClass("selected");
+			$("#toolbar_dialog #paint_button").addClass("selected");
+			selectedButton="PAINT";
+			Toolbar.redrawBrushCursor();
 		}
 	},
 	/**
@@ -96,6 +115,7 @@ var Toolbar={
 				if($(this).hasClass("selected")){
 					selectedBrush=$(this).attr("data");
 					Toolbar.refreshBrush();
+					Toolbar.redrawBrushCursor();
 					$("#brush_dialog").remove();
 				}else{
 					$(this).parent().find(".brush").removeClass("selected");
@@ -170,9 +190,9 @@ var Toolbar={
 			var offset = $("#toolbar_dialog .body .tilesSelectionContainer .tile.primary").offset();
 			$("#types_dialog").css("top",offset.top);
 			$("#types_dialog").css("left",offset.left+55);
-			for(var type in TileSet){
+			for(var type in TileSet.basics){
 				if(type !== selectedTypes.primary && type !== selectedTypes.secondary){
-					$("#types_dialog .body").append("<div id='"+type+"' class='tile' style='background-image:url(../resources/images/"+TileSet[type].img+")' ></div>");
+					$("#types_dialog .body").append("<div id='"+type+"' class='tile' style='background-image:url(../resources/images/"+TileSet.basics[type].img+")' ></div>");
 					$("#types_dialog .body #"+type).click(function(){
 						if($(this).hasClass("selected")){
 							selectedTypes[tileSelected] = $(this).attr("id");
@@ -194,6 +214,9 @@ var Toolbar={
 		scale.value+=scale.step;
 		if(scale.value>scale.max){
 			scale.value=scale.max;
+			$("#toolbar_dialog .body #zoomIn_button").addClass("ui_inactive_state");
+		}else{
+			$("#toolbar_dialog .body #zoomOut_button").removeClass("ui_inactive_state");
 		}
 		$('#container').css("transform","scale("+(scale.value/100)+")");
 	},
@@ -204,7 +227,10 @@ var Toolbar={
 		scale.value-=scale.step;
 		if(scale.value<scale.min){
 			scale.value=scale.min;
-		};
+			$("#toolbar_dialog .body #zoomOut_button").addClass("ui_inactive_state");
+		}else{
+			$("#toolbar_dialog .body #zoomIn_button").removeClass("ui_inactive_state");
+		}
 		$('#container').css("transform","scale("+(scale.value/100)+")");
 	},
 
@@ -263,6 +289,7 @@ var Toolbar={
 			
 			$("#toolbar_dialog .body").append("<hr/><img src='./resources/2D.png' /><input type='checkbox' class='ui_switch_mini' name='changeLandMark' "+(viewLandMark === "2D" ? "checked" : "")+"/><img src='./resources/3D.png' />");
 			$("input[name=changeLandMark]").click(function(){
+				$("body").addClass("loading");
 				if($(this).is(":checked")){
 					$("#screen").removeClass("view_3D").addClass("view_2D");
 					viewLandMark="2D";
@@ -270,11 +297,12 @@ var Toolbar={
 					$("#screen").removeClass("view_2D").addClass("view_3D");
 					viewLandMark="3D";
 				}
+				$("body").removeClass("loading");
 			});
 			$("#toolbar_dialog .body").append("<hr/>");
 			$("#toolbar_dialog .body").append("<div class='tilesSelectionContainer'></div>");
-			$("#toolbar_dialog .body .tilesSelectionContainer").append("<div style='background-image:url(../resources/images/"+TileSet[selectedTypes.secondary].img+");'  class='tile secondary'></div>");
-			$("#toolbar_dialog .body .tilesSelectionContainer").append("<div style='background-image:url(../resources/images/"+TileSet[selectedTypes.primary].img+");' class='tile primary' ></div>");
+			$("#toolbar_dialog .body .tilesSelectionContainer").append("<div style='background-image:url(../resources/images/"+TileSet.basics[selectedTypes.secondary].img+");'  class='tile secondary'></div>");
+			$("#toolbar_dialog .body .tilesSelectionContainer").append("<div style='background-image:url(../resources/images/"+TileSet.basics[selectedTypes.primary].img+");' class='tile primary' ></div>");
 			$("#toolbar_dialog .body .tilesSelectionContainer").append("<input type='checkbox' class='swapTiles' name='swapTiles' />");
 			
 			$("#toolbar_dialog .body .tilesSelectionContainer .tile").click(function(){
@@ -307,8 +335,18 @@ var Toolbar={
 	* raffraichi les types sélectionnés
 	*/
 	refreshSelectedTypes:function(){
-		$("#toolbar_dialog .body .tilesSelectionContainer .primary").css("background-image","url(../resources/images/"+TileSet[selectedTypes.primary].img+")");
-		$("#toolbar_dialog .body .tilesSelectionContainer .secondary").css("background-image","url(../resources/images/"+TileSet[selectedTypes.secondary].img+")");
+		$("#toolbar_dialog .body .tilesSelectionContainer .primary").css("background-image","url(../resources/images/"+TileSet.basics[selectedTypes.primary].img+")");
+		$("#toolbar_dialog .body .tilesSelectionContainer .secondary").css("background-image","url(../resources/images/"+TileSet.basics[selectedTypes.secondary].img+")");
 	},
-	
+	/**
+	* redessine le curseur de la souris
+	*/
+	redrawBrushCursor:function(){
+		if($("#screen .mouse_layer").length === 0){
+			$("#screen #container").append("<div class='layer mouse_layer'></div>");
+		}else{
+			$("#screen #container .mouse_layer").html("");
+		}
+		MapEditorHelper.drawBrush("#screen #container .mouse_layer","mouse", brushSet[ selectedBrush ] ,(scale.value/100));
+	},
 }

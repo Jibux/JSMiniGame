@@ -1,14 +1,23 @@
-var scale={value:90,step:10,max:500,min:10};// en %
+var mapsInScreen={counter:0};
+var mapConfiguration={width:20,height:20,unit:20};
+var mouse = {down : false, top:0,left:0,totalMoveTop:0,totalMoveLeft:0};
+var selectedTypes={primary:"grass",secondary:"water"};
+var scale={value:90,step:10,max:300,min:50};// en %
+var showGrid=false;
 var viewLandMark="2D";
 var currentLayer="tiles_layer";
-var selectedTypes={primary:"grass",secondary:"water"};
 var selectedBrush = 0;
-var showGrid=false;
-var mapConfiguration={width:20,height:20,unit:20};
-
 var selectedButton="";
 
 
+$("document").ready(function(){
+	$("body").addClass("loading");
+	waitForCompleteLoad();
+});
+
+/**
+* fonction permettant d'attendre que toutes les ressources soient loadées
+*/
 function waitForCompleteLoad(){
 	if( typeof(ResourcesLoader) !== "undefined" && ResourcesLoader.isLoaded()){
 		init();
@@ -17,8 +26,7 @@ function waitForCompleteLoad(){
 	}
 }
 
-
-$("document").ready(function(){
+function init(){
 	$(".checkbox_flag").click(function(){
 		if($(this).is(":checked")){
 			Lang.setLanguage("en_GB");
@@ -26,22 +34,55 @@ $("document").ready(function(){
 			Lang.setLanguage("fr_FR");
 		}
 	});
+	
+	$("#screen").mousedown(function(){
+		mouse.down = true;
+		mouse.left = event.pageX;
+		mouse.top = event.pageY;
+		if(selectedButton === "PAINT"){
+			alert("TO BE IMPLEMENTED");
+		}
+	});
+	$("#screen").mouseup(function(){
+		mouse.down = false;
+	});
 
+	$("#screen").mousemove(function(event){
+		if(selectedButton === "PAINT"){
+			// on déplace le curseur sur la grille
+			var newOffset = getMousePosition(event);
+			$("#mouse_canvas").offset(newOffset);
+		}else if(selectedButton === "MOVE"){
+			if(mouse.down){
+				//on prend la valeur de déplacement
+				x=Math.round((event.pageX - mouse.left ));
+				y=Math.round((event.pageY - mouse.top));
+				
+				//on réinitiasie les anciennes positions
+				mouse.left = event.pageX;
+				mouse.top = event.pageY;
+				//on ajoute au déplacements total
+				mouse.totalMoveTop += y; 
+				mouse.totalMoveLeft += x;
+				
+				var newOffset = {
+					top: Math.round($("#container").offset().top +y) , 
+					left: Math.round($("#container").offset().left +x) 
+				};
+				$("#container").offset(newOffset);
+			}
+		}
+	});
+	
 	$("#screen").addClass("view_"+viewLandMark);
 	Toolbar.init();
-	waitForCompleteLoad();
-});
-
-function init(){
+	
 	$("#screen").css("z-index:1");
 	$("#screen").append('<div id="container"><div class="layer tiles_layer"></div></div>');
-	$("#container").click(function(){
-		$("#screen #container").draggable({drag: function(event, ui){
-		    if(selectedButton !== "MOVE") return false;
-		 }});
-	});
 	var currentPosition={x:0,y:0,z:0};
 	drawMaps(currentPosition);
+	
+	$("body").removeClass("loading");
 }
 
 function getMapPosition(position){
@@ -51,8 +92,8 @@ function getMapPosition(position){
 		mapPosition.top=position.y * TemplateDefinition.tileSize * mapContent[mapID].size.height;
 		mapPosition.left=position.x * TemplateDefinition.tileSize * mapContent[mapID].size.width;
 	}else{
-		mapPosition.top=position.y * TemplateDefinition.tileSize * 20;
-		mapPosition.left=position.x * TemplateDefinition.tileSize * 20;
+		mapPosition.top=position.y * TemplateDefinition.tileSize * mapConfiguration.height;
+		mapPosition.left=position.x * TemplateDefinition.tileSize * mapConfiguration.width;
 	}
 	return mapPosition;
 }
@@ -64,26 +105,29 @@ function getMapID(position){
 function drawMaps(startingPosition){
 	var mapID = getMapID(startingPosition);
 	//si pas déjà présent on draw la map
-	if( $("#screen .tiles_layer #map_"+mapID).length === 0 ){
+	if( $("#screen .tiles_layer #"+mapID).length === 0 ){
 		//map existe
 		if( typeof(mapContent[mapID]) !== "undefined"){
 			drawMap(startingPosition);
-			
-			//On lance aussi le dessin des maps qui entourent
-			var neighbours = getNeighbours(startingPosition);
-			drawMaps(neighbours.top);
-			drawMaps(neighbours.bottom);
-			drawMaps(neighbours.left);
-			drawMaps(neighbours.right);
+		
+		//On lance aussi le dessin des maps qui entourent
+		var neighbours = getNeighbours(startingPosition);
+		drawMaps(neighbours.top);
+		drawMaps(neighbours.bottom);
+		drawMaps(neighbours.left);
+		drawMaps(neighbours.right);
 			
 		//map existe pas
 		}else if( typeof(mapContent[mapID]) === "undefined"){
 			var mapPosition = getMapPosition(startingPosition);
 			var zindex= changeFrame({x:mapPosition.left,y:mapPosition.top},true);
-			$("#screen .tiles_layer").append('<div id="map_'+mapID+'" class="addMap" data='+JSON.stringify(startingPosition)+' style="z-index:'+zindex.y+';left:'+mapPosition.left+'px;top:'+mapPosition.top+'px;"></div>');
-			$('#map_'+mapID).click(function(){
+			$("#screen .tiles_layer").append('<div id="'+mapID+'" class="addMap" data='+JSON.stringify(startingPosition)+' style="z-index:'+zindex.y+';left:'+mapPosition.left+'px;top:'+mapPosition.top+'px;"></div>');
+			$('#'+mapID).click(function(){
 				var pos = JSON.parse($(this).attr("data"));
+
+				$('#'+mapID).remove();
 				createMapObject(pos);
+				drawMap(pos);
 			});
 		}
 	}
@@ -99,27 +143,91 @@ function getNeighbours(position){
 }
 
 function refreshMaps(){
-	$("#screen .tiles_layer .map").each(function(){
-		var mapID = $(this).attr("id").replace("map_","");
-		var canvas = document.getElementById(mapID+'_canvas');
-		var ctx = document.getElementById(mapID+'_canvas').getContext('2d');
-		
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		drawMapTiles(mapID,ctx);
-	});
+	$("body").addClass("loading");
+	setTimeout(function(){
+		$("#screen .tiles_layer .map").each(function(){
+			var mapID = $(this).attr("id");
+			var canvas = document.getElementById(mapID+'_canvas');
+			var ctx = document.getElementById(mapID+'_canvas').getContext('2d');
+			
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			drawMapTiles(mapID,ctx);
+		}).promise().done(function(){
+			$("body").removeClass("loading");
+		});
+	},20);
 }
 
 function drawMapTiles(mapID,ctx){
 	for(var x = 0; x < mapContent[mapID].size.width; x++) {
 		for(var y = 0; y < mapContent[mapID].size.height; y++) {
 			var type = mapContent[mapID].tile[x+"_"+y];
-			if(typeof(ResourcesLoader.resources[type]) !== "undefined"){
-				var img = ResourcesLoader.resources[type];
-				ctx.drawImage(img, 0, 0, 20, 20, x*UNIT, y*UNIT,20,20);
+			
+			var regexBasics  = /^([a-zA-Z]+)$/; 
+			var regexDerived = /^([a-zA-Z]+)([0-9]+)$/; 
+			var regexTemplate = /^([a-zA-Z]+)([0-9]*)_([a-zA-Z]+)([0-9]*)$/; 
+			
+			if(regexBasics.test(type)) {
+				var imgName = type;
+				var tileSize = TemplateDefinition.tileSize;
+				
+				if(typeof(ResourcesLoader.resources[imgName]) !== "undefined"){
+					var img = ResourcesLoader.resources[imgName];
+					ctx.drawImage(img, 0, 0, tileSize, tileSize, x*tileSize, y*tileSize,tileSize,tileSize);
+				}else{
+					ctx.fillStyle = "rgb(0, 0, 255)";
+					ctx.fillRect( x*tileSize, y*tileSize, tileSize, tileSize);
+				}
+			}else if(regexDerived.test(type)){
+				//TO BE CHECKED
+				var matches = type.match(regexDerived);
+				var imgName = RegExp.$1;
+				var imgPosition = TileSet.derived[ RegExp.$2];
+				
+				if(typeof(ResourcesLoader.resources[imgName]) !== "undefined" && typeof(imgPosition) !== "undefined"){
+					var img = ResourcesLoader.resources[imgName];
+					ctx.drawImage(img, imgPosition.x, imgPosition.y, tileSize, tileSize, x*tileSize, y*tileSize,tileSize,tileSize);
+				}else{
+					ctx.fillStyle = "rgb(0, 255, 0)";
+					ctx.fillRect( x*tileSize, y*tileSize, tileSize, tileSize);
+				}
+			}else if(regexTemplate.test(type)){
+				var imgName1 = RegExp.$1;
+				var imgPosition1 = TileSet.derived[ RegExp.$2 ];
+				var imgName2 = RegExp.$3;
+				var imgPosition2 = TileSet.derived[ RegExp.$4];
+				
+				//TO BE IMPLEMENTED AND CHECKED
+				if(	typeof(ResourcesLoader.resources[imgName1]) !== "undefined" && typeof(ResourcesLoader.resources[imgName2]) !== "undefined"){
+					if(typeof(imgPosition1) === "undefined"){
+						imgPosition1 ={ x:0,y:0};
+					}
+					if(typeof(imgPosition2) === "undefined"){
+						imgPosition2 ={ x:0,y:0};
+					}
+					
+					//Part 1
+					var templateImg = ResourcesLoader.resources["template"];
+					ctx.drawImage(templateImg, imgPosition1.x, imgPosition1.y, tileSize, tileSize, x*tileSize, y*tileSize,tileSize,tileSize);  //template position
+					ctx.globalCompositeOperation = 'source-in';
+					ctx.drawImage(templateImg, imgPosition1.x, imgPosition1.y, tileSize, tileSize, x*tileSize, y*tileSize,tileSize,tileSize);
+					
+					//Part 2
+					var templateImg = ResourcesLoader.resources["template"];
+					ctx.drawImage(templateImg, imgPosition2.x, imgPosition2.y, tileSize, tileSize, x*tileSize, y*tileSize,tileSize,tileSize);  //template  opposite position
+					ctx.globalCompositeOperation = 'source-in';
+					ctx.drawImage(templateImg, imgPosition2.x, imgPosition2.y, tileSize, tileSize, x*tileSize, y*tileSize,tileSize,tileSize);
+					
+				}else{
+					ctx.fillStyle = "rgb(255, 0, 0)";
+					ctx.fillRect( x*tileSize, y*tileSize, tileSize, tileSize);
+				}
 			}else{
-				ctx.fillStyle = "rgb(255, 0, 0)";
-				ctx.fillRect( x*UNIT, y*UNIT, 20, 20);
+				ctx.fillStyle = "rgb(255, 255, 255)";
+				ctx.fillRect( x*tileSize, y*tileSize, tileSize, tileSize);
 			}
+
+
 			
 			if(showGrid){
 				ctx.strokeRect( x*UNIT, y*UNIT, 20, 20);
@@ -128,30 +236,64 @@ function drawMapTiles(mapID,ctx){
 	}
 }
 
-function drawMap(position){
+/**
+* cherche la carte affichée juste avant celle passée en param
+*/
+function getPreviousMap(mapID){
+	var previousMap;
+	$("#screen .tiles_layer .map").each(function(){
+		var id = $(this).attr("id");
+		
+		var currentPosition = changeFrame(mapContent[ id].position, true);
+		var mapPosition = changeFrame(mapContent[ mapID].position, true);
+			
+		if( typeof(previousMap) === "undefined"){
+			if(currentPosition.y < mapPosition.y){
+				previousMap = mapContent[ id ];
+			}
+		}else{
+			var previousPosition = changeFrame(previousMap.position, true);
 
+			if(previousPosition.y < currentPosition.y && currentPosition.y < mapPosition.y){
+				previousMap = mapContent[ id ];
+			}
+		}
+	});
+	
+	if(typeof(previousMap) === "undefined" || previousMap.UID === mapID){
+		return;
+	}else{
+		return previousMap;
+	}
+}
+
+function drawMap(position){
+	mapsInScreen.counter++;
 	var mapID = getMapID(position);
 	var mapPosition = getMapPosition(position);
-	var zindex= changeFrame({x:mapPosition.left,y:mapPosition.top},true);
-
-	$("#screen .tiles_layer").append('<div id="map_'+mapID+'" class="map"   style="z-index:'+zindex.y+';left:'+mapPosition.left+'px;top:'+mapPosition.top+'px;"></div>');
-	$("#screen .tiles_layer #map_"+mapID).append('<canvas id="'+mapID+'_canvas" width="'+mapContent[mapID].size.width*UNIT+'" height="'+mapContent[mapID].size.height*UNIT+'"></canvas>');
+	var previousMap = getPreviousMap(mapID);
+	if( typeof(previousMap) === "undefined"){
+		$("#screen .tiles_layer").prepend('<div id="'+mapID+'" class="map"   style="left:'+mapPosition.left+'px;top:'+mapPosition.top+'px;"></div>');
+	}else{
+		$("#"+previousMap.UID).after('<div id="'+mapID+'" class="map"   style="left:'+mapPosition.left+'px;top:'+mapPosition.top+'px;"></div>');
+	}
+	$("#"+mapID).append('<canvas id="'+mapID+'_canvas" width="'+mapContent[mapID].size.width*UNIT+'" height="'+mapContent[mapID].size.height*UNIT+'"></canvas>');
 	$("#"+mapID).css("width",(mapConfiguration.width*mapConfiguration.unit)+"px");
 	$("#"+mapID).css("height",(mapConfiguration.height*mapConfiguration.unit)+"px");
 	
 	var ctx = document.getElementById(mapID+'_canvas').getContext('2d');
+	
 		
 	drawMapTiles(mapID,ctx);	
 	
 	var neighbours = getNeighbours(position);
 	
 	if(typeof(mapContent[ getMapID( neighbours.right ) ]) === "undefined"){
-		$('#map_'+mapID).addClass("border_right");
+		$('#'+mapID).addClass("border_right");
 	}
 	if(typeof(mapContent[ getMapID( neighbours.bottom ) ]) === "undefined"){
-		$('#map_'+mapID).addClass("border_bottom");
+		$('#'+mapID).addClass("border_bottom");
 	}
-	
 }
 
 /**
@@ -160,23 +302,52 @@ function drawMap(position){
 function createMapObject(position){
 	var mapID = getMapID(position);
 		
-	$('#map_'+mapID).remove();
-	
 	mapContent[mapID]=new Object();
 	mapContent[mapID].UID=mapID;
 	mapContent[mapID].tile=new Object();
+	mapContent[mapID].occupation=new Array();
 	for(var x=0;x<mapConfiguration.width;x++){
+		mapContent[mapID].occupation[x]=new Array();
 		for(var y=0;y<mapConfiguration.height;y++){
-			mapContent[mapID].tile[x+"_"+y]=selectedTypes.primary;
+			var random = Dice.roll(0,3);
+			
+			mapContent[mapID].tile[x+"_"+y]= selectedTypes.primary + ( random===0 ? "" : random);
+			console.log(mapContent[mapID].tile[x+"_"+y]);
+			if(selectedTypes.primary === "water"){
+				mapContent[mapID].occupation[x][y]=0;
+			}else{
+				mapContent[mapID].occupation[x][y]=1;
+			}
 		}
 	}
-	mapContent[mapID].occupation=new Object();
+	
 	mapContent[mapID].size={width:mapConfiguration.width,height:mapConfiguration.height};
 	mapContent[mapID].position=position;
-	
-	drawMaps(position);
 }
 
+function getMousePosition(event){
+	var containerOffset = { 
+		y : $("#container").offset().top % TemplateDefinition.tileSize, 
+		x : $("#container").offset().left % TemplateDefinition.tileSize
+	};
+	var newOffset = {
+		y: event.pageY - (brushSet[selectedBrush].size.height * TemplateDefinition.tileSize / 2) , 
+		x: event.pageX - (brushSet[selectedBrush].size.width * TemplateDefinition.tileSize / 2)
+	};
+	
+	if(viewLandMark === "3D"){
+		newOffset = changeFrame (newOffset, true);
+	}
+	newOffset.y -=  newOffset.y % TemplateDefinition.tileSize;
+	newOffset.y +=  containerOffset.y;
+	newOffset.y = Math.round(newOffset.y);
+	
+	newOffset.x -=  newOffset.x % TemplateDefinition.tileSize;
+	newOffset.x +=  containerOffset.x;
+	newOffset.x = Math.round(newOffset.x);
+	
+	return {top:newOffset.y,left:newOffset.x};
+}
 
 function changeFrame (point, toISO) {
 	var posX = point.x;
@@ -294,7 +465,7 @@ function moveCursor(e){
 	cursor.css("top",point.y+"px");
 	cursor.css("left",point.x+"px");
 }
-
+/*
 
 function getMousePosition(point){
 	var result={x:point.x,y:point.y};
@@ -305,6 +476,7 @@ function getMousePosition(point){
 	result.y=Math.floor(result.y/mapConfiguration.unit)*mapConfiguration.unit;
 	return result;
 }
+*/
 
 function changeMapTile(event,element){
 	var point=getMousePosition({x:event.pageX-100,y:event.pageY-100});
