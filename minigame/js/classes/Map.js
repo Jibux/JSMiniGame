@@ -477,6 +477,8 @@ Map.prototype = {
 		
 		var ctx = document.getElementById(this.ID+"_canvas").getContext('2d');
 		
+		MapHelper.drawMapTiles(this.ID,ctx);
+		/*
 		for(var x = 0; x < this.size.width; x++) {
 			for(var y = 0; y < this.size.height; y++) {
 				var type = this.tile[x+"_"+y];
@@ -492,6 +494,8 @@ Map.prototype = {
 				}
 			}
 		}
+		*/
+		
 		// This is the border_right.
 		if(this.edgeType[EDGE_TYPE_ENUM.RIGHT]) {
 			$("#"+this.ID).addClass("border_right");

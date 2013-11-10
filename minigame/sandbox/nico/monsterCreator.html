@@ -1,0 +1,160 @@
+<link rel="stylesheet" type="text/css" href="../../css/base.css" />
+<link rel="stylesheet" type="text/css" href="../../css/skeleton.css" />
+<link rel="stylesheet" type="text/css" href="./monster.css" />
+<script src="../../libraries/jquery-1.9.1.min.js"   type="text/javascript"></script>
+<style>
+	input[type=text]{width:40px;display:inline-block !important;margin-bottom:1px;}
+	textarea{width:95%;min-height:100px;}
+	input[name=name]{width:90% !important;}
+	input[name=alignement]{width:90% !important;}
+	input[name=sens]{width:500px !important;padding:0px;}
+	input[name=img]{width:95% !important;}
+	input[name=competence]{width:95% !important;}
+	input[name=equipement]{width:95% !important;}
+	input[name=tresor]{width:95% !important;}
+	input[name=pouvoirs]{width:95% !important;}
+	input[name=perception]{width:60px !important;padding:0px;}
+	button{border:1px solid #FFF;background-color:#57af00;text-shadow:0 1px 1px #1c5100;color:#fff;padding:5px 10px;border-radius:3px;float:right;margin-right:20px;cursor:pointer;}
+	button:hover{border:1px solid #FFF;background-color:#499300;color:#fff;text-shadow:0 1px 1px #1c5100;}
+</style>
+<div class="container" style="width:100%;height:100%;overflow:visible;top:20px;left:20px;">
+
+<div class="monster sixteen columns">
+    <div class="header">
+        <div class="icon one column"></div> 
+        <div class="name ten columns">
+            <h1><input type="text" name="name" placeholder="name"/></h1>
+        </div>
+        <div class="alignement five columns">
+            <input type="text" name="alignement" placeholder="alignement"/>
+        </div>
+    </div> 
+    <div class="description">
+        <p><textarea class="description" placeholder="description"></textarea></p>
+        <div class="initiative three columns"><strong>Initiative</strong><span><input type="text" name="initiative" placeholder="initiative"/></span></div>
+        <div class="move three columns"><strong>VD</strong><span><input type="text" name="move" placeholder="move"/></span></div>
+        <div class="power_factor three columns"><strong>FP</strong><span><input type="text" name="powerFactor" placeholder="facteur de puissance"/></span></div>
+        <div class="experience three columns"><strong>PX</strong><span><input type="text" name="experience" placeholder="experience"/></span></div>
+        <div class="life three columns"><strong>PV</strong><span><input type="text" name="life" placeholder="vie"/></span></div>
+    </div>
+    <div class="clear"></div>
+    <div class="category">
+        <div class="sens"><strong>Sens</strong><span><input type="text" name="sens" placeholder="sens"/></span></div>
+        <div class="perception"><strong>Perception</strong><span><input type="text" name="perception" placeholder="perception"/></span></div>
+    </div>
+    <input type="text" name="img" placeholder="image url"/>
+    <div class="category">Defense</div>
+    <p><strong>CA</strong><input type="text" name="ca" placeholder="ca"/></p>
+    <p><strong>Réf</strong><input type="text" name="ref" placeholder="re"/> <strong>Vig</strong><input type="text" name="vig" placeholder="vigueur"/><strong>Vol</strong><input type="text" name="vol" placeholder="volonté"/></p>
+    <div class="category">Attaque</div>
+    <p><textarea class="attaque" placeholder="attaque"></textarea></p>
+    <div class="category">Statistiques</div>
+    <p><strong>FOR</strong><input type="text" name="force" placeholder="force"/><strong>DEX</strong><input type="text" name="dexterite" placeholder="dextérité"/><strong>CON</strong><input type="text" name="constitution" placeholder="constitution"/><strong>INT</strong><input type="text" name="inteligence" placeholder="inteligence"/><strong>SAG</strong><input type="text" name="sagesse" placeholder="sagesse"/><strong>CHA</strong><input type="text" name="charisme" placeholder="charisme"/></p>
+    <p><strong>Compétences</strong><input type="text" name="competence" placeholder="compétences"/></p>
+    <div class="category">Objets</div>
+    <p><strong>Equipement</strong><input type="text" name="equipement" placeholder="équipement"/></p>
+    <p><strong>Trésor</strong><input type="text" name="tresor" placeholder="tresor"/></p>
+    <div class="category">Pouvoirs Spéciaux</div>
+    <p><textarea class="pouvoirs" placeholder="pouvoirs"></textarea></p>
+    <button name="add">Ajouter</button>
+    <button name="addAndClear">Ajouter et Effacer Tout</button>
+    <button name="clear">Effacer Tout</button>
+</div>
+<br/><br/><br/>
+<textarea class="code"></textarea>
+<script src="./monster.js"   type="text/javascript"></script>
+<script>
+	$(document).ready(function(){
+		$("button[name='add']").click(function(){
+			createMonster();
+		});
+		$("button[name='addAndClear']").click(function(){
+			createMonster();
+			clear();
+		});
+		$("button[name='clear']").click(function(){
+			clear();
+		});
+		$("input[name='name']").change(function(){
+			if(typeof(monsters[$(this).val()]) !== "undefined"){
+				getMonster();
+			}else{
+				clear();
+			}
+		});
+	});
+	function getMonster(){
+		var monster = monsters[$("input[name='name']").val()];
+		$("input[name='alignement']").val(monster.alignement);
+		$("textarea.description").val(monster.description);
+		$("input[name='initiative']").val(monster.initiative);
+		$("input[name='move']").val(monster.move);
+		$("input[name='powerFactor']").val(monster.powerFactor);
+		$("input[name='experience']").val(monster.experience);
+		$("input[name='life']").val(monster.life);
+		$("input[name='sens']").val(monster.sens);
+		$("input[name='perception']").val(monster.perception);
+		$("input[name='ca']").val(monster.ca);
+		$("input[name='ref']").val(monster.ref);
+		$("input[name='vig']").val(monster.vig);
+		$("input[name='vol']").val(monster.vol);
+		$(".attaque").val(monster.attaque);
+		$("input[name='force']").val(monster.for);
+		$("input[name='dexterite']").val(monster.dex);
+		$("input[name='constitution']").val(monster.con);
+		$("input[name='inteligence']").val(monster.int);
+		$("input[name='sagesse']").val(monster.sag);
+		$("input[name='charisme']").val(monster.cha);
+		$("input[name='competence']").val(monster.competence);
+		$("input[name='equipement']").val(monster.equipement);
+		$("input[name='tresor']").val(monster.tresor);
+		$(".pouvoirs").val(monster.pouvoirs);
+	}
+	function clear(){
+		$("input[type='text']").not("input[name='name']").val("");
+		$("textarea").not(".code").val("");
+	}
+	
+	function createMonster(){
+		var result=new Object();
+		result.name=$("input[name='name']").val();
+		result.alignement=$("input[name='alignement']").val();
+		result.description=$("textarea.description").val();
+		result.initiative=$("input[name='initiative']").val();
+		result.move=$("input[name='move']").val();
+		result.powerFactor=$("input[name='powerFactor']").val();
+		result.experience=$("input[name='experience']").val();
+		result.life=$("input[name='life']").val();
+		result.sens=$("input[name='sens']").val();
+		result.perception=$("input[name='perception']").val();
+		result.ca=$("input[name='ca']").val();
+		result.ref=$("input[name='ref']").val();
+		result.vig=$("input[name='vig']").val();
+		result.vol=$("input[name='vol']").val();
+		result.attaque=$(".attaque").val();
+		result.for=$("input[name='force']").val();
+		result.dex=$("input[name='dexterite']").val();
+		result.con=$("input[name='constitution']").val();
+		result.int=$("input[name='inteligence']").val();
+		result.sag=$("input[name='sagesse']").val();
+		result.cha=$("input[name='charisme']").val();
+		result.competence=$("input[name='competence']").val();
+		result.equipement=$("input[name='equipement']").val();
+		result.tresor=$("input[name='tresor']").val();
+		result.pouvoirs=$(".pouvoirs").val();
+		
+		if(result.name !== ""){
+			monsters[result.name]=result;
+		}
+		getJson();
+	}
+	
+	function getJson(){
+		var result="var monsters=new Array();\n";
+		for(var name in monsters){
+			result+="monsters['"+name+"']="+JSON.stringify(monsters[name])+";\n";
+		}
+		$("textarea.code").val(result);
+	}
+</script>
+</div>

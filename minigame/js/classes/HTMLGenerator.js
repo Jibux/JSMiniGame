@@ -1,4 +1,4 @@
-/**
+﻿/**
 * Génère un code HTML à partir d'un tableau JSON
 *	element_ihm = {
 *		html:[
@@ -31,6 +31,21 @@
 *	-------------------------------------------------------------------
 */
 var HTMLGenerator = {
+	specialTags:{
+		"FOREACH":function(node,params){ // ex : <FOREACH data="personne">...</FOREACH>
+			var result="";
+			if(typeof(node.child) !== "undefined" && typeof(node.attr[0].name) !== "undefined" && node.attr[0].name === "data") {
+				for(var element in params[ node.attr[0].value ]){
+					// /!\ Attention perte des params globaux pour cet appel
+					result +=  HTMLGenerator.getHtmlCode(node.child,params[ node.attr[0].value ][element]);
+				}
+			}else{
+				result +=  HTMLGenerator.getHtmlCode(node.child,params);
+			}
+			return result;
+		}
+	},
+
 	append : function(parentNode, jsonTemplate,params) {
 		if(typeof(jsonTemplate.beforeLoad) !== "undefined"){
 			jsonTemplate.beforeLoad(params);
@@ -89,40 +104,36 @@ var HTMLGenerator = {
 			}
 			return string;
 		}
-		
-		// CAS MERDIQUE : dans le "for in", on parcours un tableau. Seulement il possède le prototype :
-			// Array.prototype.unset=function(a){a=this.indexOf(a);-1<a&&this.splice(a,1)};
-			// Soit : On doit checker si le node n'est pas une fonction
-			// Soit : On enlève le prototype de Tool.js qui n'a pas encore servi d'ailleurs
-		// J'ai déjà été confronté à ce problème dans mon code.
-		// Je fais : if(typeof(machin) !== "function")... etc.
-	
+
 		var regex=/$(.+):(.*)/g;
-	
 		var nodeCode="";
 		for(var i in jsonTemplate) {
 			var node = jsonTemplate[i];
-			if(typeof(node.content) !== "undefined") {	
-				var ret = replaceVariables(node.content,params);
-				nodeCode += ret;
-			}
-			if(typeof(node.name) !== "undefined" && node.name != "") { // node.name = "" parfois CAS MERDIQUE
-				nodeCode+="<"+node.name;
-				if(typeof(node.attr) !== "undefined") {
-					for(var attr in node.attr) {
-						var value = replaceVariables(node.attr[attr].value,params);
-						if(typeof(node.attr[attr].name) !== "undefined" && typeof(value) !== "undefined") { // CAS MERDIQUE
-							nodeCode += " "+node.attr[attr].name+"='"+value+"'";
-						} else {
-							//console.log("UNDEF ",node.attr[attr]);
+			if(typeof(node) !== "function"){
+				if(typeof(node.content) !== "undefined") {
+					var ret = replaceVariables(node.content,params);
+					nodeCode += ret;
+				}
+				if(typeof(node.name) !== "undefined" && node.name != "") { // node.name = "" parfois CAS MERDIQUE => non pas possible un tag html doit forcément avoir un nom
+					if(typeof(HTMLGenerator.specialTags[node.name]) !== "undefined"){
+						nodeCode += HTMLGenerator.specialTags[node.name](node,params);
+					}else{
+						nodeCode+="<"+node.name;
+						if(typeof(node.attr) !== "undefined") {
+							for(var attr in node.attr) {
+								var value = replaceVariables(node.attr[attr].value,params);
+								if(typeof(node.attr[attr].name) !== "undefined" && typeof(value) !== "undefined") { // CAS MERDIQUE
+									nodeCode += " "+node.attr[attr].name+"='"+value+"'";
+								}
+							}
 						}
+						nodeCode+=">";
+						if(typeof(node.child) !== "undefined") {
+							nodeCode += HTMLGenerator.getHtmlCode(node.child,params);
+						}
+						nodeCode += "</"+node.name+">";
 					}
 				}
-				nodeCode+=">";
-				if(typeof(node.child) !== "undefined") {
-					nodeCode += HTMLGenerator.getHtmlCode(node.child,params);
-				}
-				nodeCode += "</"+node.name+">";
 			}
 		}
 		return nodeCode;

@@ -1,8 +1,15 @@
 var TileSet={
-	grass:{img:'grass.png',x:0,y:0,primary:'grass',secondary:'grass'},
-	road:{img:'road.png',x:0,y:0,primary:'road',secondary:'road'},
-	water:{img:'water.gif',x:0,y:0,primary:'water',secondary:'water'},
-	dirt:{img:'dirt.png',x:0,y:0,primary:'dirt',secondary:'dirt'},
+	basics:{
+		grass:{img:'grass.png',x:0,y:0,primary:'grass',secondary:'grass'},
+		road:{img:'road.png',x:0,y:0,primary:'road',secondary:'road'},
+		water:{img:'water.gif',x:0,y:0,primary:'water',secondary:'water'},
+		dirt:{img:'dirt.png',x:0,y:0,primary:'dirt',secondary:'dirt'},
+	},
+	derived:{
+		1:{x:20,y:0},
+		2:{x:0,y:20},
+		3:{x:20,y:20},
+	}
 };
 /*
 var TileSet={

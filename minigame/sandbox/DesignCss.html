@@ -11,7 +11,7 @@
 				
 			h1{font-family:Arial, Helvetica, sans-serif;color:#315073;font-size:1.5em;margin:0;padding:0;}
 			
-			form{background:#315073;border-radius:5px;box-shadow:0px 2px 2px #000;border:1px solid #bbb;padding:5px;}
+			form{position:relative;background:#315073;border-radius:5px;box-shadow:0px 2px 2px #000;border:1px solid #bbb;padding:5px;}
 				form label{color:#6093B2;}
 				form p{color:#6093B2;display:block;margin:0px 20px;padding:0;text-align:left;font-size:0.7em;}
 				form .container{text-align:left;}
@@ -26,11 +26,20 @@
 			.clear{clear:both;}
 			
 			.html{display:block;width:100%;height: calc(100% - 2em);}
-			.preview{display:block;width:100%;height: calc(100% - 2em);overflow:hidden;position:relative;}
+			.preview{display:block;width:100%;height: calc(100% - 2em);overflow:auto;position:relative;}
 			.css{display:block;width:100%;height: calc(25% - 2px); border:1px solid #000;}
 			
 			.previewImageContent{width:100%;height:100%;display:block;}
 			
+			.close{position:absolute;top:-5px;right:-5px;color:#fff;border:1px solid #fff;box-shadow:1px 1px 2px #000;font-size:8px;font-weight:bold;text-align:center;border-radius:100%;background: #f85032; /* Old browsers */
+background: -moz-linear-gradient(top,  #f85032 0%, #f16f5c 50%, #f6290c 51%, #f02f17 71%, #e73827 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f85032), color-stop(50%,#f16f5c), color-stop(51%,#f6290c), color-stop(71%,#f02f17), color-stop(100%,#e73827)); /* Chrome,Safari4+ */
+background: -webkit-linear-gradient(top,  #f85032 0%,#f16f5c 50%,#f6290c 51%,#f02f17 71%,#e73827 100%); /* Chrome10+,Safari5.1+ */
+background: -o-linear-gradient(top,  #f85032 0%,#f16f5c 50%,#f6290c 51%,#f02f17 71%,#e73827 100%); /* Opera 11.10+ */
+background: -ms-linear-gradient(top,  #f85032 0%,#f16f5c 50%,#f6290c 51%,#f02f17 71%,#e73827 100%); /* IE10+ */
+background: linear-gradient(to bottom,  #f85032 0%,#f16f5c 50%,#f6290c 51%,#f02f17 71%,#e73827 100%); /* W3C */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f85032', endColorstr='#e73827',GradientType=0 ); /* IE6-9 */
+}
+				.close:hover{opacity:1;}
 		</style>
 		<style class="style"></style>
 	</head>
@@ -129,6 +138,7 @@
 			// Ajout des formulaires
 			$("body").prepend(
 				"<form class='tools'>"+
+					"<button class='close'>X</button>"+
 					"<label>Preview Image</label><input  type='text' name='url'/>"+
 					"<label>Grayscale</label><input  type='range' name='grayscale' min='0' max='100' step='10' value='"+defaultValues.grayscale+"'/><label class='rangeValue' id='grayscaleValue'>"+defaultValues.grayscale+"%</label>"+
 					"<label>Invert Colors</label><input type='checkbox' name='invert'/>"+
@@ -148,6 +158,7 @@
 			);
 			$("body").prepend(
 				"<form class='addCss'>"+
+					"<button class='close'>X</button>"+
 					"<label>Include Css</label><input  type='text' name='addCssUrl'/><input type='button' name='addCss' value='Validate'>"+
 				"</form>"
 			);
@@ -161,7 +172,11 @@
 			$(".html").keyup(function(){
 				$(".preview").html($(this).val());
 			});
-			
+			$(".close").click(function(){
+				$(this).parent().remove();
+				$(".box").css("width","100%");
+				return false;
+			});
 			$("input[name='url']").change(function() {
 				$(".previewImageContent").css("background-image","url("+$(this).val()+")");
 			});

@@ -1,0 +1,102 @@
+<link rel="stylesheet" type="text/css" href="../../css/base.css" />
+<link rel="stylesheet" type="text/css" href="../../css/skeleton.css" />
+<link rel="stylesheet" type="text/css" href="./spells.css" />
+<script src="../../libraries/jquery-1.9.1.min.js" type="text/javascript"></script>
+<style>
+	input[type=text]{width:40px;display:inline-block !important;margin-bottom:1px;}
+	input[name=name]{width:400px;}
+	input[name=playerClass]{width:100px;}
+	input[name=portee]{width:200px;}
+	input[name=duree]{width:200px;}
+	textarea.detail{width:95%;height:100px;margin:0 auto;}
+	textarea.code{width:90%;}
+	button{border:1px solid #FFF;background-color:#57af00;text-shadow:0 1px 1px #1c5100;color:#fff;padding:5px 10px;border-radius:3px;float:right;margin-right:20px;cursor:pointer;}
+		button:hover{border:1px solid #FFF;background-color:#499300;color:#fff;text-shadow:0 1px 1px #1c5100;}
+</style>
+<div class="screen" style="width:100%;height:100%;overflow:visible;top:20px;left:20px;padding-top:50px;">
+<div class="container spell level_1">
+	<div class="row">
+		<div class="category"><input type="text" name="category" placeholder="category" /></div>
+		<div class="level"><input type="text" min="0" max="5" name="level" placeholder="level" /></div>
+		<div class="name sixteen columns"><input type="text" name="name" placeholder="name" /><input type="text" name="playerClass" placeholder="playerClass" /></div>
+	</div>
+	<div class="row">
+		<div class="portee six columns"><strong>Portée</strong><span><input type="text" name="portee" placeholder="portée"/></span></div>
+		<div class="duree ten columns"><strong>Durée</strong><span><input type="text" name="duree" placeholder="duree"/></span></div>
+	</div>
+	<div class="row">
+		<div class="description sixteen columns"><textarea class="detail" placeholder="description"></textarea></div>
+	</div>
+	<div class="row">
+		<button name="add">Ajouter</button>
+		<button name="addAndClear">Ajouter et Effacer Tout</button>
+		<button name="clear">Effacer Tout</button>
+	</div>
+</div>
+<br/><br/><br/>
+<textarea class="code"></textarea>
+<script src="./spells.js"   type="text/javascript"></script>
+<script>
+	var level = "level_1";
+
+	$(document).ready(function(){
+		$("button[name='add']").click(function(){
+			createSpell();
+		});
+		$("button[name='addAndClear']").click(function(){
+			createSpell();
+			clear();
+		});
+		$("button[name='clear']").click(function(){
+			clear();
+		});
+		$("input[name='name']").change(function(){
+			if(typeof(spells[$(this).val().replace(/"/g,"&quot;").replace(/'/g,"&#39;")]) !== "undefined"){
+				getSpell();
+			}
+		});
+		$("input[name='level']").change(function(){
+			$("spell").removeClass(level);
+			$("spell").addClass("level_"+$(this).val());
+			level = "level_"+$(this).val();
+		});
+	});
+	function getSpell(){
+		var spell = spells[$("input[name='name']").val().replace(/"/g,"&quot;").replace(/'/g,"&#39;")];
+		$("input[name=category]").val(spell.category);
+		$("input[name=level]").val(spell.level);
+		$("input[name=name]").val(spell.name.replace(/&quot;/g,'"').replace(/&#39;/g,"'"));
+		$("input[name=playerClass]").val(spell.playerClass);
+		$("input[name=portee]").val(spell.portee);
+		$("input[name=duree]").val(spell.duree);
+		$(".detail").val(spell.description.replace(/<br\/>/g, "\n"));
+	}
+	function clear(){
+		$("input[type='text']").val("");
+		$("textarea").not(".code").val("");
+	}
+	
+	function createSpell(){
+		var result=new Object();
+		result.category=$("input[name='category']").val();
+		result.level=$("input[name='level']").val();
+		result.name=$("input[name='name']").val().replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+		result.playerClass=$("input[name='playerClass']").val();
+		result.portee=$("input[name='portee']").val();
+		result.duree=$("input[name='duree']").val();
+		result.description=$("textarea.detail").val().replace(/\n/g, "<br/>").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+		if(result.name !== ""){
+			spells[result.name]=result;
+		}
+		getJson();
+	}
+	
+	function getJson(){
+		var result="var spells=new Array();\n";
+		for(var name in spells){
+			result+='spells["'+name+'"]='+JSON.stringify(spells[name])+";\n";
+		}
+		$("textarea.code").val(result);
+	}
+</script>
+</div>

@@ -53,7 +53,7 @@ k)-899497514);j=k;k=e;e=g<<30|g>>>2;g=h;h=c}b[0]=b[0]+h|0;b[1]=b[1]+g|0;b[2]=b[2
 
 /** Dice
 *	renvoi un nombre aléatoire
-*		ex: 	1) var rand = Dice.roll(14,12);  	// roll(min,max) nombre compris entre les valeurs passées en paramètres
+*		ex: 	1) var rand = Dice.roll(12,14);  	// roll(min,max) nombre compris entre les valeurs passées en paramètres
 *			2) var rand = Dice.roll2();		// Dé de 2
 *			3) var rand = Dice.roll6();		// Dé de 6
 *			3) var rand = Dice.roll8();		// Dé de 8
@@ -62,7 +62,17 @@ k)-899497514);j=k;k=e;e=g<<30|g>>>2;g=h;h=c}b[0]=b[0]+h|0;b[1]=b[1]+g|0;b[2]=b[2
 *			5) var rand = Dice.roll20();		// Dé de 20
 *			5) var rand = Dice.roll42();		// Dé de 42
 */
-var Dice=function(){roll=function(a,b){Math.random()};roll2=function(a,b){Math.random()};roll8=function(a,b){Math.random()};roll6=function(a,b){Math.random()};roll10=function(a,b){Math.random()};roll12=function(a,b){Math.random()};roll20=function(a,b){Math.random()};roll42=function(a,b){Math.random()}};
+var Dice={
+	roll:function(min,max){ if(min<max){return Math.floor((Math.random()*(max+1))+min);}else{return Math.floor((Math.random()*(min+1))+max);}},
+	roll2:function(){return Math.floor((Math.random()*2)+1);},
+	roll4:function(){return Math.floor((Math.random()*4)+1);},
+	roll6:function(){return Math.floor((Math.random()*6)+1);},
+	roll8:function(){return Math.floor((Math.random()*8)+1);},
+	roll10:function(){return Math.floor((Math.random()*10)+1);},
+	roll12:function(){return Math.floor((Math.random()*12)+1);},
+	roll20:function(){return Math.floor((Math.random()*20)+1);},
+	roll42:function(){return Math.floor((Math.random()*42)+1);},
+};
 
 /**
 *	Copy a 2D array

@@ -6,7 +6,8 @@ var ResourcesLoader = {
 		"water":{src : "water.gif",type : RESOURCE_TYPE_ENUM.IMAGE},
 		"road":{src : "road.png",type : RESOURCE_TYPE_ENUM.IMAGE},
 		"dirt":{src : "dirt.png",type : RESOURCE_TYPE_ENUM.IMAGE},
-		"tile1":{src : "tile1.png",type : RESOURCE_TYPE_ENUM.IMAGE},
+		"grass_water":{src : "tile1.png",type : RESOURCE_TYPE_ENUM.IMAGE},
+		"template":{src : "tileTemplate.png",type : RESOURCE_TYPE_ENUM.IMAGE},
 	},
 	
 	isLoaded : function(){

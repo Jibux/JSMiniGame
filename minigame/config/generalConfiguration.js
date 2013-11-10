@@ -36,6 +36,7 @@ configuration.load={
 			"Actions/Move",
 			"HTMLGenerator",
 			"ResourcesLoader",
+			"MapHelper",
 		],
 		ihm:[
 			"character_ihm",
@@ -52,6 +53,8 @@ configuration.load={
 			"jquery-ui/jquery-ui-1.10.3.min"
 		],
 		main:[
+			"base",
+			"skeleton",
 			"style",
 			"character",
 			"tile"
