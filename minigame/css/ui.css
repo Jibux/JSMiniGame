@@ -50,5 +50,6 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e4f5fc', end
 .ui_dialog .body hr{margin:2px 0;}
  .ui_dialog .body .header{display:block;width:100%;height:20px;margin:0px 0px 5px 0px;position:relative;}
  
-.ui_button .ui_tooltip{display:none;position:absolute;bottom:-1.5em;left:10px;background:#FFF;border:1px solid #555;color:#555;padding:0 5px;opacity:1;border-radius:3px;}
+.ui_button .ui_tooltip{display:none;position:absolute;top:100%;left:0px;background:#FFF;border:1px solid #555;color:#555;padding:0 5px;opacity:1;border-radius:3px;}
 	.ui_button:hover .ui_tooltip{display:block;}
+	.ui_tooltip .value{display: block;border-top:1px solid #333;padding-top:3px;}

@@ -2,7 +2,7 @@ var mapsInScreen={counter:0};
 var mapConfiguration={width:20,height:20,unit:20};
 var mouse = {down : false, top:0,left:0,totalMoveTop:0,totalMoveLeft:0};
 var selectedTypes={primary:"grass",secondary:"water"};
-var scale={value:90,step:10,max:300,min:50};// en %
+var scale={value:100,step:10,max:300,min:50};// en %
 var showGrid=false;
 var viewLandMark="2D";
 var currentLayer="tiles_layer";
@@ -51,7 +51,7 @@ function init(){
 	$("#screen").mousemove(function(event){
 		if(selectedButton === "PAINT"){
 			// on déplace le curseur sur la grille
-			var newOffset = getMousePosition(event);
+			var newOffset = getBrushCursorPosition(event);
 			$("#mouse_canvas").offset(newOffset);
 		}else if(selectedButton === "MOVE"){
 			if(mouse.down){
@@ -264,33 +264,64 @@ function createMapObject(position){
 	mapContent[mapID].position=position;
 }
 
-function getMousePosition(event){
-	var containerOffset = { 
-		y : $("#container").offset().top / TemplateDefinition.tileSize * scale.value/100, 
-		x : $("#container").offset().left / TemplateDefinition.tileSize * scale.value/100
+function getBrushCursorPosition(event){
+	// tile size relative to zoom
+	var currentTileSize =  TemplateDefinition.tileSize * scale.value/100 ;
+
+	var containerOffset = {
+		y : $("#container").offset().top,
+		x : $("#container").offset().left
 	};
+	
+	var layerOffset = {
+		y : $(".layer.tiles_layer").offset().top * scale.value/100 ,
+		x : $(".layer.tiles_layer").offset().left * scale.value/100 
+	};
+
+	var brushOffsetForMiddle = {
+		y : brushSet[selectedBrush].size.height * currentTileSize /2,
+		x : brushSet[selectedBrush].size.width  * currentTileSize /2
+	};
+	
 	var newOffset = {
-		y: event.pageY - (brushSet[selectedBrush].size.height * scale.value/100 * TemplateDefinition.tileSize / 2* scale.value/100 ) , 
-		x: event.pageX - (brushSet[selectedBrush].size.width  * scale.value/100 * TemplateDefinition.tileSize / 2* scale.value/100 )
+		y: event.pageY,
+		x: event.pageX
 	};
 	/*
 	if(viewLandMark === "3D"){
 		newOffset = changeFrame (newOffset, true);
-	}
-	*/
+	}*/
+	
+
+	
+	//newOffset.y -= containerOffset.y;
+	newOffset.y = newOffset.y / currentTileSize;
+	newOffset.y = Math.round(newOffset.y);
+	newOffset.y = newOffset.y * currentTileSize - currentTileSize;
+	newOffset.y += brushOffsetForMiddle.y;
+	
+	//newOffset.x -= containerOffset.x;
+	newOffset.x = newOffset.x / currentTileSize;
+	newOffset.x = Math.round(newOffset.x);
+	newOffset.x =  newOffset.x * currentTileSize - currentTileSize;
+	newOffset.x += brushOffsetForMiddle.x;
+	/*
 	newOffset.y -=  newOffset.y % TemplateDefinition.tileSize * scale.value/100 ;
 	newOffset.y +=  containerOffset.y;
-	newOffset.y = Math.round(newOffset.y);
+	newOffset.y -= brushOffsetForMiddle.y;
+	newOffset.y = Math.floor(newOffset.y);
+	
 	
 	newOffset.x -=  newOffset.x % TemplateDefinition.tileSize * scale.value/100 ;
 	newOffset.x +=  containerOffset.x;
-	newOffset.x = Math.round(newOffset.x);
-	
+	newOffset.x -= brushOffsetForMiddle.x;
+	newOffset.x = Math.floor(newOffset.x);
+	*/
 	return {top:newOffset.y,left:newOffset.x};
 }
 
 function getMouseMapPosition(event){
-	var position = getMousePosition(event);
+	var position = getBrushCursorPosition(event);
 	var firstMapPosition;
 	$(".map:first").each(function(){
 		firstMapPosition= {
@@ -408,7 +439,7 @@ function populateTileSet(){
 }
 
 function moveCursor(e){
-	var point=getMousePosition({x:e.pageX,y:e.pageY});
+	var point=getBrushCursorPosition({x:e.pageX,y:e.pageY});
 	var cursor=$("#cursor");
 	if(cursor.length == 0){
 		if($(".tileset .brush.selected").hasClass("brush_square_1")){
@@ -430,7 +461,7 @@ function moveCursor(e){
 }
 /*
 
-function getMousePosition(point){
+function getBrushCursorPosition(point){
 	var result={x:point.x,y:point.y};
 	result.x -=$("#mapContainer").offset().left;
 	result.y -=$("#mapContainer").offset().top;
@@ -442,7 +473,7 @@ function getMousePosition(point){
 */
 
 function changeMapTile(event,element){
-	var point=getMousePosition({x:event.pageX-100,y:event.pageY-100});
+	var point=getBrushCursorPosition({x:event.pageX-100,y:event.pageY-100});
 	
 	point.x=point.x/mapConfiguration.unit;
 	point.y=point.y/mapConfiguration.unit;

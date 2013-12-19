@@ -219,6 +219,7 @@ var Toolbar={
 			$("#toolbar_dialog .body #zoomOut_button").removeClass("ui_inactive_state");
 		}
 		$('#container').css("transform","scale("+(scale.value/100)+")");
+		Toolbar.addZoomValues();
 	},
 	/**
 	* zoom arriere
@@ -232,8 +233,13 @@ var Toolbar={
 			$("#toolbar_dialog .body #zoomIn_button").removeClass("ui_inactive_state");
 		}
 		$('#container').css("transform","scale("+(scale.value/100)+")");
+		Toolbar.addZoomValues();
 	},
 
+	addZoomValues:function(){
+		$("#zoomOut_button .ui_tooltip").each(function(){$(this).find(".value").remove();$(this).append("<span class='value'>"+(scale.value-scale.step)+"%</span>");});
+		$("#zoomIn_button .ui_tooltip").each(function(){$(this).find(".value").remove();$(this).append("<span class='value'>"+(scale.value+scale.step)+"%</span>");});
+	},
 	/**
 	* création de la toolbar
 	*/
@@ -257,6 +263,7 @@ var Toolbar={
 		$("#toolbar_dialog").css("left",20);
 		$("#toolbar_dialog").css("z-index",2);
 		Toolbar.refreshToolbar();
+		Toolbar.addZoomValues();
 	},
 	
 	/**
