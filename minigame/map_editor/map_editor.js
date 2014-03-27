@@ -178,20 +178,45 @@ function getPreviousMap(mapID){
 	$("#screen .tiles_layer .map").each(function(){
 		var id = $(this).attr("id");
 		
-		var currentPosition = changeFrame(mapContent[ id].position, true);
-		var mapPosition = changeFrame(mapContent[ mapID].position, true);
+		var currentPosition = mapContent[ id].position;//changeFrame(mapContent[ id].position, true);
+		var mapPosition = mapContent[ mapID].position;//changeFrame(mapContent[ mapID].position, true);
 		
 		if( typeof(previousMap) === "undefined"){
 			if(currentPosition.y < mapPosition.y){
 				previousMap = mapContent[ id ];
 			}
 		}else{
-			var previousPosition = changeFrame(previousMap.position, true);
+			if(previousMap.UID){
+				var previousPosition = previousMap.position;// changeFrame(previousMap.position, true);
+				
+				var offset ={};
+				offset.x = Math.min(previousPosition.x, currentPosition.x, mapPosition.x);
+				offset.y = Math.min(previousPosition.y, currentPosition.y, mapPosition.y);
+				
+				if(offset.x <=0){
+					offset.x = offset.x* -1 +1;
+				}
+				if(offset.y <=0){
+					offset.y = offset.y* -1 +1;
+				}
+				var tmp1 = (previousPosition.y + offset.y ) * (previousPosition.x +offset.x );
+				var tmp2 = (currentPosition.y + offset.y ) * (currentPosition.x + offset.x );
+				var tmp3 = (mapPosition.y + offset.y ) * (mapPosition.x + offset.x );
+				
+				if(tmp1 < tmp2 && tmp2 < tmp3){
+					previousMap = mapContent[ id ];
+				}
 
-			if(previousPosition.y < currentPosition.y && currentPosition.y < mapPosition.y){
-				previousMap = mapContent[ id ];
-			}else if(previousPosition.x < currentPosition.X && currentPosition.x < mapPosition.x){
-				previousMap = mapContent[ id ];
+				/*
+				if(previousPosition.y < currentPosition.y && currentPosition.y < mapPosition.y && previousPosition.x < currentPosition.X && currentPosition.x < mapPosition.x){
+					previousMap = mapContent[ id ];
+				}
+				else if(previousPosition.y < currentPosition.y && currentPosition.y < mapPosition.y){
+					previousMap = mapContent[ id ];
+				}else if(previousPosition.x < currentPosition.x && currentPosition.x < mapPosition.x){
+					previousMap = mapContent[ id ];
+				}
+				*/
 			}
 		}
 	});
