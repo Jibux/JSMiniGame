@@ -2,7 +2,7 @@
 * character_ihm
 
 <div class="occupation" style="top:$top:250$px;left:$left:250$px;" id="$ID$">
-	<div class="character  $direction:$ $mainHand:right_handed$ $sex:male$ $height:$ $weight:$">
+	<div class="character  $default:$ $direction:$ $mainHand:right_handed$ $sex:male$ $height:$ $weight:$">
 		    <div class="name">$name:Name$</div>
 		    <div class="lifebar">
 				<div class="life" style="width: $life:100$%;background-position-y:$life:100$%;"></div>
@@ -18,6 +18,7 @@
 * @param	ID
 * @param	top	:	250
 * @param	left	:	250
+* @param	default	:	[valeur par défaut vide]
 * @param	direction	:	[valeur par défaut vide]
 * @param	mainHand	:	right_handed
 * @param	sex	:	male
@@ -34,16 +35,7 @@
 * @param	clothType	:	loincloth
 * @param	weaponType	:	[valeur par défaut vide]
 */
-var character_ihm={"html":[{"name":"DIV","attr":[{"name":"class","value":"occupation"},{"name":"style","value":"top:$top:250$px;left:$left:250$px;"},{"name":"id","value":"$ID$"}],"child":[{"name":"DIV","attr":[{"name":"class","value":"character  $direction:$ $mainHand:right_handed$ $sex:male$ $height:$ $weight:$"}],"child":[{"name":"DIV","attr":[{"name":"class","value":"name"}],"child":[{"content":"$name:Name$"}]},{"name":"DIV","attr":[{"name":"class","value":"lifebar"}],"child":[{"name":"DIV","attr":[{"name":"class","value":"life"},{"name":"style","value":"width: $life:100$%;background-position-y:$life:100$%;"}]}]},{"name":"DIV","attr":[{"name":"class","value":"base  $skinColor:$"}]},{"name":"DIV","attr":[{"name":"class","value":"bearb $bearbColor:$ $bearbType:$"}]},{"name":"DIV","attr":[{"name":"class","value":"hair $hairColor:$ $hairType:$"}]},{"name":"DIV","attr":[{"name":"class","value":"cloth $clothColor:$ $clothType:loincloth$"}]},{"name":"DIV","attr":[{"name":"class","value":"weapon $weaponType:$"}]}]}]}],
+var character_ihm={"html":[{"name":"DIV","attr":[{"name":"class","value":"occupation"},{"name":"style","value":"top:$top:250$px;left:$left:250$px;"},{"name":"id","value":"$ID$"}],"child":[{"name":"DIV","attr":[{"name":"class","value":"character  $default:$ $direction:$ $mainHand:right_handed$ $sex:male$ $height:$ $weight:$"}],"child":[{"name":"DIV","attr":[{"name":"class","value":"name"}],"child":[{"content":"$name:Name$"}]},{"name":"DIV","attr":[{"name":"class","value":"lifebar"}],"child":[{"name":"DIV","attr":[{"name":"class","value":"life"},{"name":"style","value":"width: $life:100$%;background-position-y:$life:100$%;"}]}]},{"name":"DIV","attr":[{"name":"class","value":"base  $skinColor:$"}]},{"name":"DIV","attr":[{"name":"class","value":"bearb $bearbColor:$ $bearbType:$"}]},{"name":"DIV","attr":[{"name":"class","value":"hair $hairColor:$ $hairType:$"}]},{"name":"DIV","attr":[{"name":"class","value":"cloth $clothColor:$ $clothType:loincloth$"}]},{"name":"DIV","attr":[{"name":"class","value":"weapon $weaponType:$"}]}]}]}],
 beforeLoad: function(params){},
-afterLoad: function(params){
-	if(typeof(params.ID) !== "undefined"){
-		if(typeof(params.life) === "undefined" || params.life ===0){
-			$("#"+params.ID+" .character").addClass("ghost");
-		}
-		if(typeof(params.sex) === "undefined" || params.sex ==="female"){
-			$("#"+params.ID+" .character").remove(".bearb");
-		}
-	}
-}
+afterLoad: function(params){}
 };

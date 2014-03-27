@@ -56,7 +56,7 @@ var Character = function(idCharacter, map, mainCharacter) {
 	this.currentAction = null;
 	this.nextAction = null;
 	
-	//race:RACE.HUMAN
+	this.race = RACE.HUMAN;
 };
 
 Character.prototype = {
@@ -497,11 +497,13 @@ Character.prototype = {
 		//$("#"+this.currentMap.getID()).append('<div class="occupation" style="top:'+this.position.y+'px;left:'+this.position.x+'px;" id="'+this.ID+'"></div>');
 		//$("#"+this.ID).append('<div class="character stand down right"><div class="name">Name</div><div class="lifebar"><div class="life" style="width:50%;background-position:0 50%;"></div></div></div>');
 		var parameters = [];
+		parameters = this.race.defaultClass;
 		parameters["ID"] = this.ID;
 		parameters["name"] = this.name;
 		parameters["top"] = this.position.y;
 		parameters["left"] = this.position.x;
 		parameters["life"] = this.currentLife;
+		
 		HTMLGenerator.append("#"+this.currentMap.getID(), character_ihm, parameters);
 		this.setActive(true);
 	},

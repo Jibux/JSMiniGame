@@ -25,6 +25,7 @@ configuration.load={
 			"TemplateOccupation",
 		],
 		classes:[
+			"Races",
 			"Tools",
 			"astar",
 			"graph",

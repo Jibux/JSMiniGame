@@ -96,7 +96,7 @@
 	/*Distorsions*/
 	.character.very_tall{-webkit-transform:scaleY(1.3);bottom:0px;}
 	.character.tall{-webkit-transform:scaleY(1.15);bottom:-3px;}
-	.character.small{-webkit-transform:scaleY(0.9);bottom:-9px;}
+	.character.small{-webkit-transform:scaleY(0.9);bottom:0px;}
 	.character.very_small{-webkit-transform:scaleY(0.6);bottom:-16px;}
 	.character.very_fat{-webkit-transform:scaleX(1.4);}
 	.character.fat{-webkit-transform:scaleX(1.2);}

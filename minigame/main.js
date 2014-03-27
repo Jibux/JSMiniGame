@@ -4,8 +4,8 @@ $("document").ready(function() {
 
 function clock() {
 	var date = new Date();
-	var backgroundPos=Math.round((date.getHours()*date.getMinutes())/(1440)*10000+5000);
-	$("#screen").css("background-position",backgroundPos+"px 1px");
+	var backgroundPos=Math.round(((date.getHours()+1)*(date.getMinutes()+1))/(1440)*10000+5000);
+	$("#screen").css("background-position-y",backgroundPos+"px");
 }
 
 
@@ -35,9 +35,19 @@ function init() {
 	//map2.setNeighbours(mapID2);
 	
 	var character2 = new Character("TEST", map2, false);
+	character2.race = RACE.IMP;
 	character2.setPosition(new Point(0, 80));
-	
 	ActionManager.addSubject(character2);
+	
+	var character3 = new Character("TEST2", map2, false);
+	character3.race = RACE.DEVIL;
+	character3.setPosition(new Point(20, 100));
+	ActionManager.addSubject(character3);
+	
+	var character4 = new Character("TEST3", map2, false);
+	character4.race = RACE.GOLEM;
+	character4.setPosition(new Point(100, 20));
+	ActionManager.addSubject(character4);
 	
 	ActionManager.initSubjectsInCurrentMap();
 	ActionManager.printSubjectsOffset();
@@ -47,6 +57,8 @@ function init() {
 	
 	// Start the action manager
 	ActionManager.start();
+	clock();
+	setInterval(clock,6000);
 }
 
 function waitForCompleteLoad(){

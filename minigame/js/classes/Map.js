@@ -42,8 +42,8 @@ var Map = function(hash) {
 *	Static variable shared between all Map objects.
 */
 
-// We use this in order to draw maps in the correct location we adding/drawing new neighbours.
-Map.drawOffset = new Point(-225, 45);
+// We use this in order to draw maps in the correct location adding/drawing new neighbours.
+Map.drawOffset = new Point(-225, 205);
 // Global 2D array which concatenate all neighbours occupations.
 Map.neighboursOccupation = [];
 Map.neighboursSubjectOccupation = [];
